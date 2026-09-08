@@ -1,0 +1,30 @@
+{
+  "health_score": {
+    "components": {
+      "safety": 0.40,
+      "opportunity": 0.30,
+      "quality_of_life": 0.30
+    }
+  },
+  "components": {
+    "safety": {
+      "sources": ["crime"],
+      "formula": "100 - normalize(crime_rate_pc)",
+      "description": "Inverse of crime rate per capita (lower crime = higher safety)"
+    },
+    "opportunity": {
+      "sources": ["permits"],
+      "formula": "normalize(permit_rate_pc)",
+      "description": "Normalized permit rate per capita (more development = higher opportunity)"
+    },
+    "quality_of_life": {
+      "sources": ["requests", "housing"],
+      "formula": "100 - normalize(request_rate_pc + housing_rate_pc)",
+      "description": "Inverse of service requests + housing rate per capita"
+    }
+  },
+  "normalization": {
+    "method": "min_max_0_100",
+    "description": "Min-max scaling to 0-100 range within each component"
+  }
+}

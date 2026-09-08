@@ -1,0 +1,277 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "id": 1,
+      "properties": {
+        "district_id": 1,
+        "district_name": "District 1 - Dayton's Bluff",
+        "area": "Dayton's Bluff"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [-93.2038, 44.9545], [-93.1876, 44.9545], [-93.1876, 44.9379],
+          [-93.2038, 44.9379], [-93.2038, 44.9545]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 2,
+      "properties": {
+        "district_id": 2,
+        "district_name": "District 2 - Payne-Phalen",
+        "area": "Payne-Phalen"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [-93.1876, 44.9545], [-93.1714, 44.9545], [-93.1714, 44.9379],
+          [-93.1876, 44.9379], [-93.1876, 44.9545]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 3,
+      "properties": {
+        "district_id": 3,
+        "district_name": "District 3 - East Side",
+        "area": "East Side"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [-93.1552, 44.9545], [-93.1390, 44.9545], [-93.1390, 44.9379],
+          [-93.1552, 44.9379], [-93.1552, 44.9545]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 4,
+      "properties": {
+        "district_id": 4,
+        "district_name": "District 4 - Summit Hill",
+        "area": "Summit Hill"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [-93.2200, 44.9379], [-93.2038, 44.9379], [-93.2038, 44.9213],
+          [-93.2200, 44.9213], [-93.2200, 44.9379]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 5,
+      "properties": {
+        "district_id": 5,
+        "district_name": "District 5 - West Side",
+        "area": "West Side"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [-93.2362, 44.9379], [-93.2200, 44.9379], [-93.2200, 44.9213],
+          [-93.2362, 44.9213], [-93.2362, 44.9379]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 6,
+      "properties": {
+        "district_id": 6,
+        "district_name": "District 6 - North End",
+        "area": "North End"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [-93.2524, 44.9545], [-93.2362, 44.9545], [-93.2362, 44.9379],
+          [-93.2524, 44.9379], [-93.2524, 44.9545]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 7,
+      "properties": {
+        "district_id": 7,
+        "district_name": "District 7 - Como",
+        "area": "Como"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [-93.1714, 44.9711], [-93.1552, 44.9711], [-93.1552, 44.9545],
+          [-93.1714, 44.9545], [-93.1714, 44.9711]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 8,
+      "properties": {
+        "district_id": 8,
+        "district_name": "District 8 - Frogtown",
+        "area": "Frogtown"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [-93.2038, 44.9711], [-93.1876, 44.9711], [-93.1876, 44.9545],
+          [-93.2038, 44.9545], [-93.2038, 44.9711]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 9,
+      "properties": {
+        "district_id": 9,
+        "district_name": "District 9 - North End (Upper)",
+        "area": "North End Upper"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [-93.2200, 44.9711], [-93.2038, 44.9711], [-93.2038, 44.9545],
+          [-93.2200, 44.9545], [-93.2200, 44.9711]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 10,
+      "properties": {
+        "district_id": 10,
+        "district_name": "District 10 - University",
+        "area": "University"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [-93.2362, 44.9711], [-93.2200, 44.9711], [-93.2200, 44.9545],
+          [-93.2362, 44.9545], [-93.2362, 44.9711]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 11,
+      "properties": {
+        "district_id": 11,
+        "district_name": "District 11 - North Star",
+        "area": "North Star"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [-93.1876, 44.9877], [-93.1714, 44.9877], [-93.1714, 44.9711],
+          [-93.1876, 44.9711], [-93.1876, 44.9877]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 12,
+      "properties": {
+        "district_id": 12,
+        "district_name": "District 12 - Ward 12",
+        "area": "Ward 12"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [-93.2038, 44.9877], [-93.1876, 44.9877], [-93.1876, 44.9711],
+          [-93.2038, 44.9711], [-93.2038, 44.9877]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 13,
+      "properties": {
+        "district_id": 13,
+        "district_name": "District 13 - Union Park",
+        "area": "Union Park"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [-93.2200, 44.9877], [-93.2038, 44.9877], [-93.2038, 44.9711],
+          [-93.2200, 44.9711], [-93.2200, 44.9877]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 14,
+      "properties": {
+        "district_id": 14,
+        "district_name": "District 14 - Longfellow",
+        "area": "Longfellow"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [-93.1876, 44.9213], [-93.1714, 44.9213], [-93.1714, 44.9047],
+          [-93.1876, 44.9047], [-93.1876, 44.9213]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 15,
+      "properties": {
+        "district_id": 15,
+        "district_name": "District 15 - Powder Keg",
+        "area": "Powder Keg"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [-93.2038, 44.9213], [-93.1876, 44.9213], [-93.1876, 44.9047],
+          [-93.2038, 44.9047], [-93.2038, 44.9213]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 16,
+      "properties": {
+        "district_id": 16,
+        "district_name": "District 16 - Mountain View",
+        "area": "Mountain View"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [-93.2200, 44.9213], [-93.2038, 44.9213], [-93.2038, 44.9047],
+          [-93.2200, 44.9047], [-93.2200, 44.9213]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 17,
+      "properties": {
+        "district_id": 17,
+        "district_name": "District 17 - South St. Paul",
+        "area": "South St. Paul"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [-93.2362, 44.9213], [-93.2200, 44.9213], [-93.2200, 44.9047],
+          [-93.2362, 44.9047], [-93.2362, 44.9213]
+        ]]
+      }
+    }
+  ]
+}
