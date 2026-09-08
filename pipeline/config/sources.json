@@ -1,0 +1,62 @@
+{
+  "sources": [
+    {
+      "id": "crime",
+      "name": "Crime Incidents",
+      "loader_module": "clean_crime",
+      "geo_join_method": "crosswalk",
+      "crosswalk_file": "crosswalks/crime_neighborhood_to_district.json",
+      "rate_direction": "invert",
+      "health_component": "safety",
+      "weight_in_component": 1.0,
+      "raw_data_file": "../data/Crime_Incident_Report.csv",
+      "metric_name": "crime_rate_pc",
+      "metric_label": "Crime Rate per 1000 residents",
+      "metric_unit": "incidents per 1000 pop",
+      "description": "Police-reported crime incidents (major incidents only)"
+    },
+    {
+      "id": "permits",
+      "name": "Building Permits",
+      "loader_module": "clean_permits",
+      "geo_join_method": "spatial_join",
+      "rate_direction": "direct",
+      "health_component": "opportunity",
+      "weight_in_component": 1.0,
+      "raw_data_file": "../data/Approved_Building_Permits_-7890413957898939046.csv",
+      "metric_name": "permit_rate_pc",
+      "metric_label": "Permits per 1000 residents",
+      "metric_unit": "permits per 1000 pop",
+      "description": "Approved building/development permits"
+    },
+    {
+      "id": "requests",
+      "name": "Service Requests",
+      "loader_module": "clean_requests",
+      "geo_join_method": "spatial_join",
+      "rate_direction": "invert",
+      "health_component": "quality_of_life",
+      "weight_in_component": 0.5,
+      "raw_data_file": "../data/Resident_Service_Requests_7024824928576740068.csv",
+      "metric_name": "request_rate_pc",
+      "metric_label": "Service Requests per 1000 residents",
+      "metric_unit": "requests per 1000 pop",
+      "description": "Resident-reported infrastructure & service issues"
+    },
+    {
+      "id": "housing",
+      "name": "Housing Production",
+      "loader_module": "clean_housing",
+      "geo_join_method": "best_effort_spatial_join",
+      "rate_direction": "direct",
+      "health_component": "quality_of_life",
+      "weight_in_component": 0.5,
+      "raw_data_file": "../data/Housing_Production.csv",
+      "metric_name": "housing_rate_pc",
+      "metric_label": "Housing Units Produced per 1000 residents",
+      "metric_unit": "units per 1000 pop",
+      "description": "New housing units (includes all unit types)",
+      "fallback_behavior": "exclude_from_scoring_if_geography_fails"
+    }
+  ]
+}
