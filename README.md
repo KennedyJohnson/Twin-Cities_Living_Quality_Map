@@ -141,8 +141,8 @@ St. Paul Neighborhood Health
 ### Frontend
 
 - **Framework:** Next.js 14 (React) + TypeScript
-- **Mapping:** Google Maps JavaScript API + `@vis.gl/react-google-maps`
-- **Choropleth:** google.maps.Data with dynamic feature styling
+- **Mapping:** Leaflet + OpenStreetMap (free, open-source, no API key needed)
+- **Choropleth:** Leaflet GeoJSON layers with dynamic feature styling
 - **Color scale:** Diverging Blue–Orange (colorblind-safe)
 - **Deployment:** Vercel (zero-config, auto-deploys on git push)
 
