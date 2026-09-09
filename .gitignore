@@ -1,5 +1,5 @@
-# Data files
-data/
+# Data files (raw datasets only — web/public/data is served by the app and stays tracked)
+/data/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

@@ -22,14 +22,10 @@
 
 #### Project Structure
 ```
-notebooks/
-├── 01_README.ipynb          # Project overview & quick start
-├── 02_EDA.ipynb             # Exploratory data analysis
-├── 03_Data_Cleaning.ipynb   # Standardization & preprocessing
-├── 04_PROJECT_PLAN.ipynb    # Strategic planning
-├── 05_METHODOLOGY.ipynb     # Analysis approach
-└── 06_CODE_SNIPPETS.ipynb   # Reusable code examples
-data/                        # 4 CSV files
+pipeline/                    # Data processing scripts
+web/                         # Next.js frontend (deployed on Vercel)
+docs/PROJECT_BACKGROUND.md   # Original research plan & methodology notes
+data/                        # 4 CSV files (gitignored, local only)
 ```
 
 #### Geographic Identifiers
