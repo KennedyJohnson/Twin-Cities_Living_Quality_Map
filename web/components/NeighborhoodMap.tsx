@@ -56,12 +56,12 @@ function MapContent({
               });
 
               layer.on('mouseover', () => {
-                layer.setStyle({ weight: 3, opacity: 1 });
+                (layer as L.Path).setStyle({ weight: 3, opacity: 1 });
               });
 
               layer.on('mouseout', () => {
                 const isSelected = selectedDistrict?.district_id === districtId;
-                layer.setStyle({
+                (layer as L.Path).setStyle({
                   weight: isSelected ? 3 : 2,
                   opacity: isSelected ? 1 : 0.5,
                 });

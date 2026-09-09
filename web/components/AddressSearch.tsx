@@ -120,14 +120,14 @@ export default function AddressSearch({ onAddressSelect }: AddressSearchProps) {
     setSelectedAddress(result.display_name);
     setSuggestions([]);
 
-    const districtResult = await findDistrictForPoint(parseFloat(result.lat), parseFloat(result.lon));
+    const districtResult = await findDistrictForPoint(result.lat, result.lon);
 
     if (districtResult) {
       const neighborhoodMap = await getNeighborhoodMap();
       const neighborhood = neighborhoodMap.get(districtResult.districtId);
 
       if (neighborhood && onAddressSelect) {
-        onAddressSelect(result.display_name, parseFloat(result.lat), parseFloat(result.lon), neighborhood);
+        onAddressSelect(result.display_name, result.lat, result.lon, neighborhood);
       }
     }
   };
