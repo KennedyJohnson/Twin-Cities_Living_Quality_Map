@@ -2,7 +2,7 @@
 
 An interactive map showing the health and vitality of all 17 St. Paul District Councils, built from city open data.
 
-**Live Dashboard:** [st-paul-health.vercel.app](https://st-paul-health.vercel.app) *(deployed on Vercel)*
+**Live Dashboard:** [st-paul-health.vercel.app](https://stpaul-living-quality-map.vercel.app) *(deployed on Vercel)*
 
 ---
 
