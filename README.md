@@ -94,7 +94,6 @@ All data comes from **St. Paul's Open Data Portal** and is aggregated to the 17 
 
 ```
 St. Paul Neighborhood Health
-├── notebooks/              (exploratory analysis, ignored in production)
 ├── pipeline/               (data processing, run locally)
 │   ├── load.py             (fetch raw CSVs from city open data)
 │   ├── clean_*.py          (standardize, geocode, join to districts)

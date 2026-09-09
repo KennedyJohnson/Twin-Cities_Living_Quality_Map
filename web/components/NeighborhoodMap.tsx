@@ -11,11 +11,13 @@ import 'leaflet/dist/leaflet.css';
 interface NeighborhoodMapProps {
   onDistrictSelect: (district: Neighborhood | null) => void;
   selectedDistrict: Neighborhood | null;
+  flyToLocation?: { lat: number; lon: number } | null;
 }
 
 function MapContent({
   onDistrictSelect,
   selectedDistrict,
+  flyToLocation,
 }: NeighborhoodMapProps) {
   const map = useMap();
   const geoJsonRef = useRef<L.GeoJSON | null>(null);
@@ -70,6 +72,14 @@ function MapContent({
 
         geoJsonRef.current = geoJsonLayer;
         geoJsonLayer.addTo(map);
+
+        // Fit map bounds to Twin Cities metro area
+        const bounds = L.latLngBounds([
+          [44.8, -93.4],   // Southwest corner
+          [45.1, -92.8],   // Northeast corner
+        ]);
+        map.fitBounds(bounds, { padding: [50, 50] });
+
         setIsLoading(false);
       } catch (error) {
         console.error('Failed to load boundary data:', error);
@@ -96,6 +106,12 @@ function MapContent({
       });
     }
   }, [selectedDistrict]);
+
+  useEffect(() => {
+    if (flyToLocation) {
+      map.flyTo([flyToLocation.lat, flyToLocation.lon], 15);
+    }
+  }, [flyToLocation, map]);
 
   return (
     <>
@@ -127,6 +143,7 @@ function MapContent({
 export default function NeighborhoodMap({
   onDistrictSelect,
   selectedDistrict,
+  flyToLocation,
 }: NeighborhoodMapProps) {
   return (
     <MapContainer
@@ -138,6 +155,7 @@ export default function NeighborhoodMap({
       <MapContent
         onDistrictSelect={onDistrictSelect}
         selectedDistrict={selectedDistrict}
+        flyToLocation={flyToLocation}
       />
     </MapContainer>
   );
