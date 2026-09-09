@@ -1,31 +1,31 @@
 {
   "1 - Conway/Battlecreek/Highwood": {
     "district_id": 1,
-    "district_name": "District 1 - Dayton's Bluff",
+    "district_name": "District 1 - Battle Creek - Conway - Eastview - Highwood Hills",
     "confidence": 0.95,
     "method": "neighborhood_number_match"
   },
   "2 - Greater East Side": {
     "district_id": 2,
-    "district_name": "District 2 - Payne-Phalen",
+    "district_name": "District 2 - Greater East Side",
     "confidence": 0.95,
     "method": "neighborhood_number_match"
   },
   "3 - West Side": {
     "district_id": 3,
-    "district_name": "District 3 - East Side",
+    "district_name": "District 3 - West Side",
     "confidence": 0.95,
     "method": "neighborhood_number_match"
   },
   "4 - Dayton's Bluff": {
     "district_id": 4,
-    "district_name": "District 4 - Summit Hill",
+    "district_name": "District 4 - Dayton's Bluff",
     "confidence": 0.95,
     "method": "neighborhood_number_match"
   },
   "5 - Payne/Phalen": {
     "district_id": 5,
-    "district_name": "District 5 - West Side",
+    "district_name": "District 5 - Payne - Phalen",
     "confidence": 0.95,
     "method": "neighborhood_number_match"
   },
@@ -37,37 +37,37 @@
   },
   "7 - Thomas/Dale(Frogtown)": {
     "district_id": 7,
-    "district_name": "District 7 - Como",
+    "district_name": "District 7 - Frogtown",
     "confidence": 0.95,
     "method": "neighborhood_number_match"
   },
   "8 - Summit/University": {
     "district_id": 8,
-    "district_name": "District 8 - Frogtown",
+    "district_name": "District 8 - Summit - University",
     "confidence": 0.95,
     "method": "neighborhood_number_match"
   },
   "9 - West Seventh": {
     "district_id": 9,
-    "district_name": "District 9 - North End (Upper)",
+    "district_name": "District 9 - West Seventh - Fort Road",
     "confidence": 0.95,
     "method": "neighborhood_number_match"
   },
   "10 - Como": {
     "district_id": 10,
-    "district_name": "District 10 - University",
+    "district_name": "District 10 - Como Park",
     "confidence": 0.95,
     "method": "neighborhood_number_match"
   },
   "11 - Hamline/Midway": {
     "district_id": 11,
-    "district_name": "District 11 - North Star",
+    "district_name": "District 11 - Hamline - Midway",
     "confidence": 0.95,
     "method": "neighborhood_number_match"
   },
   "12 - St. Anthony": {
     "district_id": 12,
-    "district_name": "District 12 - Ward 12",
+    "district_name": "District 12 - Saint Anthony Park",
     "confidence": 0.95,
     "method": "neighborhood_number_match"
   },
@@ -79,25 +79,25 @@
   },
   "14 - Macalester-Groveland": {
     "district_id": 14,
-    "district_name": "District 14 - Longfellow",
+    "district_name": "District 14 - Macalester - Groveland",
     "confidence": 0.95,
     "method": "neighborhood_number_match"
   },
   "15 - Highland": {
     "district_id": 15,
-    "district_name": "District 15 - Powder Keg",
+    "district_name": "District 15 - Highland Park",
     "confidence": 0.95,
     "method": "neighborhood_number_match"
   },
   "16 - Summit Hill": {
     "district_id": 16,
-    "district_name": "District 16 - Mountain View",
+    "district_name": "District 16 - Summit Hill",
     "confidence": 0.95,
     "method": "neighborhood_number_match"
   },
   "17 - Capitol River": {
     "district_id": 17,
-    "district_name": "District 17 - South St. Paul",
+    "district_name": "District 17 - Downtown",
     "confidence": 0.95,
     "method": "neighborhood_number_match"
   }

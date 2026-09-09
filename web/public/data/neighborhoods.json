@@ -2,7 +2,7 @@
   "neighborhoods": [
     {
       "district_id": 1,
-      "district_name": "District 1 - Battle Creek - Conway - Eastview - Highwood Hills",
+      "district_name": "Battle Creek - Conway - Eastview - Highwood Hills",
       "population": 8200,
       "metrics": {
         "crime_rate_pc": {
@@ -14,20 +14,24 @@
           "rate_per_1000": 2079.02
         },
         "request_rate_pc": {
-          "raw_count": 1350,
-          "rate_per_1000": 164.63
+          "raw_count": 11815,
+          "rate_per_1000": 1440.85
+        },
+        "housing_rate_pc": {
+          "raw_count": 37,
+          "rate_per_1000": 4.51
         }
       },
       "indices": {
         "safety": 78.54,
         "opportunity": 24.11,
-        "quality_of_life": 82.35
+        "quality_of_life": 85.34
       },
-      "health_score": 63.35
+      "health_score": 64.25
     },
     {
       "district_id": 2,
-      "district_name": "District 2 - Greater East Side",
+      "district_name": "Greater East Side",
       "population": 7100,
       "metrics": {
         "crime_rate_pc": {
@@ -39,20 +43,24 @@
           "rate_per_1000": 3156.48
         },
         "request_rate_pc": {
-          "raw_count": 4591,
-          "rate_per_1000": 646.62
+          "raw_count": 25854,
+          "rate_per_1000": 3641.41
+        },
+        "housing_rate_pc": {
+          "raw_count": 111,
+          "rate_per_1000": 15.63
         }
       },
       "indices": {
         "safety": 48.44,
         "opportunity": 55.07,
-        "quality_of_life": 28.18
+        "quality_of_life": 63.75
       },
-      "health_score": 44.35
+      "health_score": 55.02
     },
     {
       "district_id": 3,
-      "district_name": "District 3 - West Side",
+      "district_name": "West Side",
       "population": 9400,
       "metrics": {
         "crime_rate_pc": {
@@ -64,20 +72,24 @@
           "rate_per_1000": 1621.6
         },
         "request_rate_pc": {
-          "raw_count": 5017,
-          "rate_per_1000": 533.72
+          "raw_count": 16376,
+          "rate_per_1000": 1742.13
+        },
+        "housing_rate_pc": {
+          "raw_count": 51,
+          "rate_per_1000": 5.43
         }
       },
       "indices": {
         "safety": 65.31,
         "opportunity": 10.97,
-        "quality_of_life": 40.87
+        "quality_of_life": 82.38
       },
-      "health_score": 41.68
+      "health_score": 54.13
     },
     {
       "district_id": 4,
-      "district_name": "District 4 - Dayton's Bluff",
+      "district_name": "Dayton's Bluff",
       "population": 8900,
       "metrics": {
         "crime_rate_pc": {
@@ -87,18 +99,26 @@
         "permit_rate_pc": {
           "raw_count": 13625,
           "rate_per_1000": 1530.9
+        },
+        "request_rate_pc": {
+          "raw_count": 27843,
+          "rate_per_1000": 3128.43
+        },
+        "housing_rate_pc": {
+          "raw_count": 70,
+          "rate_per_1000": 7.87
         }
       },
       "indices": {
         "safety": 69.05,
         "opportunity": 8.36,
-        "quality_of_life": 0
+        "quality_of_life": 68.74
       },
-      "health_score": 30.13
+      "health_score": 50.75
     },
     {
       "district_id": 5,
-      "district_name": "District 5 - Payne - Phalen",
+      "district_name": "Payne - Phalen",
       "population": 7600,
       "metrics": {
         "crime_rate_pc": {
@@ -108,18 +128,26 @@
         "permit_rate_pc": {
           "raw_count": 23906,
           "rate_per_1000": 3145.53
+        },
+        "request_rate_pc": {
+          "raw_count": 38346,
+          "rate_per_1000": 5045.53
+        },
+        "housing_rate_pc": {
+          "raw_count": 190,
+          "rate_per_1000": 25.0
         }
       },
       "indices": {
         "safety": 15.99,
         "opportunity": 54.76,
-        "quality_of_life": 0
+        "quality_of_life": 50.0
       },
-      "health_score": 22.83
+      "health_score": 37.83
     },
     {
       "district_id": 6,
-      "district_name": "District 6 - North End",
+      "district_name": "North End",
       "population": 8800,
       "metrics": {
         "crime_rate_pc": {
@@ -129,18 +157,26 @@
         "permit_rate_pc": {
           "raw_count": 15785,
           "rate_per_1000": 1793.75
+        },
+        "request_rate_pc": {
+          "raw_count": 23163,
+          "rate_per_1000": 2632.16
+        },
+        "housing_rate_pc": {
+          "raw_count": 84,
+          "rate_per_1000": 9.55
         }
       },
       "indices": {
         "safety": 35.8,
         "opportunity": 15.92,
-        "quality_of_life": 0
+        "quality_of_life": 73.65
       },
-      "health_score": 19.09
+      "health_score": 41.19
     },
     {
       "district_id": 7,
-      "district_name": "District 7 - Frogtown",
+      "district_name": "Frogtown",
       "population": 9100,
       "metrics": {
         "crime_rate_pc": {
@@ -152,20 +188,24 @@
           "rate_per_1000": 1239.89
         },
         "request_rate_pc": {
-          "raw_count": 8166,
-          "rate_per_1000": 897.36
+          "raw_count": 25844,
+          "rate_per_1000": 2840.0
+        },
+        "housing_rate_pc": {
+          "raw_count": 73,
+          "rate_per_1000": 8.02
         }
       },
       "indices": {
         "safety": 33.38,
         "opportunity": 0.0,
-        "quality_of_life": 0.0
+        "quality_of_life": 71.58
       },
-      "health_score": 13.35
+      "health_score": 34.83
     },
     {
       "district_id": 8,
-      "district_name": "District 8 - Summit - University",
+      "district_name": "Summit - University",
       "population": 8400,
       "metrics": {
         "crime_rate_pc": {
@@ -177,20 +217,24 @@
           "rate_per_1000": 1949.76
         },
         "request_rate_pc": {
-          "raw_count": 1559,
-          "rate_per_1000": 185.6
+          "raw_count": 15286,
+          "rate_per_1000": 1819.76
+        },
+        "housing_rate_pc": {
+          "raw_count": 55,
+          "rate_per_1000": 6.55
         }
       },
       "indices": {
         "safety": 57.09,
         "opportunity": 20.4,
-        "quality_of_life": 80.0
+        "quality_of_life": 81.63
       },
-      "health_score": 52.95
+      "health_score": 53.44
     },
     {
       "district_id": 9,
-      "district_name": "District 9 - West Seventh - Fort Road",
+      "district_name": "West Seventh - Fort Road",
       "population": 7900,
       "metrics": {
         "crime_rate_pc": {
@@ -202,20 +246,24 @@
           "rate_per_1000": 1772.41
         },
         "request_rate_pc": {
-          "raw_count": 618,
-          "rate_per_1000": 78.23
+          "raw_count": 10787,
+          "rate_per_1000": 1365.44
+        },
+        "housing_rate_pc": {
+          "raw_count": 56,
+          "rate_per_1000": 7.09
         }
       },
       "indices": {
         "safety": 74.34,
         "opportunity": 15.3,
-        "quality_of_life": 92.06
+        "quality_of_life": 86.11
       },
-      "health_score": 61.95
+      "health_score": 60.16
     },
     {
       "district_id": 10,
-      "district_name": "District 10 - Como Park",
+      "district_name": "Como Park",
       "population": 9300,
       "metrics": {
         "crime_rate_pc": {
@@ -225,18 +273,26 @@
         "permit_rate_pc": {
           "raw_count": 23118,
           "rate_per_1000": 2485.81
+        },
+        "request_rate_pc": {
+          "raw_count": 7002,
+          "rate_per_1000": 752.9
+        },
+        "housing_rate_pc": {
+          "raw_count": 32,
+          "rate_per_1000": 3.44
         }
       },
       "indices": {
         "safety": 87.93,
         "opportunity": 35.8,
-        "quality_of_life": 0
+        "quality_of_life": 92.12
       },
-      "health_score": 45.91
+      "health_score": 73.55
     },
     {
       "district_id": 11,
-      "district_name": "District 11 - Hamline - Midway",
+      "district_name": "Hamline - Midway",
       "population": 8600,
       "metrics": {
         "crime_rate_pc": {
@@ -248,20 +304,24 @@
           "rate_per_1000": 1793.02
         },
         "request_rate_pc": {
-          "raw_count": 222,
-          "rate_per_1000": 25.81
+          "raw_count": 13915,
+          "rate_per_1000": 1618.02
+        },
+        "housing_rate_pc": {
+          "raw_count": 15,
+          "rate_per_1000": 1.74
         }
       },
       "indices": {
         "safety": 67.52,
         "opportunity": 15.89,
-        "quality_of_life": 97.95
+        "quality_of_life": 83.57
       },
-      "health_score": 61.16
+      "health_score": 56.85
     },
     {
       "district_id": 12,
-      "district_name": "District 12 - Saint Anthony Park",
+      "district_name": "Saint Anthony Park",
       "population": 7700,
       "metrics": {
         "crime_rate_pc": {
@@ -273,20 +333,24 @@
           "rate_per_1000": 1587.01
         },
         "request_rate_pc": {
-          "raw_count": 1179,
-          "rate_per_1000": 153.12
+          "raw_count": 3244,
+          "rate_per_1000": 421.3
+        },
+        "housing_rate_pc": {
+          "raw_count": 52,
+          "rate_per_1000": 6.75
         }
       },
       "indices": {
         "safety": 89.58,
         "opportunity": 9.97,
-        "quality_of_life": 83.65
+        "quality_of_life": 95.42
       },
-      "health_score": 63.92
+      "health_score": 67.45
     },
     {
       "district_id": 13,
-      "district_name": "District 13 - Union Park",
+      "district_name": "Union Park",
       "population": 9200,
       "metrics": {
         "crime_rate_pc": {
@@ -298,20 +362,24 @@
           "rate_per_1000": 2306.85
         },
         "request_rate_pc": {
-          "raw_count": 70,
-          "rate_per_1000": 7.61
+          "raw_count": 11314,
+          "rate_per_1000": 1229.78
+        },
+        "housing_rate_pc": {
+          "raw_count": 60,
+          "rate_per_1000": 6.52
         }
       },
       "indices": {
         "safety": 50.98,
         "opportunity": 30.66,
-        "quality_of_life": 100.0
+        "quality_of_life": 87.44
       },
-      "health_score": 59.59
+      "health_score": 55.82
     },
     {
       "district_id": 14,
-      "district_name": "District 14 - Macalester - Groveland",
+      "district_name": "Macalester - Groveland",
       "population": 8500,
       "metrics": {
         "crime_rate_pc": {
@@ -323,20 +391,24 @@
           "rate_per_1000": 3948.59
         },
         "request_rate_pc": {
-          "raw_count": 1892,
-          "rate_per_1000": 222.59
+          "raw_count": 8552,
+          "rate_per_1000": 1006.12
+        },
+        "housing_rate_pc": {
+          "raw_count": 117,
+          "rate_per_1000": 13.76
         }
       },
       "indices": {
         "safety": 85.26,
         "opportunity": 77.83,
-        "quality_of_life": 75.84
+        "quality_of_life": 89.72
       },
-      "health_score": 80.21
+      "health_score": 84.37
     },
     {
       "district_id": 15,
-      "district_name": "District 15 - Highland Park",
+      "district_name": "Highland Park",
       "population": 7800,
       "metrics": {
         "crime_rate_pc": {
@@ -348,20 +420,24 @@
           "rate_per_1000": 4720.0
         },
         "request_rate_pc": {
-          "raw_count": 646,
-          "rate_per_1000": 82.82
+          "raw_count": 7593,
+          "rate_per_1000": 973.46
+        },
+        "housing_rate_pc": {
+          "raw_count": 177,
+          "rate_per_1000": 22.69
         }
       },
       "indices": {
         "safety": 64.98,
         "opportunity": 100.0,
-        "quality_of_life": 91.55
+        "quality_of_life": 90.13
       },
-      "health_score": 83.45
+      "health_score": 83.03
     },
     {
       "district_id": 16,
-      "district_name": "District 16 - Summit Hill",
+      "district_name": "Summit Hill",
       "population": 8100,
       "metrics": {
         "crime_rate_pc": {
@@ -371,18 +447,26 @@
         "permit_rate_pc": {
           "raw_count": 10136,
           "rate_per_1000": 1251.36
+        },
+        "request_rate_pc": {
+          "raw_count": 2842,
+          "rate_per_1000": 350.86
+        },
+        "housing_rate_pc": {
+          "raw_count": 36,
+          "rate_per_1000": 4.44
         }
       },
       "indices": {
         "safety": 100.0,
         "opportunity": 0.33,
-        "quality_of_life": 0
+        "quality_of_life": 96.09
       },
-      "health_score": 40.1
+      "health_score": 68.93
     },
     {
       "district_id": 17,
-      "district_name": "District 17 - Downtown",
+      "district_name": "Downtown",
       "population": 9000,
       "metrics": {
         "crime_rate_pc": {
@@ -392,19 +476,27 @@
         "permit_rate_pc": {
           "raw_count": 11300,
           "rate_per_1000": 1255.56
+        },
+        "request_rate_pc": {
+          "raw_count": 6270,
+          "rate_per_1000": 696.67
+        },
+        "housing_rate_pc": {
+          "raw_count": 32,
+          "rate_per_1000": 3.56
         }
       },
       "indices": {
         "safety": 0.0,
         "opportunity": 0.45,
-        "quality_of_life": 0
+        "quality_of_life": 92.67
       },
-      "health_score": 0.14
+      "health_score": 27.94
     }
   ],
   "metadata": {
     "total_districts": 17,
-    "data_generated": "2026-09-08T18:26:19.195429",
+    "data_generated": "2026-09-08T23:25:07.045196",
     "note": "Snapshot of all-time aggregated health metrics"
   }
 }

@@ -3,6 +3,7 @@ Clean Housing Production data and assign districts via spatial join.
 Supports fallback behavior: if geography join fails, excludes from scoring.
 """
 
+import math
 import pandas as pd
 import json
 from pathlib import Path
@@ -10,6 +11,14 @@ from load import load_housing, load_boundaries
 from shapely.geometry import Point, shape
 
 PIPELINE_DIR = Path(__file__).parent
+
+def _web_mercator_to_lonlat(x, y):
+    """Convert EPSG:3857 (Web Mercator) meters to WGS84 lon/lat degrees."""
+    origin_shift = 2 * math.pi * 6378137 / 2.0
+    lon = (x / origin_shift) * 180.0
+    lat = (y / origin_shift) * 180.0
+    lat = 180.0 / math.pi * (2 * math.atan(math.exp(lat * math.pi / 180.0)) - math.pi / 2.0)
+    return lon, lat
 
 def clean_housing(fallback_behavior="exclude_from_scoring_if_geography_fails"):
     """
@@ -62,9 +71,7 @@ def clean_housing(fallback_behavior="exclude_from_scoring_if_geography_fails"):
             print(f"[WARNING] {unmapped} housing records could not be spatially joined to districts")
 
     elif has_x and has_y:
-        print("[WARNING] Housing has X/Y coordinates (not lat/long). Spatial join will be approximate.")
-        # X/Y coordinates typically use a projected coordinate system (UTM, State Plane, etc.)
-        # For now, treat them as lat/long (which is incorrect but provides best-effort behavior)
+        # X/Y are EPSG:3857 (Web Mercator) meters; convert to lon/lat before joining
         housing = housing.dropna(subset=["X", "Y"])
 
         boundary_map = {}
@@ -75,8 +82,8 @@ def clean_housing(fallback_behavior="exclude_from_scoring_if_geography_fails"):
 
         def find_district(row):
             try:
-                # Note: This assumes X/Y are in lat/long; adjust if they use a different projection
-                point = Point(row["Y"], row["X"])
+                lon, lat = _web_mercator_to_lonlat(row["X"], row["Y"])
+                point = Point(lon, lat)
                 for district_id, polygon in boundary_map.items():
                     if polygon.contains(point):
                         return district_id

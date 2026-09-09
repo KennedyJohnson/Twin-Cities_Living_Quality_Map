@@ -65,8 +65,8 @@ def load_population():
     return pd.read_csv(pop_file)
 
 def load_boundaries():
-    """Load District Council boundaries GeoJSON."""
-    boundaries_file = PIPELINE_DIR / "boundaries" / "stpaul_district_councils.geojson"
+    """Load District Council boundaries GeoJSON (real ArcGIS boundaries, same file the map uses)."""
+    boundaries_file = REPO_DIR / "web" / "public" / "data" / "boundaries.geojson"
     if not boundaries_file.exists():
         raise FileNotFoundError(f"Boundaries file not found: {boundaries_file}")
     with open(boundaries_file) as f:
