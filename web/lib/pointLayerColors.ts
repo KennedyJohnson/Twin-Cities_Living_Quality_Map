@@ -8,6 +8,7 @@ export const POINT_LAYER_COLORS: Record<string, string> = {
   transit: '#56b4e9',  // sky blue
   schools: '#e69f00',  // orange
   groceries: '#000000', // black
+  healthcare: '#009e73', // bluish green
   trails: '#5c3a00',   // dark brown
 };
 
@@ -16,13 +17,15 @@ export const POINT_LAYER_ICONS: Record<string, string> = {
   transit: '🚌',
   schools: '🏫',
   groceries: '🛒',
+  healthcare: '⚕️',
   trails: '🥾',
 };
 
 export const POINT_LAYER_LABELS: Record<string, string> = {
-  crime: 'Crime Incidents',
+  crime: 'Crime Incidents (Minneapolis only)',
   transit: 'Transit Stops',
   schools: 'Schools',
   groceries: 'Grocery Stores',
+  healthcare: 'Healthcare Facilities',
   trails: 'Trails / Paths',
 };

@@ -102,7 +102,7 @@ export default function Home() {
           className={`sidebar-resize-handle${isDraggingSidebar ? ' dragging' : ''}`}
           onMouseDown={handleResizeStart}
         />
-        <NeighborhoodSidebar district={selectedDistrict} />
+        <NeighborhoodSidebar district={selectedDistrict} onSelectDistrict={setSelectedDistrict} />
       </div>
     </div>
   );

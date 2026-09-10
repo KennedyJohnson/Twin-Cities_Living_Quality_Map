@@ -56,18 +56,16 @@ Some sources are intentionally excluded from the map's point layers (permits, se
 ```
 Twin Cities Living Quality Map
 ├── pipeline/                    (data processing, run locally or via GitHub Actions)
-│   ├── load.py                  (fetch raw CSVs / boundary GeoJSON)
-│   ├── clean_*.py               (standardize, geocode, join to districts, one file per source)
-│   ├── aggregate.py             (compute per-district per-capita rates)
-│   ├── health_score.py          (apply the scoring formula)
 │   ├── build.py                 (orchestrate: aggregate → score → output neighborhoods*.json)
-│   ├── export_points.py         (point/line map layers)
-│   ├── export_affordability*.py (Census affordability snapshot + multi-year trend)
-│   ├── export_timeseries.py     (crime/permits/requests/housing trend data)
-│   ├── config/                  (sources.json, sources_mpls.json, weights.json)
+│   ├── cleaners/                (clean_*.py — standardize, geocode, join to districts, one file per source)
+│   ├── core/                    (load.py, aggregate.py, health_score.py, http_cache.py)
+│   ├── exports/                 (export_points.py, export_affordability*.py, export_timeseries.py)
+│   ├── diagnostics/             (diagnostic_geography.py, verify_crosswalk.py — standalone dev utilities)
+│   ├── config/                  (sources.json, sources_mpls.json, weights.json, crosswalks)
+│   ├── boundaries/, crosswalks/, data/ (raw boundary GeoJSON, geo crosswalks, population CSVs)
 │   └── tests/                   (pytest unit tests for the scoring math)
 ├── web/                         (Next.js frontend, deployed on Vercel)
-│   ├── app/                     (pages: map, /trends, /methodology, /about)
+│   ├── app/                     (pages: map, /trends, /methodology, /about; icon.svg favicon)
 │   ├── components/              (NeighborhoodMap, Legend, Sidebar, trend charts)
 │   ├── lib/                     (ColorScale, data loading, metric labels)
 │   ├── e2e/                     (Playwright end-to-end tests)
@@ -87,10 +85,10 @@ Twin Cities Living Quality Map
 cd pipeline
 pip install -r requirements.txt
 python build.py                        # health scores for both cities
-python export_points.py                # map point/line layers
-python export_affordability.py         # affordability snapshot
-python export_affordability_timeseries.py
-python export_timeseries.py            # crime/permits/requests/housing trends
+python exports/export_points.py                # map point/line layers
+python exports/export_affordability.py         # affordability snapshot
+python exports/export_affordability_timeseries.py
+python exports/export_timeseries.py            # crime/permits/requests/housing trends
 ```
 
 #### Pipeline tests
@@ -130,7 +128,7 @@ Extensible per-city registry of data sources. Each entry defines:
 - `health_component`: which index this feeds (`safety`, `opportunity`, `quality_of_life`)
 - `weight_in_component`: relative weight within that component
 
-Adding a new data source: create a `clean_<source>.py` loader, add one entry to `sources.json` (and `sources_mpls.json` for city parity), then re-run `pipeline/build.py`.
+Adding a new data source: create a `cleaners/clean_<source>.py` loader, add one entry to `sources.json` (and `sources_mpls.json` for city parity), then re-run `pipeline/build.py`.
 
 ### `pipeline/config/weights.json`
 Health score component weights (currently 35% Safety / 25% Opportunity / 20% Quality of Life / 20% Affordability) and each component's formula description.

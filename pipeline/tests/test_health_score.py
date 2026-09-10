@@ -10,7 +10,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 import pytest
-import health_score as hs
+import core.health_score as hs
 
 
 def test_min_max_normalize_constant_values_returns_fifty():

@@ -8,9 +8,9 @@ Includes a sanity check and smoke-test validation for each city.
 import json
 import pandas as pd
 from pathlib import Path
-from aggregate import aggregate_all
-from health_score import compute_health_scores
-from load import load_population, load_boundaries
+from core.aggregate import aggregate_all
+from core.health_score import compute_health_scores
+from core.load import load_population, load_boundaries
 
 PIPELINE_DIR = Path(__file__).parent
 REPO_DIR = PIPELINE_DIR.parent

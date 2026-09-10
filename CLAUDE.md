@@ -24,8 +24,8 @@
 
 #### Project Structure
 ```
-pipeline/                    # Data processing scripts (see README.md for full layout)
-web/                         # Next.js frontend (deployed on Vercel)
+pipeline/                    # Data processing (build.py orchestrates cleaners/ -> core/ -> exports/; see README.md for full layout)
+web/                         # Next.js frontend (deployed on Vercel), includes app/icon.svg favicon
 data/                        # Raw St. Paul CSVs (gitignored, local only)
 .github/workflows/           # Scheduled data refresh + CI
 ```

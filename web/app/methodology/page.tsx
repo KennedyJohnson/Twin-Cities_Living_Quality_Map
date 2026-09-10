@@ -18,8 +18,8 @@ export default function MethodologyPage() {
       <ul style={{ marginBottom: '24px', paddingLeft: '20px' }}>
         <li><strong>Safety (35%)</strong> — inverse of crime rate per capita</li>
         <li><strong>Opportunity (25%)</strong> — building permit rate per capita and unemployment rate (inverted)</li>
-        <li><strong>Quality of Life (20%)</strong> — service requests (inverted), housing production, traffic volume (inverted), and (where available) trails, transit stops, schools, and grocery stores</li>
-        <li><strong>Affordability (20%)</strong> — Census median home value, rent, poverty rate, and housing cost burden (all inverted), and median household income</li>
+        <li><strong>Quality of Life (20%)</strong> — service requests (inverted), traffic volume (inverted), and pedestrian/cyclist crash rate (inverted), plus housing production, trails, transit stops, schools, grocery stores, healthcare access, and chronic disease burden (obesity/diabetes prevalence, inverted)</li>
+        <li><strong>Affordability (20%)</strong> — Census median home value, rent, poverty rate, and housing cost burden (all inverted), plus median household income and homeownership rate</li>
       </ul>
 
       <h2 style={{ fontSize: '18px', fontWeight: 600, marginTop: '32px', marginBottom: '12px' }}>
@@ -96,7 +96,13 @@ export default function MethodologyPage() {
           <a href="https://www.dot.state.mn.us/traffic/data/" target="_blank" rel="noopener noreferrer" style={{ color: '#756bb1' }}>
             MnDOT Traffic Forecasting &amp; Analysis
           </a>{' '}
-          — Annual Average Daily Traffic (AADT) road segment volumes
+          — Annual Average Daily Traffic (AADT) road segment volumes and pedestrian/cyclist crash locations
+        </li>
+        <li>
+          <a href="https://www.cdc.gov/places/" target="_blank" rel="noopener noreferrer" style={{ color: '#756bb1' }}>
+            CDC PLACES
+          </a>{' '}
+          — obesity and diabetes prevalence by census tract
         </li>
       </ul>
 

@@ -63,10 +63,11 @@ export default function AboutPage() {
       <ul style={{ paddingLeft: '20px', marginBottom: '24px' }}>
         <TechRow name="City of St. Paul Open Data" href="https://information.stpaul.gov/" use="crime, permits, service requests, housing production" />
         <TechRow name="City of Minneapolis Open Data" href="https://opendata.minneapolismn.gov/" use="crime, permits, service requests, housing production" />
-        <TechRow name="OpenStreetMap" href="https://www.openstreetmap.org/" use="trails, transit stops, schools, grocery stores" />
+        <TechRow name="OpenStreetMap" href="https://www.openstreetmap.org/" use="trails, transit stops, schools, grocery stores, healthcare facilities" />
         <TechRow name="Overpass API" href="https://overpass-api.de/" use="queries the OpenStreetMap data above" />
-        <TechRow name="U.S. Census Bureau ACS 5-Year Estimates" href="https://www.census.gov/programs-surveys/acs" use="median home value, gross rent, and household income" />
-        <TechRow name="MnDOT Traffic Forecasting & Analysis" href="https://www.dot.state.mn.us/traffic/data/" use="Annual Average Daily Traffic (AADT) road segment volumes" />
+        <TechRow name="U.S. Census Bureau ACS 5-Year Estimates" href="https://www.census.gov/programs-surveys/acs" use="median home value, gross rent, household income, poverty rate, housing cost burden, homeownership rate, unemployment rate" />
+        <TechRow name="MnDOT Traffic Forecasting & Analysis" href="https://www.dot.state.mn.us/traffic/data/" use="Annual Average Daily Traffic (AADT) volumes and pedestrian/cyclist crash locations" />
+        <TechRow name="CDC PLACES" href="https://www.cdc.gov/places/" use="obesity and diabetes prevalence by census tract" />
       </ul>
 
       <h2 style={{ fontSize: '18px', fontWeight: 600, marginTop: '32px', marginBottom: '12px' }}>
