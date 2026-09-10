@@ -1,17 +1,16 @@
 /**
- * Diverging Blue–Orange color scale (0 = poor, 100 = excellent).
- * Colorblind-safe palette based on research-backed colors.
+ * Sequential single-hue purple scale, based on ColorBrewer's "Purples"
+ * palette — chosen for strong contrast against the light basemap and
+ * because purple isn't used by any point-layer marker color, so district
+ * fill and point markers stay easy to tell apart.
+ * Lighter purple = lower health score, darker purple = higher health score.
+ *
+ * Real health scores in this dataset cluster tightly (e.g. ~28-71 rather
+ * than spanning the full 0-100 range), so colors are normalized against the
+ * actual min/max in view rather than a fixed 0-100 scale — otherwise every
+ * district lands in the same narrow middle slice of the gradient and looks
+ * nearly identical. Pass the current score domain via `min`/`max`.
  */
-
-function hexToRgb(hex: string): [number, number, number] {
-  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-  if (!result) throw new Error(`Invalid hex color: ${hex}`);
-  return [
-    parseInt(result[1], 16),
-    parseInt(result[2], 16),
-    parseInt(result[3], 16),
-  ];
-}
 
 function rgbToHex(r: number, g: number, b: number): string {
   return `#${[r, g, b].map(x => Math.round(x).toString(16).padStart(2, '0')).join('')}`;
@@ -29,46 +28,38 @@ function interpolateColor(
   ];
 }
 
-export function getHealthScoreColor(score: number): string {
-  // Clamp score to [0, 100]
-  const clamped = Math.max(0, Math.min(100, score));
+// ColorBrewer "Purples" 9-class sequential stops (wider range + more steps
+// than the 5-class version, so districts with similar-but-different scores
+// are still visibly distinct instead of collapsing into near-identical hues).
+const PURPLE_STOPS: [number, number, number][] = [
+  [252, 251, 253], // #fcfbfd — low
+  [239, 237, 245], // #efedf5
+  [218, 218, 235], // #dadaeb
+  [188, 189, 220], // #bcbddc
+  [158, 154, 200], // #9e9ac8
+  [128, 125, 186], // #807dba
+  [106, 81, 163],  // #6a51a3
+  [84, 39, 143],   // #54278f
+  [63, 0, 125],    // #3f007d — high
+];
 
-  // Define color scale (diverging blue to orange)
-  const blue: [number, number, number] = [27, 94, 155];      // Poor (#1b5e9b)
-  const lightBlue: [number, number, number] = [76, 151, 204]; // Below avg (#4c97cc)
-  const white: [number, number, number] = [240, 240, 240];   // Neutral (#f0f0f0)
-  const lightOrange: [number, number, number] = [242, 160, 80]; // Above avg (#f2a050)
-  const orange: [number, number, number] = [217, 103, 39];   // Excellent (#d96727)
+export function getHealthScoreColor(score: number, min: number = 0, max: number = 100): string {
+  const range = max - min;
+  const t = range > 0 ? Math.max(0, Math.min(1, (score - min) / range)) : 0.5;
 
-  let color: [number, number, number];
+  const scaledT = t * (PURPLE_STOPS.length - 1);
+  const idx = Math.min(Math.floor(scaledT), PURPLE_STOPS.length - 2);
+  const localT = scaledT - idx;
 
-  if (clamped < 25) {
-    // Blue zone: 0–25
-    const t = clamped / 25;
-    color = interpolateColor(blue, lightBlue, t);
-  } else if (clamped < 50) {
-    // Light blue to white: 25–50
-    const t = (clamped - 25) / 25;
-    color = interpolateColor(lightBlue, white, t);
-  } else if (clamped < 75) {
-    // White to light orange: 50–75
-    const t = (clamped - 50) / 25;
-    color = interpolateColor(white, lightOrange, t);
-  } else {
-    // Light orange to orange: 75–100
-    const t = (clamped - 75) / 25;
-    color = interpolateColor(lightOrange, orange, t);
-  }
-
+  const color = interpolateColor(PURPLE_STOPS[idx], PURPLE_STOPS[idx + 1], localT);
   return rgbToHex(color[0], color[1], color[2]);
 }
 
-export function getLegendColors(): Array<{ value: number; color: string; label: string }> {
+export function getLegendColors(min: number = 0, max: number = 100): Array<{ value: number; color: string; label: string }> {
+  const mid = (min + max) / 2;
   return [
-    { value: 0, color: getHealthScoreColor(0), label: 'Poor (0)' },
-    { value: 25, color: getHealthScoreColor(25), label: 'Below Avg (25)' },
-    { value: 50, color: getHealthScoreColor(50), label: 'Neutral (50)' },
-    { value: 75, color: getHealthScoreColor(75), label: 'Above Avg (75)' },
-    { value: 100, color: getHealthScoreColor(100), label: 'Excellent (100)' },
+    { value: min, color: getHealthScoreColor(min, min, max), label: `Poor (${Math.round(min)})` },
+    { value: mid, color: getHealthScoreColor(mid, min, max), label: `Mid (${Math.round(mid)})` },
+    { value: max, color: getHealthScoreColor(max, min, max), label: `Excellent (${Math.round(max)})` },
   ];
 }

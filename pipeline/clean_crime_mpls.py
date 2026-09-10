@@ -5,6 +5,7 @@ via the neighborhood->community crosswalk.
 
 import json
 import math
+import time
 import requests
 import pandas as pd
 from pathlib import Path
@@ -40,7 +41,7 @@ def _web_mercator_to_wgs84(x, y):
     return lon, lat
 
 
-def _fetch_all_features(out_fields="Neighborhood,Offense_Category,Occurred_Date"):
+def _fetch_all_features(out_fields="Neighborhood,Offense_Category,Occurred_Date,Offense,Address,Precinct"):
     query_url = f"{FEATURE_SERVER}/query"
     features = []
     offset = 0
@@ -52,9 +53,14 @@ def _fetch_all_features(out_fields="Neighborhood,Offense_Category,Occurred_Date"
             "resultRecordCount": PAGE_SIZE,
             "f": "json",
         }
-        resp = requests.get(query_url, params=params, timeout=60)
-        resp.raise_for_status()
-        data = resp.json()
+        for attempt in range(5):
+            resp = requests.get(query_url, params=params, timeout=60)
+            resp.raise_for_status()
+            data = resp.json()
+            if data.get("error", {}).get("code") == 429:
+                time.sleep(15 * (attempt + 1))
+                continue
+            break
         batch = data.get("features", [])
         if not batch:
             break
@@ -103,11 +109,17 @@ def clean_crime_mpls(crosswalk_file=CROSSWALK_FILE):
     crime = crime.rename(columns={
         "Offense_Category": "offense_category",
         "Occurred_Date": "occurred_date",
+        "Offense": "offense",
+        "Address": "address",
+        "Precinct": "precinct",
     })
 
     crime["district_id"] = crime["community_name"].map(COMMUNITY_TO_DISTRICT_ID)
 
     cols = ["district_id", "offense_category", "occurred_date"]
+    for extra in ["offense", "address", "precinct"]:
+        if extra in crime.columns:
+            cols.append(extra)
     if "longitude" in crime.columns:
         cols += ["longitude", "latitude"]
     return crime[cols]

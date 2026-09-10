@@ -1,9 +1,10 @@
 import type { Metadata } from 'next';
+import { Analytics } from '@vercel/analytics/next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'St. Paul Neighborhood Health Map',
-  description: 'Interactive health score visualization for St. Paul District Councils',
+  title: 'Twin Cities Living Quality Map',
+  description: 'Interactive health score visualization for St. Paul and Minneapolis districts',
 };
 
 export default function RootLayout({
@@ -13,7 +14,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        {children}
+        <Analytics />
+      </body>
     </html>
   );
 }

@@ -1,26 +1,32 @@
 {
   "health_score": {
     "components": {
-      "safety": 0.40,
-      "opportunity": 0.30,
-      "quality_of_life": 0.30
+      "safety": 0.35,
+      "opportunity": 0.25,
+      "quality_of_life": 0.20,
+      "affordability": 0.20
     }
   },
   "components": {
     "safety": {
-      "sources": ["crime"],
-      "formula": "100 - normalize(crime_rate_pc)",
-      "description": "Inverse of crime rate per capita (lower crime = higher safety)"
+      "sources": ["crime", "crashes"],
+      "formula": "average(100 - normalize(crime_rate_pc), 100 - normalize(crash_rate_pc))",
+      "description": "Blend of crime rate and pedestrian/cyclist crash rate (both inverted: lower = higher safety)"
     },
     "opportunity": {
-      "sources": ["permits"],
-      "formula": "normalize(permit_rate_pc)",
-      "description": "Normalized permit rate per capita (more development = higher opportunity)"
+      "sources": ["permits", "employment"],
+      "formula": "average(normalize(permit_rate_pc), 100 - normalize(unemployment_rate_pc))",
+      "description": "Blend of permit rate (more development = higher opportunity) and unemployment rate (more unemployment = lower opportunity)"
     },
     "quality_of_life": {
-      "sources": ["requests", "housing"],
-      "formula": "100 - normalize(request_rate_pc + housing_rate_pc)",
-      "description": "Inverse of service requests + housing rate per capita"
+      "sources": ["requests", "housing", "walkability", "transit", "schools", "groceries", "traffic", "healthcare", "health"],
+      "formula": "100 - normalize(request_rate_pc + traffic_vkm_pc + chronic_disease_pc) + normalize(housing_rate_pc + trail_km_pc + transit_stops_pc + schools_pc + grocery_pc + healthcare_pc)",
+      "description": "Inverse of service requests + traffic volume + chronic disease burden, plus housing/trails/transit/schools/groceries/healthcare access rate per capita"
+    },
+    "affordability": {
+      "sources": ["housing_price"],
+      "formula": "average(100 - normalize(median_home_value), 100 - normalize(median_gross_rent), normalize(median_household_income), 100 - normalize(poverty_rate), 100 - normalize(housing_cost_burden_rate), normalize(homeownership_rate))",
+      "description": "Census ACS housing cost burden: lower home values/rent/poverty/cost-burden and higher household income/homeownership relative to other districts raise this index"
     }
   },
   "normalization": {

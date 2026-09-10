@@ -6,6 +6,7 @@ neighborhood->community crosswalk.
 """
 
 import json
+import time
 import requests
 import pandas as pd
 from pathlib import Path
@@ -32,7 +33,7 @@ COMMUNITY_TO_DISTRICT_ID = {
 }
 
 
-def _fetch_all_features(out_fields="Neighborhoods_Desc,permitNumber,issueDate,permitType"):
+def _fetch_all_features(out_fields="Neighborhoods_Desc,permitNumber,issueDate,permitType,Display,dwellingUnitsNew,occupancyType"):
     query_url = f"{FEATURE_SERVER}/query"
     features = []
     offset = 0
@@ -44,9 +45,14 @@ def _fetch_all_features(out_fields="Neighborhoods_Desc,permitNumber,issueDate,pe
             "resultRecordCount": PAGE_SIZE,
             "f": "json",
         }
-        resp = requests.get(query_url, params=params, timeout=60)
-        resp.raise_for_status()
-        data = resp.json()
+        for attempt in range(5):
+            resp = requests.get(query_url, params=params, timeout=60)
+            resp.raise_for_status()
+            data = resp.json()
+            if data.get("error", {}).get("code") == 429:
+                time.sleep(15 * (attempt + 1))
+                continue
+            break
         batch = data.get("features", [])
         if not batch:
             break
@@ -96,11 +102,17 @@ def clean_housing_mpls(crosswalk_file=CROSSWALK_FILE):
         "permitNumber": "permit_number",
         "issueDate": "issue_date",
         "permitType": "permit_type",
+        "Display": "address",
+        "dwellingUnitsNew": "new_dwelling_units",
+        "occupancyType": "occupancy_type",
     })
 
     housing["district_id"] = housing["community_name"].map(COMMUNITY_TO_DISTRICT_ID)
 
     cols = ["district_id", "permit_number", "issue_date", "permit_type"]
+    for extra in ["address", "new_dwelling_units", "occupancy_type"]:
+        if extra in housing.columns:
+            cols.append(extra)
     if "longitude" in housing.columns:
         cols += ["longitude", "latitude"]
     return housing[cols]

@@ -5,6 +5,7 @@ Config-driven via sources.json for extensibility.
 """
 
 import json
+import inspect
 import pandas as pd
 from pathlib import Path
 from load import load_population
@@ -84,7 +85,13 @@ def aggregate_all(city="stpaul"):
                 continue
 
             loader_func = getattr(loader_module, loader_func_name)
-            cleaned_data = loader_func()
+            # City-agnostic loaders (OSM-based: walkability, transit, schools,
+            # groceries) accept a `city` kwarg; city-specific loader modules
+            # (e.g. clean_crime_mpls) don't, so only pass it when supported.
+            if "city" in inspect.signature(loader_func).parameters:
+                cleaned_data = loader_func(city=city)
+            else:
+                cleaned_data = loader_func()
 
             # Aggregate by district
             metrics = aggregate_by_source(source_id, cleaned_data, population)
