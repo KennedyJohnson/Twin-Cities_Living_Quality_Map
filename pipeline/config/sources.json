@@ -57,6 +57,48 @@
       "metric_unit": "units per 1000 pop",
       "description": "New housing units (includes all unit types)",
       "fallback_behavior": "exclude_from_scoring_if_geography_fails"
+    },
+    {
+      "id": "walkability",
+      "name": "Walkability (Trails & Paths)",
+      "loader_module": "clean_walkability",
+      "geo_join_method": "line_intersection",
+      "rate_direction": "direct",
+      "health_component": "quality_of_life",
+      "weight_in_component": 0.5,
+      "metric_name": "trail_km_pc",
+      "metric_label": "Trail/Path km per 1000 residents",
+      "metric_unit": "km per 1000 pop",
+      "description": "Length of trails, footpaths, and parks (OpenStreetMap) within district",
+      "fallback_behavior": "exclude_from_scoring_if_geography_fails"
+    },
+    {
+      "id": "transit",
+      "name": "Public Transit Access",
+      "loader_module": "clean_transit",
+      "geo_join_method": "point_in_polygon",
+      "rate_direction": "direct",
+      "health_component": "quality_of_life",
+      "weight_in_component": 0.5,
+      "metric_name": "transit_stops_pc",
+      "metric_label": "Transit Stops per 1000 residents",
+      "metric_unit": "stops per 1000 pop",
+      "description": "Metro Transit bus stops, light rail stations, and platforms (OpenStreetMap) within district",
+      "fallback_behavior": "exclude_from_scoring_if_geography_fails"
+    },
+    {
+      "id": "schools",
+      "name": "School Proximity",
+      "loader_module": "clean_schools",
+      "geo_join_method": "point_in_polygon",
+      "rate_direction": "direct",
+      "health_component": "quality_of_life",
+      "weight_in_component": 0.5,
+      "metric_name": "schools_pc",
+      "metric_label": "Schools per 1000 residents",
+      "metric_unit": "schools per 1000 pop",
+      "description": "Schools, colleges, and universities (OpenStreetMap) within district",
+      "fallback_behavior": "exclude_from_scoring_if_geography_fails"
     }
   ]
 }
