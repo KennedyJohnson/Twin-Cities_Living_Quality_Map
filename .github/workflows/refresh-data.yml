@@ -26,6 +26,10 @@ jobs:
         working-directory: pipeline
         env:
           CENSUS_API_KEY: ${{ secrets.CENSUS_API_KEY }}
+          STPAUL_CRIME_ID: ${{ secrets.STPAUL_CRIME_ID || '' }}
+          STPAUL_PERMITS_ID: ${{ secrets.STPAUL_PERMITS_ID || '' }}
+          STPAUL_REQUESTS_ID: ${{ secrets.STPAUL_REQUESTS_ID || '' }}
+          STPAUL_HOUSING_ID: ${{ secrets.STPAUL_HOUSING_ID || '' }}
         run: python build.py
 
       - name: Export point-layer map data

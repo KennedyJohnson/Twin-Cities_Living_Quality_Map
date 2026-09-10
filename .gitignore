@@ -1,4 +1,5 @@
-# Data files (raw datasets only — web/public/data is served by the app and stays tracked)
+# Data files (raw CSV datasets only — optional, fetched from APIs when available; web/public/data is served by the app and stays tracked)
+# Set STPAUL_* environment variables to fetch from Socrata APIs instead of using local CSVs
 /data/
 
 # Byte-compiled / optimized / DLL files
