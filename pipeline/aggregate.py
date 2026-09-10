@@ -29,8 +29,12 @@ def aggregate_by_source(source_id, cleaned_data, population_df):
     Returns:
         dict: {district_id: {metric_name: rate_per_1000, raw_count: count}}
     """
-    # Group by district_id and count
-    grouped = cleaned_data.groupby("district_id").size().reset_index(name="raw_count")
+    # Group by district_id: sum a "value" column if present (e.g. trail km),
+    # otherwise fall back to counting rows (point-record sources)
+    if "value" in cleaned_data.columns:
+        grouped = cleaned_data.groupby("district_id")["value"].sum().reset_index(name="raw_count")
+    else:
+        grouped = cleaned_data.groupby("district_id").size().reset_index(name="raw_count")
 
     # Merge with population
     merged = grouped.merge(population_df[["district_id", "population"]], on="district_id", how="left")

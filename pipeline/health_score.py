@@ -28,14 +28,21 @@ def load_sources():
 
 def min_max_normalize(values):
     """
-    Normalize values to [0, 100] using min-max scaling.
+    Normalize values to (0, 100) using z-score + logistic squashing.
+
+    Min-max normalization pins the single most extreme district to exactly
+    0 or 100, which overstates how much of an outlier it really is. Z-score
+    + logistic squashing scales by how many standard deviations a district
+    is from the mean, then compresses to (0, 100) asymptotically - so
+    extreme districts land near, but never exactly at, the floor/ceiling.
     """
-    values = np.array(values)
-    min_val = np.min(values)
-    max_val = np.max(values)
-    if max_val == min_val:
+    values = np.array(values, dtype=float)
+    mean_val = np.mean(values)
+    std_val = np.std(values)
+    if std_val == 0:
         return np.full_like(values, 50.0, dtype=float)  # Edge case: all same value
-    return ((values - min_val) / (max_val - min_val)) * 100
+    z_scores = (values - mean_val) / std_val
+    return 100 / (1 + np.exp(-z_scores))
 
 def compute_component_index(aggregated_metrics, component_name, sources_config):
     """

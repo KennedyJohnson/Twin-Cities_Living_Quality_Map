@@ -140,6 +140,11 @@ function MapContent({
   );
 }
 
+const TWIN_CITIES_BOUNDS: L.LatLngBoundsExpression = [
+  [44.7, -93.6],   // Southwest corner
+  [45.25, -92.6],  // Northeast corner
+];
+
 export default function NeighborhoodMap({
   onDistrictSelect,
   selectedDistrict,
@@ -149,6 +154,9 @@ export default function NeighborhoodMap({
     <MapContainer
       center={[44.9537, -93.094]}
       zoom={11}
+      minZoom={10}
+      maxBounds={TWIN_CITIES_BOUNDS}
+      maxBoundsViscosity={1.0}
       className="gmap-container"
       style={{ height: '100%', width: '100%' }}
     >
