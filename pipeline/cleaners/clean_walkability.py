@@ -33,11 +33,28 @@ BBOX = "44.85, -93.35, 45.05, -92.95"
 OVERPASS_QUERY = f"""
 [out:json][timeout:60];
 (
-  way["highway"~"^(path|footway|cycleway|pedestrian|track)$"]({BBOX});
+  way["highway"~"^(path|footway|cycleway|pedestrian|track|bridleway|steps)$"]({BBOX});
   way["leisure"="park"]({BBOX});
 );
 out geom;
 """
+
+# Sidewalks/crossings are tagged highway=footway too, but they aren't
+# recreational trails — they're the pedestrian shoulder of a regular street.
+# Left unfiltered, they outnumber real trails ~5-to-1 in this metro (dense
+# urban sidewalk grid), so they were crowding out actual trails/paths under
+# export_points.MAX_WAYS's random sample and inflating trail_km_pc in the
+# health score. Excluded by footway subtag; every other highway type in the
+# query above (path/cycleway/pedestrian/track/bridleway/steps) is kept as-is.
+_NON_TRAIL_FOOTWAY_SUBTAGS = {"sidewalk", "crossing", "traffic_island", "access_aisle", "link"}
+
+
+def _is_real_trail(element):
+    tags = element.get("tags", {})
+    if tags.get("highway") == "footway" and tags.get("footway") in _NON_TRAIL_FOOTWAY_SUBTAGS:
+        return False
+    return True
+
 
 def _fetch_ways(max_retries=3):
     """Query Overpass API for trail/path ways. Returns list of dicts with geometry.
@@ -54,7 +71,8 @@ def _fetch_ways(max_retries=3):
         try:
             response = cached_post(OVERPASS_URL, data={"data": OVERPASS_QUERY}, headers=headers, timeout=120)
             response.raise_for_status()
-            return response.json()["elements"]
+            elements = response.json()["elements"]
+            return [e for e in elements if _is_real_trail(e)]
         except Exception as e:
             last_error = e
             if attempt < max_retries - 1:

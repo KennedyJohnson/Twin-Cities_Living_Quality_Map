@@ -35,7 +35,10 @@ PIPELINE_DIR = Path(__file__).resolve().parent.parent
 OUT_DIR = PIPELINE_DIR.parent / "web" / "public" / "data"
 
 MAX_POINTS_PER_SOURCE = 3000
-MAX_WAYS = 6000
+# Raised from 6000 now that clean_walkability filters out sidewalks/crossings
+# before this cap is applied — the pre-filter pool is real trails only, so a
+# 6000 cap was dropping most of them. ~20k keeps the exported file a few MB.
+MAX_WAYS = 20000
 
 
 def _sample(df, n=MAX_POINTS_PER_SOURCE, seed=42):
@@ -317,8 +320,12 @@ def _export_trail_lines():
         geometry = el.get("geometry")
         if not geometry or len(geometry) < 2:
             continue
-        coords = [[pt["lon"], pt["lat"]] for pt in geometry]
         tags = el.get("tags", {})
+        if not tags.get("highway"):
+            # leisure=park ways are park boundary polygons, not trails —
+            # useful for the walkability score but not for the trail layer.
+            continue
+        coords = [[pt["lon"], pt["lat"]] for pt in geometry]
         title = _clean(tags.get("name")) or "Trail / Path"
         details = {}
         if _clean(tags.get("highway")):

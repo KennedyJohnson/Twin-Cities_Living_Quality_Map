@@ -282,3 +282,77 @@ body {
   background-color: #f5f5f5;
   border-radius: 0 0 6px 6px;
 }
+
+.click-mode-toggle {
+  position: absolute;
+  top: 154px;
+  left: 20px;
+  width: 300px;
+  box-sizing: border-box;
+  background: white;
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  z-index: 1002;
+  padding: 8px 12px;
+  font-size: 12px;
+}
+
+.click-mode-toggle-label {
+  display: block;
+  color: #666;
+  margin-bottom: 6px;
+}
+
+.click-mode-toggle-buttons {
+  display: flex;
+  gap: 6px;
+}
+
+.click-mode-toggle-buttons button {
+  flex: 1;
+  padding: 5px 0;
+  font-size: 12px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background: #f5f5f5;
+  color: #333;
+  cursor: pointer;
+}
+
+.click-mode-toggle-buttons button.active {
+  background: #756bb1;
+  border-color: #756bb1;
+  color: white;
+}
+
+.selected-place {
+  position: absolute;
+  top: 208px;
+  left: 20px;
+  width: 300px;
+  box-sizing: border-box;
+  padding: 8px 12px;
+  background: white;
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  z-index: 1002;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 12px;
+}
+
+.selected-place-name {
+  font-weight: 600;
+  color: #333;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.selected-place-reviews-link {
+  color: #756bb1;
+  white-space: nowrap;
+  flex-shrink: 0;
+}

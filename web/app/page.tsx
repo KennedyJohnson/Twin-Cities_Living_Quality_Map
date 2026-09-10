@@ -9,6 +9,8 @@ import Legend from '@/components/Legend';
 import ScoreSelector from '@/components/ScoreSelector';
 import type { Neighborhood } from '@/types/neighborhood';
 import type { ScoreMetricKey } from '@/lib/scoreMetric';
+import type { MapClickMode } from '@/components/NeighborhoodMap';
+import { resolveNeighborhoodForPoint, reverseGeocode, googleMapsSearchUrl } from '@/lib/geo';
 
 const NeighborhoodMap = dynamic(() => import('@/components/NeighborhoodMap'), {
   ssr: false,
@@ -20,6 +22,7 @@ export default function Home() {
   const [flyToLocation, setFlyToLocation] = useState<{ lat: number; lon: number } | null>(null);
   const [searchMarker, setSearchMarker] = useState<{ lat: number; lon: number; label: string } | null>(null);
   const [scoreMetric, setScoreMetric] = useState<ScoreMetricKey>('health_score');
+  const [clickMode, setClickMode] = useState<MapClickMode>('district');
   const [sidebarWidth, setSidebarWidth] = useState(320);
   const [isDraggingSidebar, setIsDraggingSidebar] = useState(false);
   const dragStateRef = useRef<{ startX: number; startWidth: number } | null>(null);
@@ -63,6 +66,15 @@ export default function Home() {
     setSearchMarker({ lat, lon, label });
   };
 
+  const handleMapClick = async (lat: number, lon: number) => {
+    const [district, label] = await Promise.all([
+      resolveNeighborhoodForPoint(lat, lon),
+      reverseGeocode(lat, lon),
+    ]);
+    setSelectedDistrict(district);
+    setSearchMarker({ lat, lon, label });
+  };
+
   return (
     <div className="container">
       <div className="map-container">
@@ -72,11 +84,45 @@ export default function Home() {
           flyToLocation={flyToLocation}
           searchMarker={searchMarker}
           onClearSearchMarker={() => setSearchMarker(null)}
+          onMapClick={handleMapClick}
+          clickMode={clickMode}
           scoreMetric={scoreMetric}
         />
         <Legend scoreMetric={scoreMetric} />
         <ScoreSelector value={scoreMetric} onChange={setScoreMetric} />
         <AddressSearch onAddressSelect={handleAddressSelect} />
+        <div className="click-mode-toggle">
+          <span className="click-mode-toggle-label">Clicking the map selects:</span>
+          <div className="click-mode-toggle-buttons">
+            <button
+              type="button"
+              className={clickMode === 'district' ? 'active' : ''}
+              onClick={() => setClickMode('district')}
+            >
+              District
+            </button>
+            <button
+              type="button"
+              className={clickMode === 'place' ? 'active' : ''}
+              onClick={() => setClickMode('place')}
+            >
+              Place
+            </button>
+          </div>
+        </div>
+        {searchMarker && (
+          <div className="selected-place">
+            <span className="selected-place-name">{searchMarker.label}</span>
+            <a
+              href={googleMapsSearchUrl(searchMarker.lat, searchMarker.lon, searchMarker.label)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="selected-place-reviews-link"
+            >
+              View reviews on Google ↗
+            </a>
+          </div>
+        )}
         <div
           style={{
             position: 'absolute',
