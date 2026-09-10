@@ -86,12 +86,16 @@ const POINT_LAYER_FILES: { key: string; url: string }[] = [
   { key: 'lines_trails', url: '/data/lines_trails.json' },
 ];
 
+export type MapClickMode = 'district' | 'place';
+
 interface NeighborhoodMapProps {
   onDistrictSelect: (district: Neighborhood | null) => void;
   selectedDistrict: Neighborhood | null;
   flyToLocation?: { lat: number; lon: number } | null;
   searchMarker?: { lat: number; lon: number; label: string } | null;
   onClearSearchMarker?: () => void;
+  onMapClick?: (lat: number, lon: number) => void;
+  clickMode?: MapClickMode;
   scoreMetric?: ScoreMetricKey;
 }
 
@@ -111,6 +115,8 @@ function MapContent({
   flyToLocation,
   searchMarker,
   onClearSearchMarker,
+  onMapClick,
+  clickMode = 'district',
   scoreMetric = 'health_score',
 }: NeighborhoodMapProps) {
   const map = useMap();
@@ -123,8 +129,15 @@ function MapContent({
   // bubbles vs. shown individually, and populates labelGroupsRef[label].
   const labelEntriesRef = useRef<Record<string, { marker: L.Marker; districtId: number | null }[]>>({});
   const labelGroupsRef = useRef<Record<string, L.LayerGroup>>({});
+  const groceryGroupRef = useRef<L.LayerGroup | null>(null);
+  // Trail/path segments: kept separately from point markers since they're
+  // polylines (no single lat/lon) and never carry a district_id, so they're
+  // filtered purely by "does any vertex fall within the search radius".
+  const trailEntriesRef = useRef<{ layer: L.Layer; latlngs: L.LatLng[] }[]>([]);
+  const trailGroupRef = useRef<L.LayerGroup | null>(null);
   const selectedDistrictRef = useRef<Neighborhood | null>(selectedDistrict);
   const searchMarkerPropRef = useRef<{ lat: number; lon: number; label: string } | null | undefined>(searchMarker);
+  const clickModeRef = useRef<MapClickMode>(clickMode);
   const neighborhoodMapsRef = useRef<Map<number, Neighborhood>[]>([]);
   const scoreMetricRef = useRef<ScoreMetricKey>(scoreMetric);
   const districtBoundsRef = useRef<Record<number, L.LatLngBounds>>({});
@@ -152,6 +165,24 @@ function MapContent({
     }
   };
 
+  // Trails only get radius-filtered when a place is selected (search or map
+  // click); with no search marker active, every trail is shown as before —
+  // there's no per-district trail filter to fall back to.
+  const renderTrails = () => {
+    const group = trailGroupRef.current;
+    if (!group) return;
+    group.clearLayers();
+    const sm = searchMarkerPropRef.current;
+    for (const entry of trailEntriesRef.current) {
+      if (sm) {
+        const searchLatLng = L.latLng(sm.lat, sm.lon);
+        const withinRadius = entry.latlngs.some((ll) => ll.distanceTo(searchLatLng) <= 1609.34);
+        if (!withinRadius) continue;
+      }
+      group.addLayer(entry.layer);
+    }
+  };
+
   useEffect(() => {
     selectedDistrictRef.current = selectedDistrict;
     renderAllLabels();
@@ -166,11 +197,16 @@ function MapContent({
   useEffect(() => {
     searchMarkerPropRef.current = searchMarker;
     renderAllLabels();
+    renderTrails();
   }, [searchMarker]);
 
   useEffect(() => {
     scoreMetricRef.current = scoreMetric;
   }, [scoreMetric]);
+
+  useEffect(() => {
+    clickModeRef.current = clickMode;
+  }, [clickMode]);
 
   useEffect(() => {
     const onZoomEnd = () => renderAllLabels();
@@ -179,6 +215,22 @@ function MapContent({
       map.off('zoomend', onZoomEnd);
     };
   }, [map]);
+
+  // Clicking anywhere on the map (including on a district polygon, or a
+  // building/point within it) drops a search-style pin at that spot — same
+  // marker, 1-mile radius, and nearby-groceries behavior as an address
+  // search — so a click stands in for "search this place".
+  useEffect(() => {
+    if (!onMapClick) return;
+    const onClick = (e: L.LeafletMouseEvent) => {
+      if (clickModeRef.current !== 'place') return;
+      onMapClick(e.latlng.lat, e.latlng.lng);
+    };
+    map.on('click', onClick);
+    return () => {
+      map.off('click', onClick);
+    };
+  }, [map, onMapClick]);
 
   // Zoom control defaults to top-left, which the address search box and
   // score selector already occupy — move it to top-right instead, where it
@@ -227,6 +279,7 @@ function MapContent({
             districtBoundsRef.current[districtId] = (layer as L.Polygon).getBounds();
 
             layer.on('click', () => {
+              if (clickModeRef.current !== 'district') return;
               const isCurrentlySelected = selectedDistrictRef.current?.district_id === districtId;
               onDistrictSelect(isCurrentlySelected ? null : neighborhood);
             });
@@ -303,6 +356,7 @@ function MapContent({
         const overlays: Record<string, L.Layer> = {};
         labelEntriesRef.current = {};
         labelGroupsRef.current = {};
+        trailEntriesRef.current = [];
         for (const { url } of POINT_LAYER_FILES) {
           try {
             const resp = await fetch(url);
@@ -321,27 +375,32 @@ function MapContent({
               const isLines = features[0]?.geometry?.type === 'LineString';
 
               if (isLines) {
-                // Trails/paths: rendered as plain polylines, no clustering.
-                const layer = L.geoJSON({ type: 'FeatureCollection', features } as any, {
-                  style: { color, weight: 2, opacity: 0.6 },
-                  onEachFeature: (feature, layer) => {
-                    const featLabel = feature.properties?.label || source;
-                    const details = feature.properties?.details as Record<string, string | number> | undefined;
-                    let html = `<div style="font-weight:600;margin-bottom:4px;">${escapeHtml(String(featLabel))}</div>`;
-                    if (details && Object.keys(details).length > 0) {
-                      html += '<table style="font-size:12px;">';
-                      for (const [key, value] of Object.entries(details)) {
-                        html += `<tr><td style="color:#666;padding-right:8px;vertical-align:top;">${escapeHtml(key)}</td><td>${escapeHtml(String(value))}</td></tr>`;
-                      }
-                      html += '</table>';
+                // Trails/paths: individual polylines (no clustering), kept
+                // in trailEntriesRef so renderTrails() can filter each one
+                // to the search radius when a place is selected.
+                if (!trailGroupRef.current) {
+                  trailGroupRef.current = L.layerGroup();
+                  overlays[label] = trailGroupRef.current;
+                } else if (!overlays[label]) {
+                  overlays[label] = trailGroupRef.current;
+                }
+                for (const feature of features) {
+                  const coords = (feature.geometry?.coordinates || []) as [number, number][];
+                  if (coords.length < 2) continue;
+                  const latlngs = coords.map(([lon, lat]) => L.latLng(lat, lon));
+                  const polyline = L.polyline(latlngs, { color, weight: 2, opacity: 0.6 });
+                  const featLabel = feature.properties?.label || source;
+                  const details = feature.properties?.details as Record<string, string | number> | undefined;
+                  let html = `<div style="font-weight:600;margin-bottom:4px;">${escapeHtml(String(featLabel))}</div>`;
+                  if (details && Object.keys(details).length > 0) {
+                    html += '<table style="font-size:12px;">';
+                    for (const [key, value] of Object.entries(details)) {
+                      html += `<tr><td style="color:#666;padding-right:8px;vertical-align:top;">${escapeHtml(key)}</td><td>${escapeHtml(String(value))}</td></tr>`;
                     }
-                    layer.bindPopup(html, { maxWidth: 280 });
-                  },
-                });
-                if (overlays[label]) {
-                  (overlays[label] as L.LayerGroup).addLayer(layer);
-                } else {
-                  overlays[label] = L.layerGroup([layer]);
+                    html += '</table>';
+                  }
+                  polyline.bindPopup(html, { maxWidth: 280 });
+                  trailEntriesRef.current.push({ layer: polyline, latlngs });
                 }
                 continue;
               }
@@ -383,6 +442,9 @@ function MapContent({
                 const group = L.layerGroup();
                 labelGroupsRef.current[label] = group;
                 overlays[label] = group;
+                if (source === 'groceries') {
+                  groceryGroupRef.current = group;
+                }
               }
             }
           } catch (err) {
@@ -391,6 +453,7 @@ function MapContent({
         }
 
         renderAllLabels();
+        renderTrails();
 
         if (cancelled) return;
 
@@ -510,6 +573,16 @@ function MapContent({
       });
       circle.addTo(map);
       searchRadiusCircleRef.current = circle;
+
+      // Auto-enable the grocery store and trail layers so results near the
+      // searched location show up immediately, without requiring the user
+      // to dig into the layer-toggle control first.
+      if (groceryGroupRef.current && !map.hasLayer(groceryGroupRef.current)) {
+        map.addLayer(groceryGroupRef.current);
+      }
+      if (trailGroupRef.current && !map.hasLayer(trailGroupRef.current)) {
+        map.addLayer(trailGroupRef.current);
+      }
     }
   }, [searchMarker, map, onClearSearchMarker]);
 
@@ -551,6 +624,8 @@ export default function NeighborhoodMap({
   flyToLocation,
   searchMarker,
   onClearSearchMarker,
+  onMapClick,
+  clickMode,
   scoreMetric,
 }: NeighborhoodMapProps) {
   return (
@@ -570,6 +645,8 @@ export default function NeighborhoodMap({
         flyToLocation={flyToLocation}
         searchMarker={searchMarker}
         onClearSearchMarker={onClearSearchMarker}
+        onMapClick={onMapClick}
+        clickMode={clickMode}
         scoreMetric={scoreMetric}
       />
     </MapContainer>
