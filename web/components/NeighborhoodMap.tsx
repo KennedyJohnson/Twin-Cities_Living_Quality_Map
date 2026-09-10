@@ -5,8 +5,15 @@ import { MapContainer, TileLayer, GeoJSON, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import { getHealthScoreColor } from '@/lib/ColorScale';
 import { loadNeighborhoodData, getNeighborhoodMap } from '@/lib/loadNeighborhoodData';
+import { POINT_LAYER_COLORS, POINT_LAYER_LABELS } from '@/lib/pointLayerColors';
 import type { Neighborhood } from '@/types/neighborhood';
 import 'leaflet/dist/leaflet.css';
+
+const POINT_LAYER_FILES: { key: string; url: string }[] = [
+  { key: 'points_stpaul', url: '/data/points_stpaul.json' },
+  { key: 'points_mpls', url: '/data/points_mpls.json' },
+  { key: 'lines_trails', url: '/data/lines_trails.json' },
+];
 
 interface NeighborhoodMapProps {
   onDistrictSelect: (district: Neighborhood | null) => void;
@@ -79,6 +86,57 @@ function MapContent({
           [45.1, -92.8],   // Northeast corner
         ]);
         map.fitBounds(bounds, { padding: [50, 50] });
+
+        // Load point/line data-source layers (crime, permits, requests,
+        // housing, transit, schools, trails) as toggleable overlays.
+        const overlays: Record<string, L.Layer> = {};
+        for (const { url } of POINT_LAYER_FILES) {
+          try {
+            const resp = await fetch(url);
+            if (!resp.ok) continue;
+            const geojson = await resp.json();
+
+            const bySource: Record<string, any[]> = {};
+            for (const feature of geojson.features || []) {
+              const source = feature.properties?.source || 'other';
+              (bySource[source] = bySource[source] || []).push(feature);
+            }
+
+            for (const [source, features] of Object.entries(bySource)) {
+              const color = POINT_LAYER_COLORS[source] || '#666';
+              const layer = L.geoJSON(
+                { type: 'FeatureCollection', features } as any,
+                {
+                  pointToLayer: (feature, latlng) =>
+                    L.circleMarker(latlng, {
+                      radius: 3,
+                      fillColor: color,
+                      color,
+                      weight: 1,
+                      fillOpacity: 0.7,
+                    }),
+                  style: { color, weight: 2, opacity: 0.6 },
+                  onEachFeature: (feature, layer) => {
+                    const label = feature.properties?.label || source;
+                    layer.bindPopup(label);
+                  },
+                }
+              );
+              const label = POINT_LAYER_LABELS[source] || source;
+              if (overlays[label]) {
+                (overlays[label] as L.LayerGroup).addLayer(layer);
+              } else {
+                overlays[label] = L.layerGroup([layer]);
+              }
+            }
+          } catch (err) {
+            console.error(`Failed to load point layer ${url}:`, err);
+          }
+        }
+
+        if (Object.keys(overlays).length > 0) {
+          L.control.layers(undefined, overlays, { collapsed: true }).addTo(map);
+        }
 
         setIsLoading(false);
       } catch (error) {

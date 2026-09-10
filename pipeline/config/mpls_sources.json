@@ -1,0 +1,33 @@
+{
+  "_comment": "Minneapolis ArcGIS FeatureServer URLs, resolved from pipeline/mpls_dcat.json (DCAT-US feed) on 2026-09-09. Org id afSMGVsC7QlRK1kZ.",
+  "crime": {
+    "title": "Crime Data",
+    "featureServer": "https://services.arcgis.com/afSMGVsC7QlRK1kZ/arcgis/rest/services/Crime_Data/FeatureServer/0"
+  },
+  "permits": {
+    "title": "CCS Permits",
+    "featureServer": "https://services.arcgis.com/afSMGVsC7QlRK1kZ/arcgis/rest/services/CCS_Permits/FeatureServer/0"
+  },
+  "neighborhood_crime_stats": {
+    "title": "NEIGHBORHOOD CRIME STATS",
+    "featureServer": "https://services.arcgis.com/afSMGVsC7QlRK1kZ/arcgis/rest/services/NEIGHBORHOOD_CRIME_STATS/FeatureServer/0"
+  },
+  "neighborhoods": {
+    "title": "Minneapolis Neighborhoods",
+    "featureServer": "https://services.arcgis.com/afSMGVsC7QlRK1kZ/arcgis/rest/services/Minneapolis_Neighborhoods/FeatureServer/0"
+  },
+  "requests_311": {
+    "title": "Public 311 2025",
+    "featureServer": "https://services.arcgis.com/afSMGVsC7QlRK1kZ/arcgis/rest/services/Public_311_2025/FeatureServer/0",
+    "note": "98,884 rows, coordinates in EPSG:3857 (Web Mercator) - needs reprojection to WGS84 before point-in-polygon join. Other years also available: Public_311_2015..2026, same URL pattern with year substituted."
+  },
+  "zoning_overlay": {
+    "title": "Planning Zoning Overlay",
+    "featureServer": "https://services.arcgis.com/afSMGVsC7QlRK1kZ/arcgis/rest/services/Planning_Zoning_Overlay/FeatureServer"
+  },
+  "communities": {
+    "title": "Communities",
+    "featureServer": "https://services.arcgis.com/afSMGVsC7QlRK1kZ/arcgis/rest/services/Minneapolis_Communities/FeatureServer/0",
+    "note": "Chosen as the Minneapolis 'district' equivalent - 11 features, field CommName"
+  }
+}

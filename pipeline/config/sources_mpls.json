@@ -1,0 +1,56 @@
+{
+  "sources": [
+    {
+      "id": "crime",
+      "name": "Crime Incidents",
+      "loader_module": "clean_crime_mpls",
+      "geo_join_method": "crosswalk",
+      "rate_direction": "invert",
+      "health_component": "safety",
+      "weight_in_component": 1.0,
+      "metric_name": "crime_rate_pc",
+      "metric_label": "Crime Rate per 1000 residents",
+      "metric_unit": "incidents per 1000 pop",
+      "description": "Police-reported crime incidents (Minneapolis Crime_Data FeatureServer)"
+    },
+    {
+      "id": "permits",
+      "name": "Building Permits",
+      "loader_module": "clean_permits_mpls",
+      "geo_join_method": "crosswalk",
+      "rate_direction": "normal",
+      "health_component": "opportunity",
+      "weight_in_component": 1.0,
+      "metric_name": "permits_rate_pc",
+      "metric_label": "Building Permits per 1000 residents",
+      "metric_unit": "permits per 1000 pop",
+      "description": "Approved building permits (Minneapolis CCS_Permits FeatureServer)"
+    },
+    {
+      "id": "requests",
+      "name": "Service Requests",
+      "loader_module": "clean_requests_mpls",
+      "geo_join_method": "spatial",
+      "rate_direction": "invert",
+      "health_component": "quality_of_life",
+      "weight_in_component": 1.0,
+      "metric_name": "requests_rate_pc",
+      "metric_label": "Service Requests per 1000 residents",
+      "metric_unit": "requests per 1000 pop",
+      "description": "Resident 311 service requests (Minneapolis Public_311_2025 FeatureServer)"
+    },
+    {
+      "id": "housing",
+      "name": "Housing Production",
+      "loader_module": "clean_housing_mpls",
+      "geo_join_method": "crosswalk",
+      "rate_direction": "direct",
+      "health_component": "quality_of_life",
+      "weight_in_component": 0.5,
+      "metric_name": "housing_rate_pc",
+      "metric_label": "Housing Units Produced per 1000 residents",
+      "metric_unit": "units per 1000 pop",
+      "description": "Residential (permitType='Res') building permits as a proxy for housing production (Minneapolis CCS_Permits FeatureServer; no dedicated housing dataset exists for Minneapolis)"
+    }
+  ]
+}
