@@ -33,12 +33,14 @@ Each metric is normalized against every other district (z-score, squashed to 0�
 
 | Source | Used for |
 |---|---|
-| [City of St. Paul Open Data](https://information.stpaul.gov/) | Crime, permits, service requests, housing production |
-| [City of Minneapolis Open Data](https://opendata.minneapolismn.gov/) | Crime, permits, service requests, housing production |
+| [City of St. Paul Open Data](https://information.stpaul.gov/) (Socrata API or CSV) | Crime, permits, service requests, housing production |
+| [City of Minneapolis Open Data](https://opendata.minneapolismn.gov/) (ArcGIS FeatureServer) | Crime, permits, service requests, housing production |
 | [OpenStreetMap](https://www.openstreetmap.org/) (via [Overpass API](https://overpass-api.de/)) | Trails, transit stops, schools, grocery stores, healthcare facilities |
 | [U.S. Census Bureau ACS 5-Year Estimates](https://www.census.gov/programs-surveys/acs) | Median home value/rent/income, poverty rate, housing cost burden, homeownership rate, unemployment rate |
 | [MnDOT](https://www.dot.state.mn.us/traffic/data/) | Annual Average Daily Traffic (AADT), pedestrian/cyclist crash locations |
 | [CDC PLACES](https://www.cdc.gov/places/) | Obesity and diabetes prevalence by census tract |
+
+**Data fetching:** St. Paul data can be automatically fetched from Socrata APIs (recommended for automation) or manually downloaded as CSVs. See [SETUP_API.md](SETUP_API.md) for configuration. Minneapolis and other sources already use APIs.
 
 Some sources are intentionally excluded from the map's point layers (permits, service requests, housing production) — too granular for the map — but still feed the Health Score.
 

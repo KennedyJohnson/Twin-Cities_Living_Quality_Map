@@ -1,0 +1,47 @@
+{
+  "_comment": "St. Paul Socrata dataset configuration for API-based data loading. Set environment variables STPAUL_CRIME_ID, STPAUL_PERMITS_ID, STPAUL_REQUESTS_ID, STPAUL_HOUSING_ID to enable automated API fetching. Values below are placeholders—update after discovering actual dataset IDs from information.stpaul.gov.",
+  "domain": "https://information.stpaul.gov",
+  "datasets": {
+    "crime": {
+      "id_env_var": "STPAUL_CRIME_ID",
+      "title": "Crime Incident Report",
+      "description": "Police-reported crime incidents (major incidents only) in St. Paul",
+      "dataset_id": "",
+      "note": "TODO: Discover actual Socrata dataset ID from information.stpaul.gov. Check portal for 'Crime Incident Report' dataset."
+    },
+    "permits": {
+      "id_env_var": "STPAUL_PERMITS_ID",
+      "title": "Approved Building Permits",
+      "description": "Approved building/development permits in St. Paul with coordinates and district assignment",
+      "dataset_id": "",
+      "note": "TODO: Discover actual Socrata dataset ID. May have been exported with ID 7890413957898939046 but needs verification."
+    },
+    "requests": {
+      "id_env_var": "STPAUL_REQUESTS_ID",
+      "title": "Resident Service Requests",
+      "description": "Resident-reported infrastructure and service issues (311-style requests) with coordinates",
+      "dataset_id": "",
+      "note": "TODO: Discover actual Socrata dataset ID. May have been exported with ID 7024824928576740068 but needs verification."
+    },
+    "housing": {
+      "id_env_var": "STPAUL_HOUSING_ID",
+      "title": "Housing Production",
+      "description": "New housing units produced (all unit types) with coordinates for spatial joining",
+      "dataset_id": "",
+      "note": "TODO: Discover actual Socrata dataset ID from information.stpaul.gov."
+    }
+  },
+  "setup_instructions": [
+    "1. Visit https://information.stpaul.gov/browse to find dataset IDs",
+    "2. For each dataset, click on it and look for the API/download link",
+    "3. Extract the dataset ID from the Socrata URL (e.g., from /api/views/{id}/...)",
+    "4. Set as environment variables before running the pipeline:",
+    "   export STPAUL_CRIME_ID='xxx'",
+    "   export STPAUL_PERMITS_ID='xxx'",
+    "   export STPAUL_REQUESTS_ID='xxx'",
+    "   export STPAUL_HOUSING_ID='xxx'",
+    "5. Run: python pipeline/build.py",
+    "",
+    "Alternatively, set in pipeline/.env (gitignored) or GitHub Actions secrets"
+  ]
+}
