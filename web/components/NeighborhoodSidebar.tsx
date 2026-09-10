@@ -14,10 +14,12 @@ import {
 import MetricTrendChart from './MetricTrendChart';
 import AffordabilityTrendChart from './AffordabilityTrendChart';
 import IndexComparisonChart from './IndexComparisonChart';
+import TopDistrictsRanking from './TopDistrictsRanking';
 import type { Neighborhood } from '@/types/neighborhood';
 
 interface NeighborhoodSidebarProps {
   district: Neighborhood | null;
+  onSelectDistrict?: (district: Neighborhood) => void;
 }
 
 interface Affordability {
@@ -34,7 +36,7 @@ interface AffordabilityFile {
   districts: Record<string, Affordability>;
 }
 
-export default function NeighborhoodSidebar({ district }: NeighborhoodSidebarProps) {
+export default function NeighborhoodSidebar({ district, onSelectDistrict }: NeighborhoodSidebarProps) {
   const [affordability, setAffordability] = useState<Record<string, Affordability>>({});
   const [acsYear, setAcsYear] = useState<number | null>(null);
   const [expandedIndex, setExpandedIndex] = useState<string | null>(null);
@@ -55,6 +57,7 @@ export default function NeighborhoodSidebar({ district }: NeighborhoodSidebarPro
     return (
       <div className="sidebar">
         <div className="no-selection">Click a district on the map to view details</div>
+        <TopDistrictsRanking onSelectDistrict={onSelectDistrict} />
       </div>
     );
   }

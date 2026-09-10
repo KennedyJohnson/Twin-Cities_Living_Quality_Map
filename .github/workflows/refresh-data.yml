@@ -30,13 +30,23 @@ jobs:
 
       - name: Export point-layer map data
         working-directory: pipeline
-        run: python export_points.py
+        run: python exports/export_points.py
 
       - name: Export housing affordability data
         working-directory: pipeline
         env:
           CENSUS_API_KEY: ${{ secrets.CENSUS_API_KEY }}
-        run: python export_affordability.py
+        run: python exports/export_affordability.py
+
+      - name: Export housing affordability time-series data
+        working-directory: pipeline
+        env:
+          CENSUS_API_KEY: ${{ secrets.CENSUS_API_KEY }}
+        run: python exports/export_affordability_timeseries.py
+
+      - name: Export crime/permits/requests/housing time-series data
+        working-directory: pipeline
+        run: python exports/export_timeseries.py
 
       - name: Commit refreshed data
         run: |

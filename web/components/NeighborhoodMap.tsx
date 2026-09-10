@@ -127,6 +127,7 @@ function MapContent({
   const searchMarkerPropRef = useRef<{ lat: number; lon: number; label: string } | null | undefined>(searchMarker);
   const neighborhoodMapsRef = useRef<Map<number, Neighborhood>[]>([]);
   const scoreMetricRef = useRef<ScoreMetricKey>(scoreMetric);
+  const districtBoundsRef = useRef<Record<number, L.LatLngBounds>>({});
   const [isLoading, setIsLoading] = useState(true);
 
   const isEntryVisible = (entry: { marker: L.Marker; districtId: number | null }) => {
@@ -154,6 +155,12 @@ function MapContent({
   useEffect(() => {
     selectedDistrictRef.current = selectedDistrict;
     renderAllLabels();
+    if (selectedDistrict) {
+      const bounds = districtBoundsRef.current[selectedDistrict.district_id];
+      if (bounds) {
+        map.flyToBounds(bounds, { padding: [80, 80] });
+      }
+    }
   }, [selectedDistrict]);
 
   useEffect(() => {
@@ -203,12 +210,13 @@ function MapContent({
           const score = neighborhood ? getScoreValue(neighborhood, scoreMetricRef.current) : (scoreMin + scoreMax) / 2;
           const color = getHealthScoreColor(score, scoreMin, scoreMax);
 
+          const isSelected = selectedDistrict?.district_id === districtId;
           return {
             fillColor: color,
             fillOpacity: 0.7,
-            color: '#333',
-            weight: selectedDistrict?.district_id === districtId ? 3 : 2,
-            opacity: selectedDistrict?.district_id === districtId ? 1 : 0.5,
+            color: isSelected ? '#ff00ff' : '#333',
+            weight: isSelected ? 5 : 2,
+            opacity: isSelected ? 1 : 0.5,
           };
         },
         onEachFeature: (feature, layer) => {
@@ -216,19 +224,23 @@ function MapContent({
           const neighborhood = neighborhoodMap.get(districtId);
 
           if (neighborhood) {
+            districtBoundsRef.current[districtId] = (layer as L.Polygon).getBounds();
+
             layer.on('click', () => {
               const isCurrentlySelected = selectedDistrictRef.current?.district_id === districtId;
               onDistrictSelect(isCurrentlySelected ? null : neighborhood);
             });
 
             layer.on('mouseover', () => {
-              (layer as L.Path).setStyle({ weight: 3, opacity: 1 });
+              if (selectedDistrictRef.current?.district_id === districtId) return;
+              (layer as L.Path).setStyle({ color: '#333', weight: 3, opacity: 1 });
             });
 
             layer.on('mouseout', () => {
-              const isSelected = selectedDistrict?.district_id === districtId;
+              const isSelected = selectedDistrictRef.current?.district_id === districtId;
               (layer as L.Path).setStyle({
-                weight: isSelected ? 3 : 2,
+                color: isSelected ? '#ff00ff' : '#333',
+                weight: isSelected ? 5 : 2,
                 opacity: isSelected ? 1 : 0.5,
               });
             });
@@ -421,7 +433,8 @@ function MapContent({
           const isSelected = selectedDistrict?.district_id === districtId;
 
           layer.setStyle({
-            weight: isSelected ? 3 : 2,
+            color: isSelected ? '#ff00ff' : '#333',
+            weight: isSelected ? 5 : 2,
             opacity: isSelected ? 1 : 0.5,
           });
         }

@@ -55,11 +55,15 @@ export function getHealthScoreColor(score: number, min: number = 0, max: number 
   return rgbToHex(color[0], color[1], color[2]);
 }
 
-export function getLegendColors(min: number = 0, max: number = 100): Array<{ value: number; color: string; label: string }> {
-  const mid = (min + max) / 2;
-  return [
-    { value: min, color: getHealthScoreColor(min, min, max), label: `Poor (${Math.round(min)})` },
-    { value: mid, color: getHealthScoreColor(mid, min, max), label: `Mid (${Math.round(mid)})` },
-    { value: max, color: getHealthScoreColor(max, min, max), label: `Excellent (${Math.round(max)})` },
-  ];
+export function getLegendColors(min: number = 0, max: number = 100, steps: number = 7): Array<{ value: number; color: string; label: string }> {
+  const swatches = [];
+  for (let i = 0; i < steps; i++) {
+    const value = min + (max - min) * (i / (steps - 1));
+    swatches.push({
+      value,
+      color: getHealthScoreColor(value, min, max),
+      label: `${Math.round(value)}`,
+    });
+  }
+  return swatches;
 }
