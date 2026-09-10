@@ -6,6 +6,30 @@ An interactive map comparing quality of life across St. Paul's 17 District Counc
 
 ---
 
+## Quick Start (Development)
+
+Get the pipeline running locally in 5 minutes:
+
+```bash
+# 1. Get free Census API key (2 min)
+#    Visit: https://api.census.gov/data/key_signup.html
+#    → Check email for key
+
+# 2. Set up environment
+cp pipeline/.env.example pipeline/.env
+# Edit pipeline/.env and add: CENSUS_API_KEY=your_key_here
+
+# 3. Run pipeline
+cd pipeline
+python build.py
+
+# Done! Data fetched from APIs automatically
+```
+
+**All data is fetched automatically from official APIs — no manual downloads needed.** See [SETUP_API.md](SETUP_API.md) for full details.
+
+---
+
 ## What is a Health Score?
 
 A **Health Score** (0–100, where 100 is excellent) measures how well a district is doing across four weighted components:
@@ -33,14 +57,14 @@ Each metric is normalized against every other district (z-score, squashed to 0�
 
 | Source | Used for |
 |---|---|
-| [City of St. Paul Open Data](https://information.stpaul.gov/) (Socrata API or CSV) | Crime, permits, service requests, housing production |
-| [City of Minneapolis Open Data](https://opendata.minneapolismn.gov/) (ArcGIS FeatureServer) | Crime, permits, service requests, housing production |
-| [OpenStreetMap](https://www.openstreetmap.org/) (via [Overpass API](https://overpass-api.de/)) | Trails, transit stops, schools, grocery stores, healthcare facilities |
-| [U.S. Census Bureau ACS 5-Year Estimates](https://www.census.gov/programs-surveys/acs) | Median home value/rent/income, poverty rate, housing cost burden, homeownership rate, unemployment rate |
+| [City of St. Paul](https://information.stpaul.gov/) | Crime, permits, service requests, housing production |
+| [City of Minneapolis](https://opendata.minneapolismn.gov/) | Crime, permits, service requests, housing production |
+| [OpenStreetMap](https://www.openstreetmap.org/) | Trails, transit stops, schools, grocery stores, healthcare facilities |
+| [U.S. Census Bureau](https://www.census.gov/programs-surveys/acs) | Population, unemployment, affordability metrics (home value/rent/income) |
 | [MnDOT](https://www.dot.state.mn.us/traffic/data/) | Annual Average Daily Traffic (AADT), pedestrian/cyclist crash locations |
 | [CDC PLACES](https://www.cdc.gov/places/) | Obesity and diabetes prevalence by census tract |
 
-**Data fetching:** St. Paul data can be automatically fetched from Socrata APIs (recommended for automation) or manually downloaded as CSVs. See [SETUP_API.md](SETUP_API.md) for configuration. Minneapolis and other sources already use APIs.
+**Fully automated:** All data is fetched from official APIs with no manual downloads. See [SETUP_API.md](SETUP_API.md) for setup (1 required key: Census API).
 
 Some sources are intentionally excluded from the map's point layers (permits, service requests, housing production) — too granular for the map — but still feed the Health Score.
 
@@ -48,6 +72,60 @@ Some sources are intentionally excluded from the map's point layers (permits, se
 - St. Paul's crime data has no geocoded address, only a district, so individual incidents aren't plotted as markers (Minneapolis crime does include coordinates).
 - Minneapolis's 311 service request dataset only covers 2025, so no multi-year trend is available for that metric in that city.
 - Pedestrian/cyclist crash data covers 2016–2021 (the most recent public MnDOT extract); it is not live.
+
+---
+
+## Development & Setup
+
+### Prerequisites
+- Python 3.11+
+- Census API key (free, 2 min to get): https://api.census.gov/data/key_signup.html
+- No manual data downloads needed — all APIs are automated
+
+### Local Development (5 minutes)
+
+```bash
+# 1. Clone and navigate
+git clone <repo>
+cd Twin-Cities_Living_Quality_Map
+
+# 2. Install dependencies
+pip install -r pipeline/requirements.txt
+
+# 3. Set up environment
+cp pipeline/.env.example pipeline/.env
+# Edit pipeline/.env: paste your Census API key
+# CENSUS_API_KEY=your_key_here
+
+# 4. Run the pipeline
+cd pipeline
+python build.py
+
+# 5. All data fetched from APIs automatically
+# Generated files appear in: web/public/data/neighborhoods*.json
+```
+
+### Run Frontend Locally
+
+```bash
+cd web
+npm install
+npm run dev
+
+# Visit: http://localhost:3000
+```
+
+### GitHub Actions (Automated Updates)
+
+Scheduled to run **1st & 15th of each month at 08:00 UTC**:
+
+1. Add secret to GitHub: **Settings** → **Secrets and variables** → **Actions**
+   - Name: `CENSUS_API_KEY`
+   - Value: your Census API key
+2. Done! Pipeline auto-fetches and deploys data
+
+To manually trigger:
+- **Actions** tab → **Refresh Pipeline Data** → **Run workflow**
 
 ---
 
@@ -63,8 +141,8 @@ Twin Cities Living Quality Map
 │   ├── core/                    (load.py, aggregate.py, health_score.py, http_cache.py)
 │   ├── exports/                 (export_points.py, export_affordability*.py, export_timeseries.py)
 │   ├── diagnostics/             (diagnostic_geography.py, verify_crosswalk.py — standalone dev utilities)
-│   ├── config/                  (sources.json, sources_mpls.json, weights.json, crosswalks)
-│   ├── boundaries/, crosswalks/, data/ (raw boundary GeoJSON, geo crosswalks, population CSVs)
+│   ├── config/                  (sources.json, sources_mpls.json, weights.json, crosswalks, stpaul_sources.json)
+│   ├── boundaries/, crosswalks/, data/ (raw boundary GeoJSON, geo crosswalks, population CSVs; /data/ is optional fallback)
 │   └── tests/                   (pytest unit tests for the scoring math)
 ├── web/                         (Next.js frontend, deployed on Vercel)
 │   ├── app/                     (pages: map, /trends, /methodology, /about; icon.svg favicon)

@@ -6,24 +6,12 @@
       "population": 8200,
       "metrics": {
         "crime_rate_pc": {
-          "raw_count": 22496,
-          "rate_per_1000": 2743.41
-        },
-        "permit_rate_pc": {
-          "raw_count": 17048,
-          "rate_per_1000": 2079.02
+          "raw_count": 57,
+          "rate_per_1000": 6.95
         },
         "unemployment_rate_pc": {
           "raw_count": 966,
           "rate_per_1000": 117.8
-        },
-        "request_rate_pc": {
-          "raw_count": 11815,
-          "rate_per_1000": 1440.85
-        },
-        "housing_rate_pc": {
-          "raw_count": 37,
-          "rate_per_1000": 4.51
         },
         "trail_km_pc": {
           "raw_count": 189,
@@ -59,12 +47,12 @@
         }
       },
       "indices": {
-        "safety": 50.98,
-        "opportunity": 54.99,
-        "quality_of_life": 51.0,
+        "safety": 59.36,
+        "opportunity": 12.03,
+        "quality_of_life": 50.24,
         "affordability": 44.16
       },
-      "health_score": 50.62
+      "health_score": 42.66
     },
     {
       "district_id": 2,
@@ -72,24 +60,12 @@
       "population": 7100,
       "metrics": {
         "crime_rate_pc": {
-          "raw_count": 32909,
-          "rate_per_1000": 4635.07
-        },
-        "permit_rate_pc": {
-          "raw_count": 22411,
-          "rate_per_1000": 3156.48
+          "raw_count": 70,
+          "rate_per_1000": 9.86
         },
         "unemployment_rate_pc": {
           "raw_count": 757,
           "rate_per_1000": 106.62
-        },
-        "request_rate_pc": {
-          "raw_count": 25854,
-          "rate_per_1000": 3641.41
-        },
-        "housing_rate_pc": {
-          "raw_count": 111,
-          "rate_per_1000": 15.63
         },
         "trail_km_pc": {
           "raw_count": 214,
@@ -112,8 +88,8 @@
           "rate_per_1000": 29717.72
         },
         "healthcare_pc": {
-          "raw_count": 2,
-          "rate_per_1000": 0.28
+          "raw_count": 4,
+          "rate_per_1000": 0.56
         },
         "chronic_disease_pc": {
           "raw_count": 14005,
@@ -125,12 +101,12 @@
         }
       },
       "indices": {
-        "safety": 39.0,
-        "opportunity": 64.86,
-        "quality_of_life": 53.8,
+        "safety": 33.99,
+        "opportunity": 16.78,
+        "quality_of_life": 54.47,
         "affordability": 55.55
       },
-      "health_score": 51.74
+      "health_score": 38.09
     },
     {
       "district_id": 3,
@@ -138,24 +114,12 @@
       "population": 9400,
       "metrics": {
         "crime_rate_pc": {
-          "raw_count": 33600,
-          "rate_per_1000": 3574.47
-        },
-        "permit_rate_pc": {
-          "raw_count": 15243,
-          "rate_per_1000": 1621.6
+          "raw_count": 48,
+          "rate_per_1000": 5.11
         },
         "unemployment_rate_pc": {
           "raw_count": 420,
           "rate_per_1000": 44.68
-        },
-        "request_rate_pc": {
-          "raw_count": 16376,
-          "rate_per_1000": 1742.13
-        },
-        "housing_rate_pc": {
-          "raw_count": 51,
-          "rate_per_1000": 5.43
         },
         "trail_km_pc": {
           "raw_count": 202,
@@ -178,8 +142,8 @@
           "rate_per_1000": 41354.0
         },
         "healthcare_pc": {
-          "raw_count": 2,
-          "rate_per_1000": 0.21
+          "raw_count": 3,
+          "rate_per_1000": 0.32
         },
         "chronic_disease_pc": {
           "raw_count": 7601,
@@ -191,12 +155,12 @@
         }
       },
       "indices": {
-        "safety": 45.29,
-        "opportunity": 50.1,
-        "quality_of_life": 53.17,
+        "safety": 64.98,
+        "opportunity": 63.49,
+        "quality_of_life": 53.42,
         "affordability": 51.42
       },
-      "health_score": 49.29
+      "health_score": 59.58
     },
     {
       "district_id": 4,
@@ -204,24 +168,12 @@
       "population": 8900,
       "metrics": {
         "crime_rate_pc": {
-          "raw_count": 29723,
-          "rate_per_1000": 3339.66
-        },
-        "permit_rate_pc": {
-          "raw_count": 13625,
-          "rate_per_1000": 1530.9
+          "raw_count": 91,
+          "rate_per_1000": 10.22
         },
         "unemployment_rate_pc": {
           "raw_count": 587,
           "rate_per_1000": 65.96
-        },
-        "request_rate_pc": {
-          "raw_count": 27843,
-          "rate_per_1000": 3128.43
-        },
-        "housing_rate_pc": {
-          "raw_count": 70,
-          "rate_per_1000": 7.87
         },
         "trail_km_pc": {
           "raw_count": 196,
@@ -257,12 +209,12 @@
         }
       },
       "indices": {
-        "safety": 46.82,
-        "opportunity": 48.89,
-        "quality_of_life": 50.84,
+        "safety": 36.67,
+        "opportunity": 45.34,
+        "quality_of_life": 50.24,
         "affordability": 40.28
       },
-      "health_score": 46.83
+      "health_score": 42.27
     },
     {
       "district_id": 5,
@@ -270,24 +222,12 @@
       "population": 7600,
       "metrics": {
         "crime_rate_pc": {
-          "raw_count": 50727,
-          "rate_per_1000": 6674.61
-        },
-        "permit_rate_pc": {
-          "raw_count": 23906,
-          "rate_per_1000": 3145.53
+          "raw_count": 128,
+          "rate_per_1000": 16.84
         },
         "unemployment_rate_pc": {
           "raw_count": 790,
           "rate_per_1000": 103.95
-        },
-        "request_rate_pc": {
-          "raw_count": 38346,
-          "rate_per_1000": 5045.53
-        },
-        "housing_rate_pc": {
-          "raw_count": 190,
-          "rate_per_1000": 25.0
         },
         "trail_km_pc": {
           "raw_count": 294,
@@ -310,8 +250,8 @@
           "rate_per_1000": 134211.66
         },
         "healthcare_pc": {
-          "raw_count": 1,
-          "rate_per_1000": 0.13
+          "raw_count": 5,
+          "rate_per_1000": 0.66
         },
         "chronic_disease_pc": {
           "raw_count": 15374,
@@ -323,12 +263,12 @@
         }
       },
       "indices": {
-        "safety": 30.74,
-        "opportunity": 64.79,
-        "quality_of_life": 50.42,
+        "safety": 8.32,
+        "opportunity": 18.12,
+        "quality_of_life": 49.92,
         "affordability": 42.44
       },
-      "health_score": 45.53
+      "health_score": 25.92
     },
     {
       "district_id": 6,
@@ -336,24 +276,12 @@
       "population": 8800,
       "metrics": {
         "crime_rate_pc": {
-          "raw_count": 47783,
-          "rate_per_1000": 5429.89
-        },
-        "permit_rate_pc": {
-          "raw_count": 15785,
-          "rate_per_1000": 1793.75
+          "raw_count": 90,
+          "rate_per_1000": 10.23
         },
         "unemployment_rate_pc": {
           "raw_count": 874,
           "rate_per_1000": 99.32
-        },
-        "request_rate_pc": {
-          "raw_count": 23163,
-          "rate_per_1000": 2632.16
-        },
-        "housing_rate_pc": {
-          "raw_count": 84,
-          "rate_per_1000": 9.55
         },
         "trail_km_pc": {
           "raw_count": 208,
@@ -389,12 +317,12 @@
         }
       },
       "indices": {
-        "safety": 35.21,
-        "opportunity": 51.86,
-        "quality_of_life": 54.62,
+        "safety": 34.64,
+        "opportunity": 20.63,
+        "quality_of_life": 55.33,
         "affordability": 42.18
       },
-      "health_score": 44.65
+      "health_score": 36.78
     },
     {
       "district_id": 7,
@@ -402,24 +330,12 @@
       "population": 9100,
       "metrics": {
         "crime_rate_pc": {
-          "raw_count": 50796,
-          "rate_per_1000": 5581.98
-        },
-        "permit_rate_pc": {
-          "raw_count": 11283,
-          "rate_per_1000": 1239.89
+          "raw_count": 65,
+          "rate_per_1000": 7.14
         },
         "unemployment_rate_pc": {
           "raw_count": 493,
           "rate_per_1000": 54.18
-        },
-        "request_rate_pc": {
-          "raw_count": 25844,
-          "rate_per_1000": 2840.0
-        },
-        "housing_rate_pc": {
-          "raw_count": 73,
-          "rate_per_1000": 8.02
         },
         "trail_km_pc": {
           "raw_count": 148,
@@ -455,12 +371,12 @@
         }
       },
       "indices": {
-        "safety": 34.57,
-        "opportunity": 45.34,
-        "quality_of_life": 55.17,
+        "safety": 48.21,
+        "opportunity": 55.55,
+        "quality_of_life": 56.0,
         "affordability": 40.85
       },
-      "health_score": 42.64
+      "health_score": 50.13
     },
     {
       "district_id": 8,
@@ -468,24 +384,12 @@
       "population": 8400,
       "metrics": {
         "crime_rate_pc": {
-          "raw_count": 34368,
-          "rate_per_1000": 4091.43
-        },
-        "permit_rate_pc": {
-          "raw_count": 16378,
-          "rate_per_1000": 1949.76
+          "raw_count": 65,
+          "rate_per_1000": 7.74
         },
         "unemployment_rate_pc": {
           "raw_count": 538,
           "rate_per_1000": 64.05
-        },
-        "request_rate_pc": {
-          "raw_count": 15286,
-          "rate_per_1000": 1819.76
-        },
-        "housing_rate_pc": {
-          "raw_count": 55,
-          "rate_per_1000": 6.55
         },
         "trail_km_pc": {
           "raw_count": 172,
@@ -521,12 +425,12 @@
         }
       },
       "indices": {
-        "safety": 42.05,
-        "opportunity": 53.84,
-        "quality_of_life": 51.03,
+        "safety": 42.08,
+        "opportunity": 46.99,
+        "quality_of_life": 50.35,
         "affordability": 48.75
       },
-      "health_score": 48.13
+      "health_score": 46.29
     },
     {
       "district_id": 9,
@@ -534,24 +438,12 @@
       "population": 7900,
       "metrics": {
         "crime_rate_pc": {
-          "raw_count": 23755,
-          "rate_per_1000": 3006.96
-        },
-        "permit_rate_pc": {
-          "raw_count": 14002,
-          "rate_per_1000": 1772.41
+          "raw_count": 41,
+          "rate_per_1000": 5.19
         },
         "unemployment_rate_pc": {
           "raw_count": 256,
           "rate_per_1000": 32.41
-        },
-        "request_rate_pc": {
-          "raw_count": 10787,
-          "rate_per_1000": 1365.44
-        },
-        "housing_rate_pc": {
-          "raw_count": 56,
-          "rate_per_1000": 7.09
         },
         "trail_km_pc": {
           "raw_count": 180,
@@ -573,6 +465,10 @@
           "raw_count": 904518,
           "rate_per_1000": 114496.02
         },
+        "healthcare_pc": {
+          "raw_count": 3,
+          "rate_per_1000": 0.38
+        },
         "chronic_disease_pc": {
           "raw_count": 5632,
           "rate_per_1000": 712.93
@@ -583,12 +479,12 @@
         }
       },
       "indices": {
-        "safety": 49.11,
-        "opportunity": 51.96,
-        "quality_of_life": 50.24,
+        "safety": 60.63,
+        "opportunity": 72.71,
+        "quality_of_life": 50.25,
         "affordability": 48.88
       },
-      "health_score": 50.0
+      "health_score": 59.23
     },
     {
       "district_id": 10,
@@ -596,24 +492,12 @@
       "population": 9300,
       "metrics": {
         "crime_rate_pc": {
-          "raw_count": 20024,
-          "rate_per_1000": 2153.12
-        },
-        "permit_rate_pc": {
-          "raw_count": 23118,
-          "rate_per_1000": 2485.81
+          "raw_count": 33,
+          "rate_per_1000": 3.55
         },
         "unemployment_rate_pc": {
           "raw_count": 256,
           "rate_per_1000": 27.53
-        },
-        "request_rate_pc": {
-          "raw_count": 7002,
-          "rate_per_1000": 752.9
-        },
-        "housing_rate_pc": {
-          "raw_count": 32,
-          "rate_per_1000": 3.44
         },
         "trail_km_pc": {
           "raw_count": 209,
@@ -649,12 +533,12 @@
         }
       },
       "indices": {
-        "safety": 55.27,
-        "opportunity": 59.65,
-        "quality_of_life": 54.81,
+        "safety": 74.45,
+        "opportunity": 75.95,
+        "quality_of_life": 55.31,
         "affordability": 67.83
       },
-      "health_score": 58.78
+      "health_score": 69.67
     },
     {
       "district_id": 11,
@@ -662,24 +546,12 @@
       "population": 8600,
       "metrics": {
         "crime_rate_pc": {
-          "raw_count": 29546,
-          "rate_per_1000": 3435.58
-        },
-        "permit_rate_pc": {
-          "raw_count": 15420,
-          "rate_per_1000": 1793.02
+          "raw_count": 47,
+          "rate_per_1000": 5.47
         },
         "unemployment_rate_pc": {
           "raw_count": 487,
           "rate_per_1000": 56.63
-        },
-        "request_rate_pc": {
-          "raw_count": 13915,
-          "rate_per_1000": 1618.02
-        },
-        "housing_rate_pc": {
-          "raw_count": 15,
-          "rate_per_1000": 1.74
         },
         "trail_km_pc": {
           "raw_count": 140,
@@ -715,12 +587,12 @@
         }
       },
       "indices": {
-        "safety": 46.2,
-        "opportunity": 52.07,
-        "quality_of_life": 55.64,
+        "safety": 63.77,
+        "opportunity": 53.44,
+        "quality_of_life": 56.39,
         "affordability": 60.66
       },
-      "health_score": 52.45
+      "health_score": 59.09
     },
     {
       "district_id": 12,
@@ -728,24 +600,12 @@
       "population": 7700,
       "metrics": {
         "crime_rate_pc": {
-          "raw_count": 15780,
-          "rate_per_1000": 2049.35
-        },
-        "permit_rate_pc": {
-          "raw_count": 12220,
-          "rate_per_1000": 1587.01
+          "raw_count": 18,
+          "rate_per_1000": 2.34
         },
         "unemployment_rate_pc": {
           "raw_count": 351,
           "rate_per_1000": 45.58
-        },
-        "request_rate_pc": {
-          "raw_count": 3244,
-          "rate_per_1000": 421.3
-        },
-        "housing_rate_pc": {
-          "raw_count": 52,
-          "rate_per_1000": 6.75
         },
         "trail_km_pc": {
           "raw_count": 108,
@@ -768,8 +628,8 @@
           "rate_per_1000": 47384.44
         },
         "healthcare_pc": {
-          "raw_count": 5,
-          "rate_per_1000": 0.65
+          "raw_count": 8,
+          "rate_per_1000": 1.04
         },
         "chronic_disease_pc": {
           "raw_count": 4440,
@@ -781,12 +641,12 @@
         }
       },
       "indices": {
-        "safety": 56.02,
-        "opportunity": 49.68,
-        "quality_of_life": 52.93,
+        "safety": 74.65,
+        "opportunity": 62.76,
+        "quality_of_life": 52.92,
         "affordability": 48.15
       },
-      "health_score": 52.24
+      "health_score": 62.03
     },
     {
       "district_id": 13,
@@ -794,24 +654,12 @@
       "population": 9200,
       "metrics": {
         "crime_rate_pc": {
-          "raw_count": 41174,
-          "rate_per_1000": 4475.43
-        },
-        "permit_rate_pc": {
-          "raw_count": 21223,
-          "rate_per_1000": 2306.85
+          "raw_count": 79,
+          "rate_per_1000": 8.59
         },
         "unemployment_rate_pc": {
           "raw_count": 390,
           "rate_per_1000": 42.39
-        },
-        "request_rate_pc": {
-          "raw_count": 11314,
-          "rate_per_1000": 1229.78
-        },
-        "housing_rate_pc": {
-          "raw_count": 60,
-          "rate_per_1000": 6.52
         },
         "trail_km_pc": {
           "raw_count": 211,
@@ -834,8 +682,8 @@
           "rate_per_1000": 142010.28
         },
         "healthcare_pc": {
-          "raw_count": 5,
-          "rate_per_1000": 0.54
+          "raw_count": 8,
+          "rate_per_1000": 0.87
         },
         "chronic_disease_pc": {
           "raw_count": 4478,
@@ -847,12 +695,12 @@
         }
       },
       "indices": {
-        "safety": 39.85,
-        "opportunity": 57.8,
-        "quality_of_life": 50.97,
+        "safety": 32.77,
+        "opportunity": 65.32,
+        "quality_of_life": 50.06,
         "affordability": 46.38
       },
-      "health_score": 47.87
+      "health_score": 47.09
     },
     {
       "district_id": 14,
@@ -860,24 +708,12 @@
       "population": 8500,
       "metrics": {
         "crime_rate_pc": {
-          "raw_count": 19726,
-          "rate_per_1000": 2320.71
-        },
-        "permit_rate_pc": {
-          "raw_count": 33563,
-          "rate_per_1000": 3948.59
+          "raw_count": 37,
+          "rate_per_1000": 4.35
         },
         "unemployment_rate_pc": {
           "raw_count": 474,
           "rate_per_1000": 55.76
-        },
-        "request_rate_pc": {
-          "raw_count": 8552,
-          "rate_per_1000": 1006.12
-        },
-        "housing_rate_pc": {
-          "raw_count": 117,
-          "rate_per_1000": 13.76
         },
         "trail_km_pc": {
           "raw_count": 220,
@@ -900,8 +736,8 @@
           "rate_per_1000": 21943.64
         },
         "healthcare_pc": {
-          "raw_count": 1,
-          "rate_per_1000": 0.12
+          "raw_count": 3,
+          "rate_per_1000": 0.35
         },
         "chronic_disease_pc": {
           "raw_count": 7050,
@@ -913,12 +749,12 @@
         }
       },
       "indices": {
-        "safety": 54.03,
-        "opportunity": 69.76,
-        "quality_of_life": 54.95,
+        "safety": 69.96,
+        "opportunity": 54.19,
+        "quality_of_life": 55.51,
         "affordability": 55.32
       },
-      "health_score": 58.41
+      "health_score": 60.2
     },
     {
       "district_id": 15,
@@ -926,24 +762,12 @@
       "population": 7800,
       "metrics": {
         "crime_rate_pc": {
-          "raw_count": 28047,
-          "rate_per_1000": 3595.77
-        },
-        "permit_rate_pc": {
-          "raw_count": 36816,
-          "rate_per_1000": 4720.0
+          "raw_count": 47,
+          "rate_per_1000": 6.03
         },
         "unemployment_rate_pc": {
           "raw_count": 432,
           "rate_per_1000": 55.38
-        },
-        "request_rate_pc": {
-          "raw_count": 7593,
-          "rate_per_1000": 973.46
-        },
-        "housing_rate_pc": {
-          "raw_count": 177,
-          "rate_per_1000": 22.69
         },
         "trail_km_pc": {
           "raw_count": 356,
@@ -966,8 +790,8 @@
           "rate_per_1000": 67444.83
         },
         "healthcare_pc": {
-          "raw_count": 3,
-          "rate_per_1000": 0.38
+          "raw_count": 7,
+          "rate_per_1000": 0.9
         },
         "chronic_disease_pc": {
           "raw_count": 11152,
@@ -979,12 +803,12 @@
         }
       },
       "indices": {
-        "safety": 45.15,
-        "opportunity": 72.61,
-        "quality_of_life": 51.82,
+        "safety": 59.78,
+        "opportunity": 54.52,
+        "quality_of_life": 51.48,
         "affordability": 56.11
       },
-      "health_score": 55.54
+      "health_score": 56.07
     },
     {
       "district_id": 16,
@@ -992,24 +816,12 @@
       "population": 8100,
       "metrics": {
         "crime_rate_pc": {
-          "raw_count": 11293,
-          "rate_per_1000": 1394.2
-        },
-        "permit_rate_pc": {
-          "raw_count": 10136,
-          "rate_per_1000": 1251.36
+          "raw_count": 15,
+          "rate_per_1000": 1.85
         },
         "unemployment_rate_pc": {
           "raw_count": 116,
           "rate_per_1000": 14.32
-        },
-        "request_rate_pc": {
-          "raw_count": 2842,
-          "rate_per_1000": 350.86
-        },
-        "housing_rate_pc": {
-          "raw_count": 36,
-          "rate_per_1000": 4.44
         },
         "trail_km_pc": {
           "raw_count": 80,
@@ -1032,8 +844,8 @@
           "rate_per_1000": 19041.57
         },
         "healthcare_pc": {
-          "raw_count": 1,
-          "rate_per_1000": 0.12
+          "raw_count": 3,
+          "rate_per_1000": 0.37
         },
         "chronic_disease_pc": {
           "raw_count": 2389,
@@ -1045,12 +857,12 @@
         }
       },
       "indices": {
-        "safety": 60.83,
-        "opportunity": 45.7,
-        "quality_of_life": 55.37,
+        "safety": 79.5,
+        "opportunity": 83.33,
+        "quality_of_life": 55.92,
         "affordability": 62.7
       },
-      "health_score": 56.33
+      "health_score": 72.38
     },
     {
       "district_id": 17,
@@ -1058,24 +870,12 @@
       "population": 9000,
       "metrics": {
         "crime_rate_pc": {
-          "raw_count": 69120,
-          "rate_per_1000": 7680.0
-        },
-        "permit_rate_pc": {
-          "raw_count": 11300,
-          "rate_per_1000": 1255.56
+          "raw_count": 69,
+          "rate_per_1000": 7.67
         },
         "unemployment_rate_pc": {
           "raw_count": 391,
           "rate_per_1000": 43.44
-        },
-        "request_rate_pc": {
-          "raw_count": 6270,
-          "rate_per_1000": 696.67
-        },
-        "housing_rate_pc": {
-          "raw_count": 32,
-          "rate_per_1000": 3.56
         },
         "trail_km_pc": {
           "raw_count": 121,
@@ -1094,8 +894,8 @@
           "rate_per_1000": 92232.77
         },
         "healthcare_pc": {
-          "raw_count": 2,
-          "rate_per_1000": 0.22
+          "raw_count": 5,
+          "rate_per_1000": 0.56
         },
         "chronic_disease_pc": {
           "raw_count": 4048,
@@ -1107,17 +907,17 @@
         }
       },
       "indices": {
-        "safety": 28.31,
-        "opportunity": 45.6,
-        "quality_of_life": 50.6,
+        "safety": 41.44,
+        "opportunity": 64.48,
+        "quality_of_life": 49.41,
         "affordability": 39.18
       },
-      "health_score": 39.26
+      "health_score": 48.34
     }
   ],
   "metadata": {
     "total_districts": 17,
-    "data_generated": "2026-09-10T13:53:21.156299",
+    "data_generated": "2026-09-10T15:46:11.177887",
     "note": "Snapshot of all-time aggregated health metrics"
   }
 }

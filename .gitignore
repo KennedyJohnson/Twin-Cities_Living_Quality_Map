@@ -1,6 +1,8 @@
-# Data files (raw CSV datasets only — optional, fetched from APIs when available; web/public/data is served by the app and stays tracked)
-# Set STPAUL_* environment variables to fetch from Socrata APIs instead of using local CSVs
+# Data files (all optional — fetched from APIs when available)
+# Pipeline is now 100% API-based: city data from ArcGIS FeatureServers, Census from Census Bureau
+# Keep /data/ only if you want to manually test with specific CSV versions
 /data/
+pipeline/data/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
