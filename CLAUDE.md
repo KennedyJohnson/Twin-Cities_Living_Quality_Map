@@ -3,7 +3,6 @@
 ## Projects
 
 ### 1. Twin Cities Living Quality Map
-**Status:** Active data science project (repo: Twin-Cities_Living_Quality_Map)
 **Goal:** Create a comprehensive, comparable living-quality assessment across St. Paul (17 District Councils) and Minneapolis (11 Communities)
 
 #### Datasets
@@ -35,34 +34,3 @@ See `README.md` for the full architecture and how to run the pipeline/frontend l
 - **St. Paul:** District Council (1-17)
 - **Minneapolis:** Community (101-111), joined via a neighborhood→community crosswalk
 - District_id ranges (1-17 vs 101-111) distinguish the two cities in shared frontend/pipeline code
-
----
-
-## Vercel Deployment Recommendation: ✅ YES, Good Fit
-
-### Why Vercel Free Tier Works
-- **Perfect for:** Interactive data visualization dashboard
-- **Built-in support:** React, Next.js, static exports
-- **Ideal libraries:** Recharts, Plotly, D3, Mapbox (for neighborhood maps)
-- **Deployment:** Zero-config, auto-deploy on git push
-- **Performance:** Fast CDN, great for interactive dashboards
-
-### Implementation Path
-1. **Option A (Simplest):** Next.js app with embedded data JSON → Vercel (5min setup)
-2. **Option B (Scalable):** Next.js + API routes → Pre-compute aggregated metrics, serve dynamically
-3. **Option C (Advanced):** React dashboard + external data API (separate backend if needed)
-
-### Free Tier Limits to Know
-- **Serverless functions:** 100 invocations/day (sufficient for dashboard with client-side visualization)
-- **Bandwidth:** Generous for dashboards
-- **Data:** Host processed/aggregated data files (~MB range) easily
-- **Real-time:** Not available on free tier; pre-computed data is the way to go
-
-### Recommended Approach for Your Data
-1. Use Jupyter notebooks to compute aggregated neighborhood health scores (CSVs)
-2. Export results as JSON files
-3. Build React/Next.js visualization dashboard
-4. Deploy to Vercel
-5. Dashboard loads data client-side and renders interactive charts/maps
-
-This keeps everything fast, cheap, and simple.

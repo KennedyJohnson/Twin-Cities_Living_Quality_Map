@@ -73,49 +73,6 @@ Twin Cities Living Quality Map
 └── .github/workflows/           (scheduled data refresh + CI)
 ```
 
-### Running Locally
-
-#### Prerequisites
-- Python 3.9+, pip
-- Node.js 18+, npm
-- A free [Census API key](https://api.census.gov/data/key_signup.html), saved to `pipeline/.env` as `CENSUS_API_KEY=...` (gitignored)
-
-#### Pipeline (regenerate all data)
-```bash
-cd pipeline
-pip install -r requirements.txt
-python build.py                        # health scores for both cities
-python exports/export_points.py                # map point/line layers
-python exports/export_affordability.py         # affordability snapshot
-python exports/export_affordability_timeseries.py
-python exports/export_timeseries.py            # crime/permits/requests/housing trends
-```
-
-#### Pipeline tests
-```bash
-cd pipeline
-pip install -r requirements-dev.txt
-python -m pytest tests/ -v
-```
-
-#### Frontend (local dev server)
-```bash
-cd web
-npm install
-npm run dev
-```
-Open `http://localhost:3000` in your browser.
-
-#### Frontend end-to-end tests
-```bash
-cd web
-npx playwright install --with-deps chromium
-npm run test:e2e
-```
-
-#### Deployment
-Push to `main` → Vercel auto-deploys. A scheduled GitHub Actions workflow (`.github/workflows/refresh-data.yml`) re-runs the pipeline and commits refreshed data on the 1st and 15th of each month.
-
 ---
 
 ## Configuration Files
