@@ -9,6 +9,7 @@ counted per district_id by aggregate_by_source().
 
 import time
 import requests
+from http_cache import cached_post
 import pandas as pd
 from pathlib import Path
 from load import load_boundaries
@@ -45,7 +46,7 @@ def _fetch_nodes(max_retries=3):
     last_error = None
     for attempt in range(max_retries):
         try:
-            response = requests.post(OVERPASS_URL, data={"data": OVERPASS_QUERY}, headers=headers, timeout=120)
+            response = cached_post(OVERPASS_URL, data={"data": OVERPASS_QUERY}, headers=headers, timeout=120)
             response.raise_for_status()
             return response.json()["elements"]
         except Exception as e:
@@ -54,17 +55,17 @@ def _fetch_nodes(max_retries=3):
                 time.sleep(15 * (attempt + 1))
     raise last_error
 
-def clean_schools(fallback_behavior="exclude_from_scoring_if_geography_fails"):
+def clean_schools(fallback_behavior="exclude_from_scoring_if_geography_fails", city="stpaul"):
     """
     Fetch school/college/university data from Overpass API and count
-    them within each district (point-in-polygon).
+    them within each district (point-in-polygon). city: 'stpaul' or 'mpls'.
 
     Returns:
         DataFrame with columns: node_id, district_id, kind
         (one row per school found inside a district; aggregate_by_source()
         counts rows per district_id since there is no "value" column)
     """
-    boundaries = load_boundaries()
+    boundaries = load_boundaries(city=city)
 
     boundary_map = {}
     for feature in boundaries["features"]:

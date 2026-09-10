@@ -138,6 +138,9 @@ celerybeat.pid
 # SageMath parsed files
 *.sage.py
 
+# Pipeline HTTP response cache (short-TTL, never something to ship/commit)
+pipeline/.cache/
+
 # Environments
 .env
 .envrc
@@ -212,3 +215,9 @@ __marimo__/
 
 # Next.js build info
 web/tsconfig.tsbuildinfo
+
+# Playwright
+web/test-results/
+web/playwright-report/
+web/blob-report/
+web/playwright/.cache/

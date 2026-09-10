@@ -7,6 +7,7 @@ export interface Indices {
   safety: number;
   opportunity: number;
   quality_of_life: number;
+  affordability?: number;
 }
 
 export interface Neighborhood {

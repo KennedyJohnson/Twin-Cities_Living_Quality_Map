@@ -12,6 +12,7 @@ aggregate_by_source() sums per district_id.
 import json
 import time
 import requests
+from http_cache import cached_post
 import pandas as pd
 from pathlib import Path
 from load import load_boundaries
@@ -20,9 +21,9 @@ from shapely.geometry import LineString, shape
 PIPELINE_DIR = Path(__file__).parent
 OVERPASS_URL = "https://overpass-api.de/api/interpreter"
 
-# Twin Cities-ish bounding box (south, west, north, east) - generous bounds
-# around St. Paul so all districts are covered.
-BBOX = "44.90, -93.20, 45.05, -92.95"
+# Twin Cities bounding box (south, west, north, east) - covers both St. Paul
+# and Minneapolis so this loader works for either city's districts.
+BBOX = "44.85, -93.35, 45.05, -92.95"
 
 OVERPASS_QUERY = f"""
 [out:json][timeout:60];
@@ -46,7 +47,7 @@ def _fetch_ways(max_retries=3):
     last_error = None
     for attempt in range(max_retries):
         try:
-            response = requests.post(OVERPASS_URL, data={"data": OVERPASS_QUERY}, headers=headers, timeout=120)
+            response = cached_post(OVERPASS_URL, data={"data": OVERPASS_QUERY}, headers=headers, timeout=120)
             response.raise_for_status()
             return response.json()["elements"]
         except Exception as e:
@@ -55,15 +56,15 @@ def _fetch_ways(max_retries=3):
                 time.sleep(15 * (attempt + 1))
     raise last_error
 
-def clean_walkability(fallback_behavior="exclude_from_scoring_if_geography_fails"):
+def clean_walkability(fallback_behavior="exclude_from_scoring_if_geography_fails", city="stpaul"):
     """
     Fetch trail/path data from Overpass API and compute length (km) within
-    each district via line-polygon intersection.
+    each district via line-polygon intersection. city: 'stpaul' or 'mpls'.
 
     Returns:
         DataFrame with columns: way_id, district_id, value (length_km)
     """
-    boundaries = load_boundaries()
+    boundaries = load_boundaries(city=city)
 
     boundary_map = {}
     for feature in boundaries["features"]:

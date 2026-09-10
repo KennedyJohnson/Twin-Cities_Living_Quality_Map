@@ -17,7 +17,14 @@ interface PointInPolygonResult {
 }
 
 interface AddressSearchProps {
-  onAddressSelect?: (address: string, lat: number, lon: number, district: Neighborhood | null) => void;
+  onAddressSelect?: (address: string, lat: number, lon: number, district: Neighborhood | null, label: string) => void;
+}
+
+function shortLabel(result: SearchResult): string {
+  if (result.name && result.name.trim().length > 0) {
+    return result.name.trim();
+  }
+  return result.display_name.split(',')[0].trim();
 }
 
 export default function AddressSearch({ onAddressSelect }: AddressSearchProps) {
@@ -120,15 +127,16 @@ export default function AddressSearch({ onAddressSelect }: AddressSearchProps) {
     setSelectedAddress(result.display_name);
     setSuggestions([]);
 
+    const label = shortLabel(result);
     const districtResult = await findDistrictForPoint(result.lat, result.lon);
-
+    let neighborhood: Neighborhood | null = null;
     if (districtResult) {
       const neighborhoodMap = await getNeighborhoodMap();
-      const neighborhood = neighborhoodMap.get(districtResult.districtId);
+      neighborhood = neighborhoodMap.get(districtResult.districtId) || null;
+    }
 
-      if (neighborhood && onAddressSelect) {
-        onAddressSelect(result.display_name, result.lat, result.lon, neighborhood);
-      }
+    if (onAddressSelect) {
+      onAddressSelect(result.display_name, result.lat, result.lon, neighborhood, label);
     }
   };
 
@@ -155,7 +163,7 @@ export default function AddressSearch({ onAddressSelect }: AddressSearchProps) {
       <form onSubmit={handleSearch}>
         <input
           type="text"
-          placeholder="Search for an address in St. Paul..."
+          placeholder="Search for an address in the Twin Cities..."
           value={searchInput}
           onChange={handleInputChange}
           className="search-input"

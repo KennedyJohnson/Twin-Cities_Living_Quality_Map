@@ -1,7 +1,8 @@
 """
 Orchestration script: load -> clean -> aggregate -> score -> output JSON.
-Produces web/public/data/neighborhoods.json and web/public/data/boundaries.geojson.
-Includes 17-row sanity check and smoke-test validation.
+Produces web/public/data/neighborhoods.json + boundaries.geojson for St. Paul,
+and neighborhoods_mpls.json + boundaries_mpls.geojson for Minneapolis.
+Includes a sanity check and smoke-test validation for each city.
 """
 
 import json
@@ -15,36 +16,43 @@ PIPELINE_DIR = Path(__file__).parent
 REPO_DIR = PIPELINE_DIR.parent
 WEB_DATA_DIR = REPO_DIR / "web" / "public" / "data"
 
-def build():
-    """Main build orchestration."""
+CITY_LABELS = {"stpaul": "ST. PAUL", "mpls": "MINNEAPOLIS"}
+
+
+def build(city="stpaul"):
+    """Build orchestration for a single city."""
+    label = CITY_LABELS.get(city, city.upper())
+    neighborhoods_filename = "neighborhoods.json" if city == "stpaul" else f"neighborhoods_{city}.json"
+    boundaries_filename = "boundaries.geojson" if city == "stpaul" else f"boundaries_{city}.geojson"
+
     print("=" * 70)
-    print("ST. PAUL NEIGHBORHOOD HEALTH - BUILD PIPELINE")
+    print(f"TWIN CITIES LIVING QUALITY MAP - {label} BUILD PIPELINE")
     print("=" * 70)
     print()
 
     # Step 1: Aggregate all data sources
     print("STEP 1: Aggregating data by district...")
     print("-" * 70)
-    aggregated = aggregate_all()
+    aggregated = aggregate_all(city=city)
     print()
 
     # Step 2: Compute health scores
     print("STEP 2: Computing health scores...")
     print("-" * 70)
-    health_scores = compute_health_scores(aggregated)
+    health_scores = compute_health_scores(aggregated, city=city)
     print(f"[OK] Computed scores for {len(health_scores)} districts")
     print()
 
     # Step 3: Load supporting data
     print("STEP 3: Loading population and boundaries...")
     print("-" * 70)
-    population = load_population()
-    boundaries = load_boundaries()
+    population = load_population(city=city)
+    boundaries = load_boundaries(city=city)
     print(f"[OK] Loaded {len(population)} districts, {len(boundaries['features'])} boundaries")
     print()
 
     # Step 4: Build neighborhoods.json
-    print("STEP 4: Building neighborhoods.json...")
+    print(f"STEP 4: Building {neighborhoods_filename}...")
     print("-" * 70)
     neighborhoods_data = []
 
@@ -84,26 +92,26 @@ def build():
 
     # Write neighborhoods.json
     WEB_DATA_DIR.mkdir(parents=True, exist_ok=True)
-    neighborhoods_file = WEB_DATA_DIR / "neighborhoods.json"
+    neighborhoods_file = WEB_DATA_DIR / neighborhoods_filename
     with open(neighborhoods_file, "w") as f:
         json.dump(neighborhoods_json, f, indent=2)
     print(f"[OK] Written {neighborhoods_file}")
     print()
 
     # Step 5: Prepare boundaries.geojson (ensure top-level "id")
-    print("STEP 5: Preparing boundaries.geojson...")
+    print(f"STEP 5: Preparing {boundaries_filename}...")
     print("-" * 70)
     for feature in boundaries["features"]:
         district_id = feature["properties"]["district_id"]
         feature["id"] = district_id  # Top-level id for google.maps.Data.getFeatureById
-    boundaries_file = WEB_DATA_DIR / "boundaries.geojson"
+    boundaries_file = WEB_DATA_DIR / boundaries_filename
     with open(boundaries_file, "w") as f:
         json.dump(boundaries, f, indent=2)
     print(f"[OK] Written {boundaries_file}")
     print()
 
-    # Step 6: Print 17-row sanity table
-    print("STEP 6: Sanity check - 17-row health score table")
+    # Step 6: Print sanity table
+    print("STEP 6: Sanity check - health score table")
     print("-" * 70)
     sanity_rows = []
     for neighborhood in neighborhoods_data:
@@ -145,14 +153,18 @@ def build():
 
     print()
     print("=" * 70)
-    print("BUILD COMPLETE")
+    print(f"{label} BUILD COMPLETE")
     print("=" * 70)
     print()
+
+
+if __name__ == "__main__":
+    build(city="stpaul")
+    print()
+    build(city="mpls")
+
     print("Next steps:")
-    print(f"1. Review neighborhoods.json and boundaries.geojson in {WEB_DATA_DIR}")
+    print(f"1. Review neighborhoods*.json and boundaries*.geojson in {WEB_DATA_DIR}")
     print("2. Push to git: git add pipeline/ web/public/data/")
     print("3. Run Next.js dev server: cd web && npm run dev")
     print()
-
-if __name__ == "__main__":
-    build()

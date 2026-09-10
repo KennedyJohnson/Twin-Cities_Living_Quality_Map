@@ -6,6 +6,7 @@ reprojected to WGS84 manually (no pyproj dependency) before the point-in-polygon
 
 import json
 import math
+import time
 import requests
 import pandas as pd
 from pathlib import Path
@@ -28,7 +29,7 @@ def _web_mercator_to_wgs84(x, y):
     return lon, lat
 
 
-def _fetch_all_features(out_fields="CASEID,TYPENAME,OPENEDDATETIME,XCOORD,YCOORD"):
+def _fetch_all_features(out_fields="CASEID,TYPENAME,OPENEDDATETIME,XCOORD,YCOORD,TITLE,REASONNAME,CASESTATUS"):
     query_url = f"{FEATURE_SERVER}/query"
     features = []
     offset = 0
@@ -40,9 +41,14 @@ def _fetch_all_features(out_fields="CASEID,TYPENAME,OPENEDDATETIME,XCOORD,YCOORD
             "resultRecordCount": PAGE_SIZE,
             "f": "json",
         }
-        resp = requests.get(query_url, params=params, timeout=60)
-        resp.raise_for_status()
-        data = resp.json()
+        for attempt in range(5):
+            resp = requests.get(query_url, params=params, timeout=60)
+            resp.raise_for_status()
+            data = resp.json()
+            if data.get("error", {}).get("code") == 429:
+                time.sleep(15 * (attempt + 1))
+                continue
+            break
         batch = data.get("features", [])
         if not batch:
             break
@@ -103,9 +109,17 @@ def clean_requests_mpls():
         "CASEID": "case_id",
         "TYPENAME": "request_type",
         "OPENEDDATETIME": "opened_date",
+        "TITLE": "title",
+        "REASONNAME": "reason",
+        "CASESTATUS": "case_status",
     })
 
-    return svc[["district_id", "case_id", "request_type", "opened_date", "longitude", "latitude"]]
+    cols = ["district_id", "case_id", "request_type", "opened_date"]
+    for extra in ["title", "reason", "case_status"]:
+        if extra in svc.columns:
+            cols.append(extra)
+    cols += ["longitude", "latitude"]
+    return svc[cols]
 
 
 if __name__ == "__main__":

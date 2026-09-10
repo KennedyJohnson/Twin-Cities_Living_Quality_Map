@@ -1,10 +1,11 @@
 """
 Compute health scores based on aggregated metrics and config/weights.json.
 Canonical formula:
-  Safety_Index = 100 - normalize(crime_rate_pc)
-  Opportunity_Index = normalize(permit_rate_pc)
-  QoL_Index = 100 - normalize(request_rate_pc + housing_rate_pc)
-  Health_Score = 0.40*Safety + 0.30*Opportunity + 0.30*QoL
+  Safety_Index = avg(100 - normalize(crime_rate_pc), 100 - normalize(crash_rate_pc))
+  Opportunity_Index = avg(normalize(permit_rate_pc), 100 - normalize(unemployment_rate_pc))
+  QoL_Index = 100 - normalize(request_rate_pc + traffic_vkm_pc + chronic_disease_pc) + normalize(housing_rate_pc + trail_km_pc + transit_stops_pc + schools_pc + grocery_pc + healthcare_pc)
+  Affordability_Index = avg(100 - normalize(median_home_value), 100 - normalize(median_gross_rent), normalize(median_household_income), 100 - normalize(poverty_rate), 100 - normalize(housing_cost_burden_rate), normalize(homeownership_rate))
+  Health_Score = 0.35*Safety + 0.25*Opportunity + 0.20*QoL + 0.20*Affordability
 """
 
 import json
@@ -20,9 +21,10 @@ def load_weights():
     with open(weights_file) as f:
         return json.load(f)
 
-def load_sources():
-    """Load config/sources.json."""
-    sources_file = PIPELINE_DIR / "config" / "sources.json"
+def load_sources(city="stpaul"):
+    """Load sources config. city: 'stpaul' or 'mpls'."""
+    filename = "sources_mpls.json" if city == "mpls" else "sources.json"
+    sources_file = PIPELINE_DIR / "config" / filename
     with open(sources_file) as f:
         return json.load(f)
 
@@ -112,45 +114,133 @@ def compute_component_index(aggregated_metrics, component_name, sources_config):
 
     return component_index
 
-def compute_health_scores(aggregated_metrics):
+def compute_affordability_index(city="stpaul"):
+    """
+    Compute the affordability index per district from Census ACS data:
+    lower home values/rent/poverty rate and higher household income (each
+    relative to other districts) raise this index.
+
+    Returns:
+        dict: {district_id: affordability_index_value (0-100)}
+    """
+    from clean_housing_price import clean_housing_price
+
+    df = clean_housing_price(city=city)
+    if df.empty:
+        return {}
+
+    home_values = df["median_home_value"].tolist()
+    rents = df["median_gross_rent"].tolist()
+    incomes = df["median_household_income"].tolist()
+    poverty_rates = df["poverty_rate"].tolist()
+    cost_burden_rates = df["housing_cost_burden_rate"].tolist()
+    homeownership_rates = df["homeownership_rate"].tolist()
+
+    def normalized_or_none(values):
+        valid_idx = [i for i, v in enumerate(values) if v is not None and not pd.isna(v)]
+        if not valid_idx:
+            return {}
+        normalized = min_max_normalize([values[i] for i in valid_idx])
+        return dict(zip(valid_idx, normalized))
+
+    home_value_norm = normalized_or_none(home_values)
+    rent_norm = normalized_or_none(rents)
+    income_norm = normalized_or_none(incomes)
+    poverty_norm = normalized_or_none(poverty_rates)
+    cost_burden_norm = normalized_or_none(cost_burden_rates)
+    homeownership_norm = normalized_or_none(homeownership_rates)
+
+    affordability_index = {}
+    for i, district_id in enumerate(df["district_id"]):
+        parts = []
+        if i in home_value_norm:
+            parts.append(100 - home_value_norm[i])
+        if i in rent_norm:
+            parts.append(100 - rent_norm[i])
+        if i in income_norm:
+            parts.append(income_norm[i])
+        if i in poverty_norm:
+            parts.append(100 - poverty_norm[i])
+        if i in cost_burden_norm:
+            parts.append(100 - cost_burden_norm[i])
+        if i in homeownership_norm:
+            parts.append(homeownership_norm[i])
+        if parts:
+            affordability_index[int(district_id)] = sum(parts) / len(parts)
+
+    return affordability_index
+
+def compute_health_scores(aggregated_metrics, city="stpaul"):
     """
     Compute health scores for all districts.
 
     Args:
         aggregated_metrics: dict of aggregated data
+        city: 'stpaul' or 'mpls' — selects which sources config to score against
 
     Returns:
-        dict: {district_id: {safety: X, opportunity: Y, quality_of_life: Z, health_score: W}}
+        dict: {district_id: {safety: X, opportunity: Y, quality_of_life: Z, affordability: A, health_score: W}}
     """
     weights = load_weights()
-    sources_config = load_sources()["sources"]
+    sources_config = load_sources(city=city)["sources"]
 
     # Compute component indices
     safety_index = compute_component_index(aggregated_metrics, "safety", sources_config)
     opportunity_index = compute_component_index(aggregated_metrics, "opportunity", sources_config)
     qol_index = compute_component_index(aggregated_metrics, "quality_of_life", sources_config)
+    try:
+        affordability_index = compute_affordability_index(city=city)
+    except Exception as e:
+        print(f"  [WARNING] Affordability index unavailable ({e}); excluding from health score")
+        affordability_index = {}
 
     # Combine into health scores
-    all_district_ids = set(safety_index.keys()) | set(opportunity_index.keys()) | set(qol_index.keys())
+    all_district_ids = (
+        set(safety_index.keys())
+        | set(opportunity_index.keys())
+        | set(qol_index.keys())
+        | set(affordability_index.keys())
+    )
+
+    component_weights = weights["health_score"]["components"]
 
     health_scores = {}
     for district_id in sorted(all_district_ids):
         safety = safety_index.get(district_id, 0)
         opportunity = opportunity_index.get(district_id, 0)
         qol = qol_index.get(district_id, 0)
+        affordability = affordability_index.get(district_id)
 
-        health_score = (
-            weights["health_score"]["components"]["safety"] * safety +
-            weights["health_score"]["components"]["opportunity"] * opportunity +
-            weights["health_score"]["components"]["quality_of_life"] * qol
-        )
+        # If affordability is unavailable for this district, redistribute
+        # its weight across the other components proportionally rather than
+        # silently treating it as 0 (which would unfairly tank the score).
+        if affordability is None:
+            active_weight = (
+                component_weights["safety"] + component_weights["opportunity"] + component_weights["quality_of_life"]
+            )
+            health_score = (
+                component_weights["safety"] * safety +
+                component_weights["opportunity"] * opportunity +
+                component_weights["quality_of_life"] * qol
+            ) / active_weight * 1.0 if active_weight > 0 else 0
+        else:
+            health_score = (
+                component_weights["safety"] * safety +
+                component_weights["opportunity"] * opportunity +
+                component_weights["quality_of_life"] * qol +
+                component_weights["affordability"] * affordability
+            )
+
+        indices = {
+            "safety": round(safety, 2),
+            "opportunity": round(opportunity, 2),
+            "quality_of_life": round(qol, 2),
+        }
+        if affordability is not None:
+            indices["affordability"] = round(affordability, 2)
 
         health_scores[district_id] = {
-            "indices": {
-                "safety": round(safety, 2),
-                "opportunity": round(opportunity, 2),
-                "quality_of_life": round(qol, 2)
-            },
+            "indices": indices,
             "health_score": round(health_score, 2)
         }
 
