@@ -1,12 +1,15 @@
 {
   "type": "FeatureCollection",
+  "crs": {
+    "type": "name",
+    "properties": {
+      "name": "EPSG:4326"
+    }
+  },
   "features": [
     {
       "type": "Feature",
-      "properties": {
-        "district_id": 102,
-        "district_name": "Camden"
-      },
+      "id": 102,
       "geometry": {
         "type": "Polygon",
         "coordinates": [
@@ -2978,14 +2981,15 @@
           ]
         ]
       },
-      "id": 102
+      "properties": {
+        "FID": 1,
+        "CommName": "Camden",
+        "district_id": 102
+      }
     },
     {
       "type": "Feature",
-      "properties": {
-        "district_id": 107,
-        "district_name": "Northeast"
-      },
+      "id": 107,
       "geometry": {
         "type": "Polygon",
         "coordinates": [
@@ -8073,14 +8077,15 @@
           ]
         ]
       },
-      "id": 107
+      "properties": {
+        "FID": 2,
+        "CommName": "Northeast",
+        "district_id": 107
+      }
     },
     {
       "type": "Feature",
-      "properties": {
-        "district_id": 105,
-        "district_name": "Near North"
-      },
+      "id": 105,
       "geometry": {
         "type": "Polygon",
         "coordinates": [
@@ -10936,14 +10941,15 @@
           ]
         ]
       },
-      "id": 105
+      "properties": {
+        "FID": 3,
+        "CommName": "Near North",
+        "district_id": 105
+      }
     },
     {
       "type": "Feature",
-      "properties": {
-        "district_id": 103,
-        "district_name": "Central"
-      },
+      "id": 103,
       "geometry": {
         "type": "Polygon",
         "coordinates": [
@@ -14483,14 +14489,15 @@
           ]
         ]
       },
-      "id": 103
+      "properties": {
+        "FID": 4,
+        "CommName": "Central",
+        "district_id": 103
+      }
     },
     {
       "type": "Feature",
-      "properties": {
-        "district_id": 111,
-        "district_name": "University"
-      },
+      "id": 111,
       "geometry": {
         "type": "Polygon",
         "coordinates": [
@@ -19258,14 +19265,15 @@
           ]
         ]
       },
-      "id": 111
+      "properties": {
+        "FID": 5,
+        "CommName": "University",
+        "district_id": 111
+      }
     },
     {
       "type": "Feature",
-      "properties": {
-        "district_id": 101,
-        "district_name": "Calhoun Isle"
-      },
+      "id": 101,
       "geometry": {
         "type": "Polygon",
         "coordinates": [
@@ -21001,14 +21009,15 @@
           ]
         ]
       },
-      "id": 101
+      "properties": {
+        "FID": 6,
+        "CommName": "Calhoun Isle",
+        "district_id": 101
+      }
     },
     {
       "type": "Feature",
-      "properties": {
-        "district_id": 109,
-        "district_name": "Powderhorn"
-      },
+      "id": 109,
       "geometry": {
         "type": "Polygon",
         "coordinates": [
@@ -23368,14 +23377,15 @@
           ]
         ]
       },
-      "id": 109
+      "properties": {
+        "FID": 7,
+        "CommName": "Powderhorn",
+        "district_id": 109
+      }
     },
     {
       "type": "Feature",
-      "properties": {
-        "district_id": 104,
-        "district_name": "Longfellow"
-      },
+      "id": 104,
       "geometry": {
         "type": "Polygon",
         "coordinates": [
@@ -27019,14 +27029,15 @@
           ]
         ]
       },
-      "id": 104
+      "properties": {
+        "FID": 8,
+        "CommName": "Longfellow",
+        "district_id": 104
+      }
     },
     {
       "type": "Feature",
-      "properties": {
-        "district_id": 110,
-        "district_name": "Southwest"
-      },
+      "id": 110,
       "geometry": {
         "type": "Polygon",
         "coordinates": [
@@ -28670,14 +28681,15 @@
           ]
         ]
       },
-      "id": 110
+      "properties": {
+        "FID": 9,
+        "CommName": "Southwest",
+        "district_id": 110
+      }
     },
     {
       "type": "Feature",
-      "properties": {
-        "district_id": 106,
-        "district_name": "Nokomis"
-      },
+      "id": 106,
       "geometry": {
         "type": "Polygon",
         "coordinates": [
@@ -31561,14 +31573,15 @@
           ]
         ]
       },
-      "id": 106
+      "properties": {
+        "FID": 10,
+        "CommName": "Nokomis",
+        "district_id": 106
+      }
     },
     {
       "type": "Feature",
-      "properties": {
-        "district_id": 108,
-        "district_name": "Phillips"
-      },
+      "id": 108,
       "geometry": {
         "type": "Polygon",
         "coordinates": [
@@ -33512,7 +33525,11 @@
           ]
         ]
       },
-      "id": 108
+      "properties": {
+        "FID": 11,
+        "CommName": "Phillips",
+        "district_id": 108
+      }
     }
   ]
 }

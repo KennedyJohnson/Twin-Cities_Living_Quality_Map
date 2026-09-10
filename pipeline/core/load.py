@@ -95,7 +95,7 @@ STPAUL_ARCGIS_SERVICES = {
     "crime": "https://services1.arcgis.com/9meaaHE3uiba0zr8/arcgis/rest/services/Crime_Incident_Report_-_Dataset/FeatureServer/0",
     "permits": "https://services1.arcgis.com/9meaaHE3uiba0zr8/arcgis/rest/services/Approved_Building_Permits/FeatureServer/0",
     "requests": "https://services1.arcgis.com/9meaaHE3uiba0zr8/arcgis/rest/services/Resident_Service_Requests/FeatureServer/0",
-    "housing": "https://services1.arcgis.com/9meaaHE3uiba0zr8/arcgis/rest/services/Housing_Production_Q3_2024/FeatureServer/0",
+    "housing": "https://services1.arcgis.com/9meaaHE3uiba0zr8/arcgis/rest/services/Housing_Production_Q3_2024/FeatureServer/73",
 }
 
 def load_crime():
@@ -121,6 +121,20 @@ def load_permits():
         print("[INFO] Attempting to load permits data from St. Paul ArcGIS FeatureServer...")
         df = _fetch_arcgis_paginated(STPAUL_ARCGIS_SERVICES["permits"])
         if not df.empty:
+            # Map ArcGIS column names to expected format (API has typos: LATITUE, LONGITUTE, DISTRINCT)
+            if "LATITUE" in df.columns and "LONGITUTE" in df.columns:
+                df["Latitude"] = pd.to_numeric(df["LATITUE"], errors="coerce")
+                df["Longtitude"] = pd.to_numeric(df["LONGITUTE"], errors="coerce")
+            elif "PROPX" in df.columns and "PROPY" in df.columns:
+                df["Longtitude"] = df["PROPX"]
+                df["Latitude"] = df["PROPY"]
+
+            # DISTRINCT (sic) is the real St. Paul district council number, 1-17
+            if "DISTRINCT" in df.columns:
+                df["District Council"] = pd.to_numeric(df["DISTRINCT"], errors="coerce")
+            elif "District Council" not in df.columns:
+                df["District Council"] = None
+
             print(f"[OK] Loaded {len(df)} permit records from ArcGIS")
             return df
     except Exception as e:
@@ -138,6 +152,15 @@ def load_requests():
         print("[INFO] Attempting to load service requests data from St. Paul ArcGIS FeatureServer...")
         df = _fetch_arcgis_paginated(STPAUL_ARCGIS_SERVICES["requests"])
         if not df.empty:
+            # Map ArcGIS column names to expected format
+            # Note: column names have typos (LATITUE, LONGITUTE)
+            if "LATITUE" in df.columns and "LONGITUTE" in df.columns:
+                df["Latitude"] = pd.to_numeric(df["LATITUE"], errors="coerce")
+                df["Longtitude"] = pd.to_numeric(df["LONGITUTE"], errors="coerce")
+            elif "PROPX" in df.columns and "PROPY" in df.columns:
+                df["Longtitude"] = df["PROPX"]
+                df["Latitude"] = df["PROPY"]
+
             print(f"[OK] Loaded {len(df)} service request records from ArcGIS")
             return df
     except Exception as e:
@@ -155,8 +178,17 @@ def load_housing():
         print("[INFO] Attempting to load housing production data from St. Paul ArcGIS FeatureServer...")
         df = _fetch_arcgis_paginated(STPAUL_ARCGIS_SERVICES["housing"])
         if not df.empty:
+            # Coordinates come back as a {"x": lon, "y": lat} dict in the "geometry" column (outSR=4326)
+            if "geometry" in df.columns:
+                df["Longitude"] = df["geometry"].apply(lambda g: g.get("x") if isinstance(g, dict) else None)
+                df["Latitude"] = df["geometry"].apply(lambda g: g.get("y") if isinstance(g, dict) else None)
+            elif "PROPX" in df.columns and "PROPY" in df.columns:
+                df["Longitude"] = df["PROPX"]
+                df["Latitude"] = df["PROPY"]
             print(f"[OK] Loaded {len(df)} housing records from ArcGIS")
             return df
+        else:
+            print("[WARNING] Housing ArcGIS service returned no data. Falling back to CSV/GeoJSON.")
     except Exception as e:
         print(f"[WARNING] Failed to load housing from ArcGIS: {e}. Falling back to CSV/GeoJSON.")
 
@@ -188,112 +220,106 @@ def load_housing():
 
 def load_population(city="stpaul"):
     """
-    Load population by district from Census API and aggregate by district.
+    Load population by district from Census API, aggregated via real tract
+    centroids (TIGERweb) spatially joined to district boundaries.
 
-    Fetches tract-level population from Census ACS 5-year estimates,
-    then aggregates by district using point-in-polygon (tract centroid in district).
+    Uses the same proven tract-centroid approach as clean_housing_price.py
+    rather than an approximate/even distribution.
     """
     from shapely.geometry import Point, shape
 
     print(f"[INFO] Attempting to load {city} population from Census API...")
 
-    try:
-        census_key = os.getenv("CENSUS_API_KEY")
-        if not census_key:
-            raise ValueError("CENSUS_API_KEY environment variable not set")
+    census_key = os.getenv("CENSUS_API_KEY")
+    if not census_key:
+        raise FileNotFoundError("CENSUS_API_KEY environment variable not set; population data unavailable")
 
-        # Get boundaries for point-in-polygon join
-        boundaries = load_boundaries(city)
+    from core.http_cache import cached_get
 
-        # Build boundary lookup: district_id -> polygon
-        boundary_map = {}
-        for feature in boundaries["features"]:
-            district_id = feature["properties"].get("district_id") or feature["properties"].get("id")
-            geom = shape(feature["geometry"])
-            boundary_map[district_id] = geom
+    county_fips = "053" if city == "mpls" else "123"  # Hennepin vs Ramsey
+    state_fips = "27"
 
-        # Get FIPS codes for county based on city
-        if city == "mpls":
-            county_fips = "053"  # Hennepin County
-            state_fips = "27"
-        else:
-            county_fips = "123"  # Ramsey County
-            state_fips = "27"
+    # 1. Fetch tract-level population from Census ACS
+    acs_url = "https://api.census.gov/data/2022/acs/acs5"
+    params = {
+        "get": "B01003_001E",
+        "for": "tract:*",
+        "in": f"state:{state_fips} county:{county_fips}",
+        "key": census_key,
+    }
+    response = cached_get(acs_url, params=params, timeout=60)
+    response.raise_for_status()
+    data = response.json()
+    if len(data) < 2:
+        raise FileNotFoundError("Census API returned no tract population data")
 
-        # Fetch tract population from Census API
-        import requests
-        from core.http_cache import cached_get
+    header, rows = data[0], data[1:]
+    acs_df = pd.DataFrame(rows, columns=header)
+    acs_df["geoid"] = acs_df["state"] + acs_df["county"] + acs_df["tract"]
+    acs_df["population"] = pd.to_numeric(acs_df["B01003_001E"], errors="coerce").fillna(0)
 
-        acs_url = f"https://api.census.gov/data/2022/acs/acs5"
-        params = {
-            "get": "B01003_001E",  # Total population
-            "for": "tract:*",
-            "in": f"state:{state_fips} county:{county_fips}",
-            "key": census_key,
-        }
+    # 2. Fetch real tract centroids from TIGERweb (not Census ACS geometry)
+    tigerweb_url = "https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/tigerWMS_Current/MapServer/8/query"
+    geo_params = {
+        "where": f"STATE='{state_fips}' AND COUNTY='{county_fips}'",
+        "outFields": "GEOID,CENTLAT,CENTLON",
+        "returnGeometry": "false",
+        "f": "json",
+    }
+    response = cached_get(tigerweb_url, params=geo_params, timeout=60)
+    response.raise_for_status()
+    geo_data = response.json()
 
-        response = cached_get(acs_url, params=params, timeout=60)
-        response.raise_for_status()
-        data = response.json()
+    centroid_rows = []
+    for f in geo_data.get("features", []):
+        attrs = f["attributes"]
+        centroid_rows.append({
+            "geoid": attrs["GEOID"],
+            "lat": float(attrs["CENTLAT"]),
+            "lon": float(attrs["CENTLON"]),
+        })
+    centroids_df = pd.DataFrame(centroid_rows)
+    if centroids_df.empty:
+        raise FileNotFoundError("TIGERweb returned no tract centroids")
 
-        # Parse Census data
-        if len(data) < 2:
-            raise ValueError("No census data returned")
+    tracts = acs_df.merge(centroids_df, on="geoid", how="inner")
 
-        headers = data[0]
-        pop_idx = headers.index("B01003_001E")
-        tract_idx = headers.index("tract")
+    # 3. Spatially join tract centroids to district boundaries (district_id set by load_boundaries)
+    boundaries = load_boundaries(city)
+    boundary_map = {}
+    name_map = {}
+    name_field = "CommName" if city == "mpls" else "planningdistrictname"
+    for feature in boundaries["features"]:
+        props = feature["properties"]
+        district_id = props["district_id"]
+        boundary_map[district_id] = shape(feature["geometry"])
+        name_map[district_id] = props.get(name_field) or f"District {district_id}"
 
-        tract_pops = {}
-        for row in data[1:]:
-            tract_id = row[tract_idx]
-            pop = int(row[pop_idx]) if row[pop_idx] and row[pop_idx] != "N" else 0
-            tract_pops[tract_id] = pop
+    def find_district(row):
+        point = Point(row["lon"], row["lat"])
+        for district_id, polygon in boundary_map.items():
+            if polygon.contains(point):
+                return district_id
+        return None
 
-        # Fetch tract centroids to map to districts
-        geom_params = {
-            "get": "NAME",
-            "for": "tract:*",
-            "in": f"state:{state_fips} county:{county_fips}",
-            "key": census_key,
-        }
+    tracts["district_id"] = tracts.apply(find_district, axis=1)
+    tracts = tracts.dropna(subset=["district_id"])
+    tracts["district_id"] = tracts["district_id"].astype(int)
 
-        response = cached_get(acs_url, params=geom_params, timeout=60)
-        response.raise_for_status()
-        geom_data = response.json()
+    result = (
+        tracts.groupby("district_id")["population"]
+        .sum()
+        .reset_index()
+    )
+    result["population"] = result["population"].astype(int)
+    result["district_name"] = result["district_id"].map(name_map)
 
-        # Aggregate population by district
-        district_pop = {did: 0 for did in boundary_map.keys()}
+    if result.empty or len(result) < len(boundary_map):
+        missing = set(boundary_map.keys()) - set(result["district_id"])
+        print(f"[WARNING] Population missing for districts: {sorted(missing)}")
 
-        for row in geom_data[1:]:
-            tract_id = row[-1]
-            if tract_id in tract_pops:
-                # Use centroid approach: tract maps to all districts it intersects
-                # For simplicity, assign to largest intersecting district
-                pop = tract_pops[tract_id]
-
-                # Try to find district by tract position
-                # (In practice, tract centroids almost always fall within one district)
-                for district_id, polygon in boundary_map.items():
-                    if district_id in district_pop:
-                        district_pop[district_id] += pop // len(boundary_map)  # Distribute evenly as fallback
-
-        # Create result DataFrame
-        result = pd.DataFrame([
-            {"district_id": did, "population": pop}
-            for did, pop in district_pop.items()
-            if pop > 0
-        ])
-
-        if result.empty:
-            raise ValueError("No population data aggregated to districts")
-
-        print(f"[OK] Loaded {len(result)} districts with population from Census API")
-        return result
-
-    except Exception as e:
-        print(f"[WARNING] Failed to load population from Census API: {e}")
-        raise FileNotFoundError(f"Population data unavailable from Census API: {e}")
+    print(f"[OK] Loaded {len(result)} districts with population from Census API")
+    return result
 
 def load_boundaries(city="stpaul"):
     """
@@ -327,35 +353,40 @@ def load_boundaries(city="stpaul"):
         response.raise_for_status()
         boundaries = response.json()
 
-        # Ensure district_id field exists
+        # Map the real district number field to district_id (must be int, never None)
         if "features" in boundaries and len(boundaries["features"]) > 0:
-            first_feature = boundaries["features"][0]
-            props = first_feature.get("properties", {})
+            first_props = boundaries["features"][0].get("properties", {})
 
-            # Map common field names to district_id
-            if "district_id" not in props:
-                if "OBJECTID" in props or "FID" in props:
-                    # Use object ID as district_id
+            if city == "mpls":
+                # Minneapolis communities - map name to fixed ID (101-111)
+                community_to_id = {
+                    "Calhoun Isle": 101, "Camden": 102, "Central": 103,
+                    "Longfellow": 104, "Near North": 105, "Nokomis": 106,
+                    "Northeast": 107, "Phillips": 108, "Powderhorn": 109,
+                    "Southwest": 110, "University": 111,
+                }
+                for feature in boundaries["features"]:
+                    comm_name = feature["properties"].get("CommName")
+                    feature["properties"]["district_id"] = community_to_id.get(comm_name)
+            else:
+                # St. Paul District Councils - real field is "districtnumber" (1-17)
+                if "districtnumber" in first_props:
                     for feature in boundaries["features"]:
-                        feature["properties"]["district_id"] = feature["properties"].get("OBJECTID") or feature["properties"].get("FID")
-                elif "CommName" in props:
-                    # Minneapolis communities - map name to ID
-                    community_to_id = {
-                        "Calhoun Isle": 101,
-                        "Camden": 102,
-                        "Central": 103,
-                        "Longfellow": 104,
-                        "Near North": 105,
-                        "Nokomis": 106,
-                        "Northeast": 107,
-                        "Phillips": 108,
-                        "Powderhorn": 109,
-                        "Southwest": 110,
-                        "University": 111,
-                    }
-                    for feature in boundaries["features"]:
-                        comm_name = feature["properties"].get("CommName")
-                        feature["properties"]["district_id"] = community_to_id.get(comm_name)
+                        feature["properties"]["district_id"] = int(feature["properties"]["districtnumber"])
+                elif "district_id" not in first_props:
+                    raise ValueError(
+                        f"No known district number field found in ArcGIS response. "
+                        f"Available fields: {list(first_props.keys())}"
+                    )
+
+            # Verify every feature has a valid int district_id before returning
+            missing = [
+                f["properties"].get("OBJECTID", "?")
+                for f in boundaries["features"]
+                if f["properties"].get("district_id") is None
+            ]
+            if missing:
+                raise ValueError(f"{len(missing)} features have no district_id after mapping")
 
         print(f"[OK] Loaded {len(boundaries.get('features', []))} boundary features from ArcGIS")
         return boundaries
@@ -375,75 +406,13 @@ def load_boundaries(city="stpaul"):
 
 def load_crosswalk(crosswalk_file):
     """
-    Load or generate a crosswalk from data.
+    Load a neighborhood->district crosswalk from a local JSON reference file.
 
-    For St. Paul crime neighborhood->district mapping, generates from:
-    1. Crime data itself (spatial join of neighborhood centroids to districts)
-    2. Local JSON file as fallback
+    St. Paul's crime API returns no coordinates (NEIGHBORHOOD_NAME only,
+    confirmed via direct API inspection), so this mapping cannot be derived
+    dynamically — it is maintained as a static reference file instead,
+    same as Minneapolis's neighborhood->community crosswalk.
     """
-    print(f"[INFO] Attempting to load/generate crosswalk...")
-
-    try:
-        if "crime" in crosswalk_file and "stpaul" in crosswalk_file.lower():
-            # St. Paul crime neighborhood crosswalk - generate from crime data
-            # by spatially joining neighborhoods to districts
-
-            # Load crime data (without calling load_crime to avoid recursion)
-            crime_df = _fetch_arcgis_paginated(STPAUL_ARCGIS_SERVICES["crime"])
-
-            if crime_df.empty:
-                raise ValueError("Crime data unavailable to generate crosswalk")
-
-            # Load district boundaries for spatial join
-            boundaries = load_boundaries("stpaul")
-            from shapely.geometry import Point, shape
-
-            boundary_map = {}
-            for feature in boundaries["features"]:
-                district_id = feature["properties"].get("district_id")
-                geom = shape(feature["geometry"])
-                boundary_map[district_id] = geom
-
-            # Generate neighborhood->district mapping from crime data
-            crosswalk = {}
-
-            # Group by neighborhood and find representative point/district
-            for neighborhood in crime_df["NEIGHBORHOOD_NAME"].unique():
-                if pd.isna(neighborhood):
-                    continue
-
-                # Get records for this neighborhood
-                neighborhood_records = crime_df[crime_df["NEIGHBORHOOD_NAME"] == neighborhood]
-
-                # Find median location
-                if "geometry" in neighborhood_records.columns:
-                    # Has geometry - use centroid
-                    geoms = []
-                    for geom_dict in neighborhood_records["geometry"].dropna():
-                        if geom_dict and "x" in geom_dict and "y" in geom_dict:
-                            geoms.append((geom_dict["x"], geom_dict["y"]))
-
-                    if geoms:
-                        median_x = sorted([g[0] for g in geoms])[len(geoms) // 2]
-                        median_y = sorted([g[1] for g in geoms])[len(geoms) // 2]
-                        point = Point(median_x, median_y)
-
-                        # Find district
-                        for district_id, polygon in boundary_map.items():
-                            if polygon.contains(point):
-                                crosswalk[str(neighborhood)] = {"district_id": district_id}
-                                break
-
-            if crosswalk:
-                print(f"[OK] Generated crosswalk with {len(crosswalk)} neighborhoods from crime data")
-                return crosswalk
-            else:
-                raise ValueError("Could not map neighborhoods to districts")
-
-    except Exception as e:
-        print(f"[WARNING] Failed to generate crosswalk from data: {e}. Trying local file...")
-
-    # Fallback to local crosswalk file
     crosswalk_path = PIPELINE_DIR / crosswalk_file
     if crosswalk_path.exists():
         print(f"[INFO] Loading crosswalk from local file: {crosswalk_path}")
