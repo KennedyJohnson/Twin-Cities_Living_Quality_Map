@@ -57,16 +57,18 @@ def load_housing():
 
     raise FileNotFoundError(f"Housing file not found (tried .csv and .geojson)")
 
-def load_population():
-    """Load population by district."""
-    pop_file = PIPELINE_DIR / "data" / "population_by_district.csv"
+def load_population(city="stpaul"):
+    """Load population by district. city: 'stpaul' or 'mpls'."""
+    filename = "population_by_district_mpls.csv" if city == "mpls" else "population_by_district.csv"
+    pop_file = PIPELINE_DIR / "data" / filename
     if not pop_file.exists():
         raise FileNotFoundError(f"Population file not found: {pop_file}")
     return pd.read_csv(pop_file)
 
-def load_boundaries():
-    """Load District Council boundaries GeoJSON (real ArcGIS boundaries, same file the map uses)."""
-    boundaries_file = REPO_DIR / "web" / "public" / "data" / "boundaries.geojson"
+def load_boundaries(city="stpaul"):
+    """Load district boundaries GeoJSON (real ArcGIS boundaries, same file the map uses). city: 'stpaul' or 'mpls'."""
+    filename = "boundaries_mpls.geojson" if city == "mpls" else "boundaries.geojson"
+    boundaries_file = REPO_DIR / "web" / "public" / "data" / filename
     if not boundaries_file.exists():
         raise FileNotFoundError(f"Boundaries file not found: {boundaries_file}")
     with open(boundaries_file) as f:

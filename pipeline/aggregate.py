@@ -11,9 +11,10 @@ from load import load_population
 
 PIPELINE_DIR = Path(__file__).parent
 
-def load_config():
-    """Load config/sources.json."""
-    config_file = PIPELINE_DIR / "config" / "sources.json"
+def load_config(city="stpaul"):
+    """Load sources config. city: 'stpaul' or 'mpls'."""
+    filename = "sources_mpls.json" if city == "mpls" else "sources.json"
+    config_file = PIPELINE_DIR / "config" / filename
     with open(config_file) as f:
         return json.load(f)
 
@@ -52,15 +53,16 @@ def aggregate_by_source(source_id, cleaned_data, population_df):
 
     return result
 
-def aggregate_all():
+def aggregate_all(city="stpaul"):
     """
     Aggregate all registered data sources and return per-district metrics.
+    city: 'stpaul' or 'mpls'.
 
     Returns:
         dict: {source_id: {district_id: {metric_name: rate, raw_count: count}}}
     """
-    config = load_config()
-    population = load_population()
+    config = load_config(city=city)
+    population = load_population(city=city)
 
     results = {}
 
@@ -76,7 +78,7 @@ def aggregate_all():
             loader_module = __import__(loader_module_name)
             # The loader module should have a function named clean_<source_id>
             # Use the loader_module_name as the function name (e.g., "clean_crime" -> clean_crime())
-            loader_func_name = f"clean_{source_id}"
+            loader_func_name = loader_module_name
             if not hasattr(loader_module, loader_func_name):
                 print(f"[ERROR] No function {loader_func_name} in {loader_module_name}")
                 continue
