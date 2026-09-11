@@ -1,92 +1,92 @@
 {
-  "acs_year": 2022,
+  "acs_year": 2024,
   "districts": {
     "101": {
-      "median_home_value": 513955,
-      "median_gross_rent": 1428,
-      "median_household_income": 92919,
+      "median_home_value": 570383,
+      "median_gross_rent": 1494,
+      "median_household_income": 95790,
       "poverty_rate": 8.0,
-      "housing_cost_burden_rate": 35.0,
-      "homeownership_rate": 40.0
+      "housing_cost_burden_rate": 39.0,
+      "homeownership_rate": 39.0
     },
     "102": {
-      "median_home_value": 211284,
-      "median_gross_rent": 1374,
-      "median_household_income": 70078,
-      "poverty_rate": 14.0,
-      "housing_cost_burden_rate": 51.0,
-      "homeownership_rate": 74.0
+      "median_home_value": 234549,
+      "median_gross_rent": 1436,
+      "median_household_income": 74539,
+      "poverty_rate": 16.0,
+      "housing_cost_burden_rate": 55.0,
+      "homeownership_rate": 76.0
     },
     "103": {
-      "median_home_value": 354048,
-      "median_gross_rent": 1510,
-      "median_household_income": 80219,
-      "poverty_rate": 17.0,
-      "housing_cost_burden_rate": 43.0,
+      "median_home_value": 380721,
+      "median_gross_rent": 1529,
+      "median_household_income": 84060,
+      "poverty_rate": 16.0,
+      "housing_cost_burden_rate": 44.0,
       "homeownership_rate": 24.0
     },
     "104": {
-      "median_home_value": 309786,
-      "median_gross_rent": 1197,
-      "median_household_income": 81980,
-      "poverty_rate": 12.0,
-      "housing_cost_burden_rate": 40.0,
-      "homeownership_rate": 59.0
+      "median_home_value": 355303,
+      "median_gross_rent": 1271,
+      "median_household_income": 88971,
+      "poverty_rate": 14.0,
+      "housing_cost_burden_rate": 41.0,
+      "homeownership_rate": 58.0
     },
     "105": {
-      "median_home_value": 234725,
-      "median_gross_rent": 1128,
-      "median_household_income": 50826,
-      "poverty_rate": 31.0,
-      "housing_cost_burden_rate": 62.0,
-      "homeownership_rate": 47.0
+      "median_home_value": 263087,
+      "median_gross_rent": 1245,
+      "median_household_income": 63310,
+      "poverty_rate": 24.0,
+      "housing_cost_burden_rate": 57.0,
+      "homeownership_rate": 50.0
     },
     "106": {
-      "median_home_value": 354711,
-      "median_gross_rent": 1577,
-      "median_household_income": 118480,
-      "poverty_rate": 6.0,
-      "housing_cost_burden_rate": 32.0,
-      "homeownership_rate": 83.0
+      "median_home_value": 394488,
+      "median_gross_rent": 1679,
+      "median_household_income": 125288,
+      "poverty_rate": 5.0,
+      "housing_cost_burden_rate": 34.0,
+      "homeownership_rate": 85.0
     },
     "107": {
-      "median_home_value": 315911,
-      "median_gross_rent": 1291,
-      "median_household_income": 83786,
-      "poverty_rate": 10.0,
-      "housing_cost_burden_rate": 37.0,
-      "homeownership_rate": 54.0
+      "median_home_value": 357020,
+      "median_gross_rent": 1469,
+      "median_household_income": 93895,
+      "poverty_rate": 7.0,
+      "housing_cost_burden_rate": 38.0,
+      "homeownership_rate": 55.0
     },
     "108": {
-      "median_home_value": 224000,
-      "median_gross_rent": 1004,
-      "median_household_income": 44590,
+      "median_home_value": 252212,
+      "median_gross_rent": 1086,
+      "median_household_income": 46178,
       "poverty_rate": 32.0,
-      "housing_cost_burden_rate": 53.0,
-      "homeownership_rate": 27.0
+      "housing_cost_burden_rate": 59.0,
+      "homeownership_rate": 26.0
     },
     "109": {
-      "median_home_value": 306340,
-      "median_gross_rent": 1294,
-      "median_household_income": 69512,
-      "poverty_rate": 17.0,
-      "housing_cost_burden_rate": 41.0,
-      "homeownership_rate": 44.0
+      "median_home_value": 336558,
+      "median_gross_rent": 1354,
+      "median_household_income": 74692,
+      "poverty_rate": 18.0,
+      "housing_cost_burden_rate": 48.0,
+      "homeownership_rate": 43.0
     },
     "110": {
-      "median_home_value": 495163,
-      "median_gross_rent": 1579,
-      "median_household_income": 136344,
-      "poverty_rate": 5.0,
-      "housing_cost_burden_rate": 32.0,
+      "median_home_value": 541722,
+      "median_gross_rent": 1841,
+      "median_household_income": 145006,
+      "poverty_rate": 4.0,
+      "housing_cost_burden_rate": 34.0,
       "homeownership_rate": 77.0
     },
     "111": {
-      "median_home_value": 352261,
-      "median_gross_rent": 1341,
-      "median_household_income": 45936,
-      "poverty_rate": 43.0,
-      "housing_cost_burden_rate": 56.0,
+      "median_home_value": 390942,
+      "median_gross_rent": 1375,
+      "median_household_income": 49460,
+      "poverty_rate": 40.0,
+      "housing_cost_burden_rate": 55.0,
       "homeownership_rate": 15.0
     }
   }

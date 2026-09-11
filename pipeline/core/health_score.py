@@ -1,11 +1,12 @@
 """
 Compute health scores based on aggregated metrics and config/weights.json.
 Canonical formula:
-  Safety_Index = avg(100 - normalize(crime_rate_pc), 100 - normalize(crash_rate_pc))
-  Opportunity_Index = avg(normalize(permit_rate_pc), 100 - normalize(unemployment_rate_pc))
-  QoL_Index = 100 - normalize(request_rate_pc + traffic_vkm_pc + chronic_disease_pc) + normalize(housing_rate_pc + trail_km_pc + transit_stops_pc + schools_pc + grocery_pc + healthcare_pc)
+  Safety_Index = avg(100 - normalize(crime_rate_pc), 100 - normalize(crash_rate_pc), 100 - normalize(disaster_risk_pc), 100 - normalize(chronic_disease_pc))
+  Opportunity_Index = avg(normalize(permit_rate_pc), 100 - normalize(unemployment_rate_pc), 100 - normalize(housing_inventory_pc))
+  Amenities_Index = 100 - normalize(request_rate_pc) + normalize(housing_rate_pc + schools_pc + grocery_pc + restaurants_pc + healthcare_pc)
+  Transportation_Index = 0.7 * [normalize(trail_km_pc + transit_stops_pc) - normalize(traffic_vkm_pc)] + 0.3 * walk_score
   Affordability_Index = avg(100 - normalize(median_home_value), 100 - normalize(median_gross_rent), normalize(median_household_income), 100 - normalize(poverty_rate), 100 - normalize(housing_cost_burden_rate), normalize(homeownership_rate))
-  Health_Score = 0.35*Safety + 0.25*Opportunity + 0.20*QoL + 0.20*Affordability
+  Health_Score = 0.35*Safety + 0.25*Opportunity + 0.10*Amenities + 0.10*Transportation + 0.20*Affordability
 """
 
 import sys
@@ -53,11 +54,11 @@ def min_max_normalize(values):
 
 def compute_component_index(aggregated_metrics, component_name, sources_config):
     """
-    Compute a component index (e.g., Safety, Opportunity, QoL).
+    Compute a component index (e.g., Safety, Opportunity, Amenities).
 
     Args:
         aggregated_metrics: dict of {source_id: {metric_name: ..., metrics: {district_id: ...}}}
-        component_name: "safety", "opportunity", or "quality_of_life"
+        component_name: "safety", "opportunity", or "amenities"
         sources_config: list of source entries from config/sources.json
 
     Returns:
@@ -184,7 +185,7 @@ def compute_health_scores(aggregated_metrics, city="stpaul"):
         city: 'stpaul' or 'mpls' — selects which sources config to score against
 
     Returns:
-        dict: {district_id: {safety: X, opportunity: Y, quality_of_life: Z, affordability: A, health_score: W}}
+        dict: {district_id: {safety: X, opportunity: Y, amenities: Z, affordability: A, health_score: W}}
     """
     weights = load_weights()
     sources_config = load_sources(city=city)["sources"]
@@ -192,18 +193,46 @@ def compute_health_scores(aggregated_metrics, city="stpaul"):
     # Compute component indices
     safety_index = compute_component_index(aggregated_metrics, "safety", sources_config)
     opportunity_index = compute_component_index(aggregated_metrics, "opportunity", sources_config)
-    qol_index = compute_component_index(aggregated_metrics, "quality_of_life", sources_config)
+    qol_index = compute_component_index(aggregated_metrics, "amenities", sources_config)
+    transportation_index = compute_component_index(aggregated_metrics, "transportation", sources_config)
     try:
         affordability_index = compute_affordability_index(city=city)
     except Exception as e:
         print(f"  [WARNING] Affordability index unavailable ({e}); excluding from health score")
         affordability_index = {}
 
+    # Walk/Bike Score: distance-decay amenity proximity + street-intersection
+    # density + trail km, computed separately from the per-source pipeline
+    # above (it needs point-level distances, not a district-level count).
+    # Blended into Transportation (70% trail/transit/traffic-based index /
+    # 30% walk score) and also surfaced standalone in `indices` so it can be
+    # shown like a Zillow-style Walk Score badge.
+    try:
+        from core.walk_score import compute_walk_score
+        walk_score_index = compute_walk_score(city=city)
+    except Exception as e:
+        print(f"  [WARNING] Walk score unavailable ({e}); Transportation will exclude it")
+        walk_score_index = {}
+
+    if walk_score_index:
+        blended_transportation = {}
+        for district_id in set(transportation_index) | set(walk_score_index):
+            base = transportation_index.get(district_id)
+            walk = walk_score_index.get(district_id)
+            if base is not None and walk is not None:
+                blended_transportation[district_id] = 0.7 * base + 0.3 * walk
+            elif walk is not None:
+                blended_transportation[district_id] = walk
+            else:
+                blended_transportation[district_id] = base
+        transportation_index = blended_transportation
+
     # Combine into health scores
     all_district_ids = (
         set(safety_index.keys())
         | set(opportunity_index.keys())
         | set(qol_index.keys())
+        | set(transportation_index.keys())
         | set(affordability_index.keys())
     )
 
@@ -214,6 +243,7 @@ def compute_health_scores(aggregated_metrics, city="stpaul"):
         safety = safety_index.get(district_id, 0)
         opportunity = opportunity_index.get(district_id, 0)
         qol = qol_index.get(district_id, 0)
+        transportation = transportation_index.get(district_id, 0)
         affordability = affordability_index.get(district_id)
 
         # If affordability is unavailable for this district, redistribute
@@ -221,28 +251,34 @@ def compute_health_scores(aggregated_metrics, city="stpaul"):
         # silently treating it as 0 (which would unfairly tank the score).
         if affordability is None:
             active_weight = (
-                component_weights["safety"] + component_weights["opportunity"] + component_weights["quality_of_life"]
+                component_weights["safety"] + component_weights["opportunity"] +
+                component_weights["amenities"] + component_weights["transportation"]
             )
             health_score = (
                 component_weights["safety"] * safety +
                 component_weights["opportunity"] * opportunity +
-                component_weights["quality_of_life"] * qol
+                component_weights["amenities"] * qol +
+                component_weights["transportation"] * transportation
             ) / active_weight * 1.0 if active_weight > 0 else 0
         else:
             health_score = (
                 component_weights["safety"] * safety +
                 component_weights["opportunity"] * opportunity +
-                component_weights["quality_of_life"] * qol +
+                component_weights["amenities"] * qol +
+                component_weights["transportation"] * transportation +
                 component_weights["affordability"] * affordability
             )
 
         indices = {
             "safety": round(safety, 2),
             "opportunity": round(opportunity, 2),
-            "quality_of_life": round(qol, 2),
+            "amenities": round(qol, 2),
+            "transportation": round(transportation, 2),
         }
         if affordability is not None:
             indices["affordability"] = round(affordability, 2)
+        if district_id in walk_score_index:
+            indices["walkability_score"] = round(walk_score_index[district_id], 2)
 
         health_scores[district_id] = {
             "indices": indices,
@@ -269,5 +305,5 @@ if __name__ == "__main__":
         scores = health_scores[district_id]
         indices = scores["indices"]
         print(f"District {district_id}:")
-        print(f"  Safety: {indices['safety']}, Opportunity: {indices['opportunity']}, QoL: {indices['quality_of_life']}")
+        print(f"  Safety: {indices['safety']}, Opportunity: {indices['opportunity']}, Amenities: {indices['amenities']}")
         print(f"  Health Score: {scores['health_score']}")

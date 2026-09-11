@@ -13,6 +13,7 @@ import json
 import inspect
 import pandas as pd
 from pathlib import Path
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from core.load import load_population
 
 PIPELINE_DIR = Path(__file__).resolve().parent.parent
@@ -59,10 +60,35 @@ def aggregate_by_source(source_id, cleaned_data, population_df):
 
     return result
 
+def _load_source(source, city):
+    """Import a source's loader module and fetch+clean its data. Runs in a worker thread."""
+    source_id = source["id"]
+    loader_module_name = source["loader_module"]
+
+    loader_module = __import__(f"cleaners.{loader_module_name}", fromlist=[loader_module_name])
+    # The loader module should have a function named clean_<source_id>
+    # Use the loader_module_name as the function name (e.g., "clean_crime" -> clean_crime())
+    loader_func_name = loader_module_name
+    if not hasattr(loader_module, loader_func_name):
+        raise AttributeError(f"No function {loader_func_name} in {loader_module_name}")
+
+    loader_func = getattr(loader_module, loader_func_name)
+    # City-agnostic loaders (OSM-based: walkability, transit, schools,
+    # groceries) accept a `city` kwarg; city-specific loader modules
+    # (e.g. clean_crime_mpls) don't, so only pass it when supported.
+    if "city" in inspect.signature(loader_func).parameters:
+        return loader_func(city=city)
+    return loader_func()
+
+
 def aggregate_all(city="stpaul"):
     """
     Aggregate all registered data sources and return per-district metrics.
     city: 'stpaul' or 'mpls'.
+
+    Sources are fetched/cleaned concurrently (each is a network-bound API
+    call), since they're independent of each other and dominate wall-clock
+    time; aggregation itself stays sequential since it's cheap in-memory work.
 
     Returns:
         dict: {source_id: {district_id: {metric_name: rate, raw_count: count}}}
@@ -70,48 +96,35 @@ def aggregate_all(city="stpaul"):
     config = load_config(city=city)
     population = load_population(city=city)
 
+    sources = config["sources"]
     results = {}
 
-    for source in config["sources"]:
-        source_id = source["id"]
-        loader_module_name = source["loader_module"]
-        metric_name = source["metric_name"]
+    with ThreadPoolExecutor(max_workers=min(8, len(sources)) or 1) as executor:
+        future_to_source = {
+            executor.submit(_load_source, source, city): source
+            for source in sources
+        }
 
-        print(f"Aggregating {source_id}...", end=" ")
+        for future in as_completed(future_to_source):
+            source = future_to_source[future]
+            source_id = source["id"]
+            metric_name = source["metric_name"]
 
-        try:
-            # Dynamically import the loader module
-            loader_module = __import__(f"cleaners.{loader_module_name}", fromlist=[loader_module_name])
-            # The loader module should have a function named clean_<source_id>
-            # Use the loader_module_name as the function name (e.g., "clean_crime" -> clean_crime())
-            loader_func_name = loader_module_name
-            if not hasattr(loader_module, loader_func_name):
-                print(f"[ERROR] No function {loader_func_name} in {loader_module_name}")
-                continue
+            try:
+                cleaned_data = future.result()
+                metrics = aggregate_by_source(source_id, cleaned_data, population)
+                results[source_id] = {
+                    "metric_name": metric_name,
+                    "metrics": metrics
+                }
+                print(f"Aggregating {source_id}... [OK] {len(metrics)} districts")
+            except Exception as e:
+                print(f"Aggregating {source_id}... [ERROR] {e}")
 
-            loader_func = getattr(loader_module, loader_func_name)
-            # City-agnostic loaders (OSM-based: walkability, transit, schools,
-            # groceries) accept a `city` kwarg; city-specific loader modules
-            # (e.g. clean_crime_mpls) don't, so only pass it when supported.
-            if "city" in inspect.signature(loader_func).parameters:
-                cleaned_data = loader_func(city=city)
-            else:
-                cleaned_data = loader_func()
-
-            # Aggregate by district
-            metrics = aggregate_by_source(source_id, cleaned_data, population)
-
-            results[source_id] = {
-                "metric_name": metric_name,
-                "metrics": metrics
-            }
-
-            print(f"[OK] {len(metrics)} districts")
-
-        except Exception as e:
-            print(f"[ERROR] {e}")
-
-    return results
+    # Preserve config's source order in the returned dict (order-independent
+    # for downstream consumers, but keeps output/log diffs stable).
+    ordered = {s["id"]: results[s["id"]] for s in sources if s["id"] in results}
+    return ordered
 
 if __name__ == "__main__":
     print("Aggregating all data sources by district...")

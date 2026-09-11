@@ -103,17 +103,20 @@ def _build_city_timeseries(sources):
 
 
 def export_stpaul_timeseries():
+    # St. Paul's ArcGIS date fields now come back as epoch milliseconds
+    # (same format Minneapolis always used), not the string dates they used
+    # to be — so these all use the epoch-ms parser now, like MPLS below.
     crime = clean_crime()
-    crime["year"] = _years_from_string_dates(crime["DATE"])
+    crime["year"] = _years_from_epoch_ms(crime["DATE"])
 
     permits = clean_permits()
-    permits["year"] = _years_from_string_dates(permits["Issue Date"])
+    permits["year"] = _years_from_epoch_ms(permits["ISSUEDATE"])
 
     requests = clean_requests()
-    requests["year"] = _years_from_string_dates(requests["Request Date"])
+    requests["year"] = _years_from_epoch_ms(requests["REQUEST_DATE"])
 
     housing = clean_housing()
-    housing["year"] = _years_from_string_dates(housing["ProjectPermitIssueDate"])
+    housing["year"] = _years_from_epoch_ms(housing["ProjectPermitIssueDate"])
 
     return _build_city_timeseries({
         "crime": (crime, "year"),

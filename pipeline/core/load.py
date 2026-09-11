@@ -17,6 +17,41 @@ import os
 PIPELINE_DIR = Path(__file__).resolve().parent.parent
 REPO_DIR = PIPELINE_DIR.parent
 
+_ACS_YEAR_CACHE = {}
+
+
+def get_latest_acs_year(api_key):
+    """
+    Probe the Census API to find the most recent published ACS 5-year
+    vintage, so the pipeline always pulls the newest data available instead
+    of a year hardcoded at write-time. Result is cached per pipeline run.
+    """
+    if "year" in _ACS_YEAR_CACHE:
+        return _ACS_YEAR_CACHE["year"]
+
+    import datetime
+    import requests
+    from core.http_cache import cached_get
+
+    current_year = datetime.date.today().year
+    for year in range(current_year - 1, 2019, -1):
+        try:
+            resp = cached_get(
+                f"https://api.census.gov/data/{year}/acs/acs5",
+                params={"get": "NAME", "for": "state:27", "key": api_key},
+                timeout=15,
+            )
+            if resp.status_code == 200 and isinstance(resp.json(), list):
+                print(f"[INFO] Using ACS 5-year vintage {year} (latest available)")
+                _ACS_YEAR_CACHE["year"] = year
+                return year
+        except (requests.exceptions.RequestException, ValueError):
+            continue
+
+    print("[WARNING] Could not detect latest ACS vintage; falling back to 2022")
+    _ACS_YEAR_CACHE["year"] = 2022
+    return 2022
+
 # Load .env file if it exists (for local development)
 _env_file = PIPELINE_DIR / ".env"
 if _env_file.exists():
@@ -81,8 +116,11 @@ def _fetch_arcgis_paginated(feature_server_url, page_size=2000, timeout=60):
 
             offset += len(features)
 
-            if len(features) < page_size:
-                break
+            # Don't stop just because this page came back short of
+            # page_size — some FeatureServers cap responses at their own
+            # maxRecordCount (often 1000) regardless of what's requested,
+            # so a short page doesn't mean "last page." Only an empty page
+            # (handled above) reliably means there's nothing left.
 
         except requests.exceptions.RequestException as e:
             print(f"[WARNING] Error fetching from ArcGIS: {e}")
@@ -227,6 +265,7 @@ def load_population(city="stpaul"):
     rather than an approximate/even distribution.
     """
     from shapely.geometry import Point, shape
+    from shapely.strtree import STRtree
 
     print(f"[INFO] Attempting to load {city} population from Census API...")
 
@@ -240,7 +279,7 @@ def load_population(city="stpaul"):
     state_fips = "27"
 
     # 1. Fetch tract-level population from Census ACS
-    acs_url = "https://api.census.gov/data/2022/acs/acs5"
+    acs_url = f"https://api.census.gov/data/{get_latest_acs_year(census_key)}/acs/acs5"
     params = {
         "get": "B01003_001E",
         "for": "tract:*",
@@ -295,11 +334,19 @@ def load_population(city="stpaul"):
         boundary_map[district_id] = shape(feature["geometry"])
         name_map[district_id] = props.get(name_field) or f"District {district_id}"
 
+    # STRtree gives each point an O(log n) polygon lookup instead of testing
+    # it against all n districts, which matters once there are hundreds of
+    # tract centroids to place.
+    district_ids = list(boundary_map.keys())
+    polygons = list(boundary_map.values())
+    tree = STRtree(polygons)
+
     def find_district(row):
         point = Point(row["lon"], row["lat"])
-        for district_id, polygon in boundary_map.items():
+        for idx in tree.query(point):
+            polygon = polygons[idx]
             if polygon.contains(point):
-                return district_id
+                return district_ids[idx]
         return None
 
     tracts["district_id"] = tracts.apply(find_district, axis=1)

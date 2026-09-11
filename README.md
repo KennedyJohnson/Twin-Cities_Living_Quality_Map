@@ -36,7 +36,7 @@ A **Health Score** (0–100, where 100 is excellent) measures how well a distric
 
 1. **Safety (35%)** — crime rate and pedestrian/cyclist crash rate (both inverted: lower is better)
 2. **Opportunity (25%)** — building permit rate (higher is better) and unemployment rate (inverted)
-3. **Quality of Life (20%)** — service requests and traffic volume (inverted), plus housing production, trails, transit stops, schools, grocery stores, healthcare access, and chronic disease burden (inverted)
+3. **Amenities & Services (10%)** — service requests (inverted), plus housing production, schools, grocery stores, restaurants/bars, and healthcare access
 4. **Affordability (20%)** — Census median home value, rent, and poverty rate (inverted), plus median household income and homeownership rate
 
 Each metric is normalized against every other district (z-score, squashed to 0–100) and blended by weight. See the in-app **[How we calculate this](/methodology)** page for full detail.
@@ -162,13 +162,13 @@ Extensible per-city registry of data sources. Each entry defines:
 - `id` / `loader_module`: unique identifier and the Python module that cleans it
 - `geo_join_method`: how records are mapped to districts (spatial join, crosswalk, point-in-polygon, line-intersection)
 - `rate_direction`: `"direct"` (higher = better) or `"invert"` (higher = worse)
-- `health_component`: which index this feeds (`safety`, `opportunity`, `quality_of_life`)
+- `health_component`: which index this feeds (`safety`, `opportunity`, `amenities`)
 - `weight_in_component`: relative weight within that component
 
 Adding a new data source: create a `cleaners/clean_<source>.py` loader, add one entry to `sources.json` (and `sources_mpls.json` for city parity), then re-run `pipeline/build.py`.
 
 ### `pipeline/config/weights.json`
-Health score component weights (currently 35% Safety / 25% Opportunity / 20% Quality of Life / 20% Affordability) and each component's formula description.
+Health score component weights (currently 35% Safety / 25% Opportunity / 10% Amenities & Services / 10% Transportation / 20% Affordability) and each component's formula description.
 
 ---
 

@@ -20,7 +20,7 @@ All data is fetched automatically from official APIs with no manual downloads:
 - **Health Score** - Composite metric (0-100) combining four weighted components:
   - Safety (35%): crime rate + pedestrian/cyclist crash rate
   - Opportunity (25%): permit rate + unemployment rate
-  - Quality of Life (20%): service requests, traffic volume, chronic disease burden (inverted), plus housing production, trails, transit, schools, groceries, healthcare access
+  - Amenities & Services (10%): service requests (inverted), plus housing production, schools, groceries, restaurants, healthcare access
   - Affordability (20%): home value, rent, poverty rate, housing cost burden (inverted), plus household income and homeownership rate
 - Multi-year trend charts for crime/permits/requests/housing and Census affordability figures
 - Geographic disparities between districts and between the two cities

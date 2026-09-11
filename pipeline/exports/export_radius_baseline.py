@@ -19,7 +19,7 @@ unavailable have their weight-in-component redistributed across whichever
 sources for that component ARE available, the same fallback pattern
 health_score.py already uses when Affordability is unavailable for a
 district. Likewise, the set of health-score components (safety, opportunity,
-quality_of_life, transportation, ...) is read from sources.json's
+amenities, transportation, ...) is read from sources.json's
 health_component values rather than hardcoded, so a newly added component
 is picked up automatically too.
 
@@ -154,7 +154,7 @@ def _build_component_baselines(city, sources_config, areas):
     client_source_ids = _geometry_source_ids(city)
 
     # Discover components from sources.json itself (safety, opportunity,
-    # quality_of_life, transportation, and whatever gets added later) rather
+    # amenities, transportation, and whatever gets added later) rather
     # than a hardcoded list, so a new component shows up automatically too.
     all_components = sorted({s["health_component"] for s in sources_config})
 

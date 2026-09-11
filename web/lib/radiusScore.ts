@@ -27,7 +27,7 @@ export interface RadiusBaselineAffordabilityField {
 
 export interface RadiusBaseline {
   // Keyed by whatever health-score components sources.json defines (safety,
-  // opportunity, quality_of_life, transportation, ...) — not a fixed list,
+  // opportunity, amenities, transportation, ...) — not a fixed list,
   // so a newly added component shows up automatically once the pipeline
   // export recognizes it, with no frontend code change needed.
   components: Record<string, RadiusBaselineComponent>;
@@ -157,15 +157,16 @@ export function computeRadiusNeighborhood(params: {
   points: PointEntry[];
   trails: TrailEntry[];
   tracts: TractAffordabilityRow[];
+  containingDistrictId?: number | null;
 }): Neighborhood {
-  const { lat, lon, label, baseline, points, trails, tracts } = params;
+  const { lat, lon, label, baseline, points, trails, tracts, containingDistrictId } = params;
   const center = L.latLng(lat, lon);
 
   const allMetrics: Record<string, Metric> = {};
   const componentValues: Record<string, number | null> = {};
 
   // Iterates whatever components the baseline file actually contains
-  // (safety, opportunity, quality_of_life, transportation, ...) rather than
+  // (safety, opportunity, amenities, transportation, ...) rather than
   // a fixed list, so a newly added component is scored automatically.
   for (const key of Object.keys(baseline.components)) {
     const { value, metrics } = computeComponentIndex(center, baseline.components[key], points, trails);
@@ -215,5 +216,6 @@ export function computeRadiusNeighborhood(params: {
     indices,
     health_score: Math.round(healthScore * 100) / 100,
     is_radius: true,
+    containing_district_id: containingDistrictId ?? undefined,
   };
 }

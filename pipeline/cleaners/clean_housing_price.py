@@ -19,10 +19,9 @@ from core.http_cache import cached_get
 import pandas as pd
 from pathlib import Path
 from shapely.geometry import Point, shape
-from core.load import load_boundaries
+from core.load import load_boundaries, get_latest_acs_year
 
 PIPELINE_DIR = Path(__file__).resolve().parent.parent
-ACS_YEAR = 2022
 
 
 def _acs_url(year):
@@ -57,6 +56,9 @@ def _load_census_api_key():
             if line.startswith("CENSUS_API_KEY="):
                 return line.split("=", 1)[1].strip()
     return os.environ.get("CENSUS_API_KEY")
+
+
+ACS_YEAR = get_latest_acs_year(_load_census_api_key())
 
 
 def _fetch_acs_tracts(county_fips, year=ACS_YEAR):

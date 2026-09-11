@@ -6,7 +6,7 @@ export interface Metric {
 export interface Indices {
   safety?: number;
   opportunity?: number;
-  quality_of_life?: number;
+  amenities?: number;
   transportation?: number;
   affordability?: number;
   walkability_score?: number;
@@ -23,6 +23,11 @@ export interface Neighborhood {
   indices: Indices;
   health_score: number;
   is_radius?: boolean;
+  // For a radius/place selection (is_radius: true), the real district the
+  // point falls within — there's no per-location history, so trend charts
+  // fall back to this district's historical data as the closest available
+  // proxy for "what has this area looked like over time."
+  containing_district_id?: number;
 }
 
 export interface NeighborhoodsMetadata {

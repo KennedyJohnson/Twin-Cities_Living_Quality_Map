@@ -15,6 +15,9 @@ import MetricTrendChart from './MetricTrendChart';
 import AffordabilityTrendChart from './AffordabilityTrendChart';
 import IndexComparisonChart from './IndexComparisonChart';
 import TopDistrictsRanking from './TopDistrictsRanking';
+import GradeBadge from './GradeBadge';
+import { percentileRank } from '@/lib/letterGrade';
+import { loadNeighborhoodData } from '@/lib/loadNeighborhoodData';
 import type { Neighborhood } from '@/types/neighborhood';
 
 interface NeighborhoodSidebarProps {
@@ -40,6 +43,7 @@ export default function NeighborhoodSidebar({ district, onSelectDistrict }: Neig
   const [affordability, setAffordability] = useState<Record<string, Affordability>>({});
   const [acsYear, setAcsYear] = useState<number | null>(null);
   const [expandedIndex, setExpandedIndex] = useState<string | null>(null);
+  const [allNeighborhoods, setAllNeighborhoods] = useState<Neighborhood[]>([]);
 
   useEffect(() => {
     Promise.all([
@@ -51,7 +55,28 @@ export default function NeighborhoodSidebar({ district, onSelectDistrict }: Neig
         setAcsYear(stpaul?.acs_year ?? mpls?.acs_year ?? null);
       })
       .catch(() => setAffordability({}));
+
+    // Letter grades are relative to the district set (see lib/letterGrade.ts),
+    // so grading needs every district's scores to rank against, not just
+    // the one currently selected.
+    Promise.all([loadNeighborhoodData('stpaul'), loadNeighborhoodData('mpls')])
+      .then(([stpaul, mpls]) => setAllNeighborhoods([...stpaul.neighborhoods, ...mpls.neighborhoods]))
+      .catch(() => setAllNeighborhoods([]));
   }, []);
+
+  const healthScoreGrade =
+    district && allNeighborhoods.length > 0
+      ? percentileRank(district.health_score, allNeighborhoods.map((n) => n.health_score))
+      : null;
+
+  const indexGrade = (key: string, value: number): number | null => {
+    if (allNeighborhoods.length === 0) return null;
+    const values = allNeighborhoods
+      .map((n) => n.indices[key])
+      .filter((v): v is number => v != null);
+    if (values.length === 0) return null;
+    return percentileRank(value, values);
+  };
 
   if (!district) {
     return (
@@ -62,7 +87,11 @@ export default function NeighborhoodSidebar({ district, onSelectDistrict }: Neig
     );
   }
 
-  const districtAffordability = affordability[String(district.district_id)];
+  // For a radius/place selection, fall back to the enclosing district's
+  // affordability trend — there's no location-specific ACS history for an
+  // arbitrary point, so the surrounding district is the closest available.
+  const trendDistrictId = district.is_radius ? district.containing_district_id : district.district_id;
+  const districtAffordability = trendDistrictId != null ? affordability[String(trendDistrictId)] : undefined;
 
   return (
     <div className="sidebar">
@@ -73,11 +102,9 @@ export default function NeighborhoodSidebar({ district, onSelectDistrict }: Neig
           : `Population: ${district.population.toLocaleString()}`}
       </div>
 
-      <div className="health-score-display">{district.health_score.toFixed(1)}</div>
-      <div style={{ fontSize: '11px', color: '#999', marginTop: '-8px', marginBottom: '16px', lineHeight: 1.4 }}>
-        {district.is_radius
-          ? 'Estimated from OpenStreetMap + Census data within 1 mile, using per-area rates (not per-capita, since population isn’t known for an arbitrary point). Only includes metrics with location data precise enough to check against an arbitrary point — a metric only available at the district level is left out here and its weight redistributed, so a component with no eligible metrics may be missing entirely. Walk/Bike Score’s distance-decay blend into Transportation isn’t replicated either. District scores use the full metric set.'
-          : healthScoreMethodology}
+      <div className="health-score-display">
+        {district.health_score.toFixed(1)}
+        <GradeBadge percentile={healthScoreGrade} size="large" />
       </div>
 
       <IndexComparisonChart district={district} />
@@ -87,7 +114,7 @@ export default function NeighborhoodSidebar({ district, onSelectDistrict }: Neig
           Component Scores <span style={{ fontWeight: 400, color: '#999' }}>(click to see what's included)</span>
         </div>
         <div className="index-grid">
-          {(['safety', 'opportunity', 'quality_of_life', 'transportation', 'affordability', 'walkability_score'] as const)
+          {(['safety', 'opportunity', 'amenities', 'transportation', 'affordability', 'walkability_score'] as const)
             .filter((key) => district.indices[key] != null)
             .map((key) => (
               <div
@@ -97,7 +124,10 @@ export default function NeighborhoodSidebar({ district, onSelectDistrict }: Neig
                 style={{ cursor: 'pointer', border: expandedIndex === key ? '2px solid #756bb1' : undefined }}
               >
                 <div className="index-name">{indexLabels[key]}</div>
-                <div className="index-score">{district.indices[key]!.toFixed(1)}</div>
+                <div className="index-score">
+                  {district.indices[key]!.toFixed(1)}
+                  <GradeBadge percentile={indexGrade(key, district.indices[key]!)} />
+                </div>
               </div>
             ))}
         </div>
@@ -108,7 +138,7 @@ export default function NeighborhoodSidebar({ district, onSelectDistrict }: Neig
               {indexDescriptions[expandedIndex]}
             </div>
             {expandedIndex === 'affordability' ? (
-              district.is_radius ? (
+              district.is_radius && !district.containing_district_id ? (
                 <div style={{ fontSize: '12px', color: '#999' }}>
                   Estimated from Census tracts within 1 mile; a field-by-field breakdown is only available for full districts.
                 </div>
@@ -130,12 +160,13 @@ export default function NeighborhoodSidebar({ district, onSelectDistrict }: Neig
                           <span style={{ fontSize: '12px', color: '#999' }}>{fieldLabel}</span>
                           <span className="metric-value">{format(value)}</span>
                         </div>
-                        <AffordabilityTrendChart districtId={district.district_id} field={field} label={fieldLabel} />
+                        <AffordabilityTrendChart districtId={trendDistrictId!} field={field} label={fieldLabel} />
                       </div>
                     );
                   })}
                   <div style={{ fontSize: '11px', color: '#ccc', fontStyle: 'italic' }}>
                     Source: Census ACS 5-Year Estimates{acsYear ? ` (${acsYear})` : ''}
+                    {district.is_radius ? ' — surrounding district' : ''}
                   </div>
                 </div>
               ) : (
@@ -166,12 +197,19 @@ export default function NeighborhoodSidebar({ district, onSelectDistrict }: Neig
                       <div style={{ fontSize: '11px', color: '#ccc', fontStyle: 'italic' }}>
                         Source: {getMetricSource(metricKey)}
                       </div>
-                      {trendKey && !district.is_radius && (
-                        <MetricTrendChart
-                          districtId={district.district_id}
-                          trendKey={trendKey}
-                          label={getMetricLabel(metricKey)}
-                        />
+                      {trendKey && trendDistrictId != null && (
+                        <>
+                          <MetricTrendChart
+                            districtId={trendDistrictId}
+                            trendKey={trendKey}
+                            label={getMetricLabel(metricKey)}
+                          />
+                          {district.is_radius && (
+                            <div style={{ fontSize: '10px', color: '#ccc', fontStyle: 'italic', marginTop: '-4px' }}>
+                              Trend shown for the surrounding district — no history for an arbitrary point.
+                            </div>
+                          )}
+                        </>
                       )}
                     </div>
                   );
@@ -180,6 +218,18 @@ export default function NeighborhoodSidebar({ district, onSelectDistrict }: Neig
           </div>
         )}
       </div>
+
+      {district.is_radius && (
+        <div style={{ fontSize: '11px', color: '#999', lineHeight: 1.4 }}>
+          Estimated from OpenStreetMap + Census data within 1 mile using per-area rates. Excludes metrics only available at the district level (weight redistributed) and Walk/Bike Score's distance decay. District scores use the full metric set.
+        </div>
+      )}
+
+      {!district.is_radius && (
+        <div style={{ fontSize: '11px', color: '#999', marginTop: '16px', lineHeight: 1.4 }}>
+          {healthScoreMethodology}
+        </div>
+      )}
     </div>
   );
 }

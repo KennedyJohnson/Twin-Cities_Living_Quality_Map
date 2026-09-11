@@ -121,7 +121,7 @@ def build(city="stpaul"):
             "Population": neighborhood["population"],
             "Safety": neighborhood["indices"].get("safety", "N/A"),
             "Opportunity": neighborhood["indices"].get("opportunity", "N/A"),
-            "QoL": neighborhood["indices"].get("quality_of_life", "N/A"),
+            "Amenities": neighborhood["indices"].get("amenities", "N/A"),
             "Health Score": neighborhood["health_score"]
         }
         sanity_rows.append(row)
