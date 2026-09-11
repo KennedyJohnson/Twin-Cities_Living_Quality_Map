@@ -4,10 +4,15 @@ export interface Metric {
 }
 
 export interface Indices {
-  safety: number;
-  opportunity: number;
-  quality_of_life: number;
+  safety?: number;
+  opportunity?: number;
+  quality_of_life?: number;
+  transportation?: number;
   affordability?: number;
+  walkability_score?: number;
+  // A future health-score component (see pipeline/config/weights.json)
+  // shows up here under its own key without needing a type change.
+  [key: string]: number | undefined;
 }
 
 export interface Neighborhood {
@@ -17,6 +22,7 @@ export interface Neighborhood {
   metrics: Record<string, Metric>;
   indices: Indices;
   health_score: number;
+  is_radius?: boolean;
 }
 
 export interface NeighborhoodsMetadata {

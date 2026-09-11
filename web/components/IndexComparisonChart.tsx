@@ -25,10 +25,35 @@ export default function IndexComparisonChart({ district }: IndexComparisonChartP
 
         const rows: { name: string; thisDistrict: number; average: number }[] = [
           { name: 'Health Score', thisDistrict: district.health_score, average: avg(others.map((n) => n.health_score)) },
-          { name: 'Safety', thisDistrict: district.indices.safety, average: avg(others.map((n) => n.indices.safety)) },
-          { name: 'Opportunity', thisDistrict: district.indices.opportunity, average: avg(others.map((n) => n.indices.opportunity)) },
-          { name: 'Quality of Life', thisDistrict: district.indices.quality_of_life, average: avg(others.map((n) => n.indices.quality_of_life)) },
         ];
+        if (district.indices.safety != null) {
+          rows.push({
+            name: 'Safety',
+            thisDistrict: district.indices.safety,
+            average: avg(others.map((n) => n.indices.safety).filter((v): v is number => v != null)),
+          });
+        }
+        if (district.indices.opportunity != null) {
+          rows.push({
+            name: 'Opportunity',
+            thisDistrict: district.indices.opportunity,
+            average: avg(others.map((n) => n.indices.opportunity).filter((v): v is number => v != null)),
+          });
+        }
+        if (district.indices.quality_of_life != null) {
+          rows.push({
+            name: 'Quality of Life',
+            thisDistrict: district.indices.quality_of_life,
+            average: avg(others.map((n) => n.indices.quality_of_life).filter((v): v is number => v != null)),
+          });
+        }
+        if (district.indices.transportation != null) {
+          rows.push({
+            name: 'Transportation',
+            thisDistrict: district.indices.transportation,
+            average: avg(others.map((n) => n.indices.transportation).filter((v): v is number => v != null)),
+          });
+        }
         if (district.indices.affordability != null) {
           rows.push({
             name: 'Affordability',
@@ -48,7 +73,7 @@ export default function IndexComparisonChart({ district }: IndexComparisonChartP
   return (
     <div style={{ marginBottom: '20px' }}>
       <div style={{ fontSize: '13px', fontWeight: '600', marginBottom: '10px', color: '#666' }}>
-        This District vs. Other Districts
+        {district.is_radius ? 'This Location vs. District Average' : 'This District vs. Other Districts'}
       </div>
       <ResponsiveContainer width="100%" height={220}>
         <BarChart data={chartData} layout="vertical" margin={{ top: 4, right: 16, left: 8, bottom: 4 }}>
@@ -56,7 +81,7 @@ export default function IndexComparisonChart({ district }: IndexComparisonChartP
           <YAxis type="category" dataKey="name" tick={{ fontSize: 11 }} width={90} />
           <Tooltip contentStyle={{ fontSize: '11px' }} />
           <RechartsLegend wrapperStyle={{ fontSize: '10px' }} />
-          <Bar dataKey="thisDistrict" name="This district" fill="#756bb1" radius={[0, 3, 3, 0]} />
+          <Bar dataKey="thisDistrict" name={district.is_radius ? 'This location' : 'This district'} fill="#756bb1" radius={[0, 3, 3, 0]} />
           <Bar dataKey="average" name="Average of others" fill="#ccc" radius={[0, 3, 3, 0]} />
         </BarChart>
       </ResponsiveContainer>

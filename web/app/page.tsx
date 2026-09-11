@@ -10,7 +10,7 @@ import ScoreSelector from '@/components/ScoreSelector';
 import type { Neighborhood } from '@/types/neighborhood';
 import type { ScoreMetricKey } from '@/lib/scoreMetric';
 import type { MapClickMode } from '@/components/NeighborhoodMap';
-import { resolveNeighborhoodForPoint, reverseGeocode, googleMapsSearchUrl } from '@/lib/geo';
+import { reverseGeocode, googleMapsSearchUrl } from '@/lib/geo';
 
 const NeighborhoodMap = dynamic(() => import('@/components/NeighborhoodMap'), {
   ssr: false,
@@ -61,17 +61,15 @@ export default function Home() {
   );
 
   const handleAddressSelect = (address: string, lat: number, lon: number, district: Neighborhood | null, label: string) => {
+    // Shown briefly until NeighborhoodMap's radius-score effect reports the
+    // computed 1-mile-radius result for this same searchMarker.
     setSelectedDistrict(district);
     setFlyToLocation({ lat, lon });
     setSearchMarker({ lat, lon, label });
   };
 
   const handleMapClick = async (lat: number, lon: number) => {
-    const [district, label] = await Promise.all([
-      resolveNeighborhoodForPoint(lat, lon),
-      reverseGeocode(lat, lon),
-    ]);
-    setSelectedDistrict(district);
+    const label = await reverseGeocode(lat, lon);
     setSearchMarker({ lat, lon, label });
   };
 
@@ -87,6 +85,7 @@ export default function Home() {
           onMapClick={handleMapClick}
           clickMode={clickMode}
           scoreMetric={scoreMetric}
+          onPlaceScoreComputed={setSelectedDistrict}
         />
         <Legend scoreMetric={scoreMetric} />
         <ScoreSelector value={scoreMetric} onChange={setScoreMetric} />
