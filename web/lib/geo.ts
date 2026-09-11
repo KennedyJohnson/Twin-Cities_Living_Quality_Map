@@ -23,31 +23,45 @@ function pointInPolygon(point: { coordinates: [number, number] }, feature: any):
   return inside;
 }
 
+async function findDistrictInFile(
+  url: string,
+  point: { coordinates: [number, number] }
+): Promise<PointInPolygonResult | null> {
+  const response = await fetch(url);
+  if (!response.ok) return null;
+  const geojson = await response.json();
+
+  for (const feature of geojson.features) {
+    if (pointInPolygon(point, feature)) {
+      const districtId = feature.id || feature.properties.district_id;
+      return {
+        districtId,
+        districtName: feature.properties.district_name,
+      };
+    }
+  }
+  return null;
+}
+
 export async function findDistrictForPoint(
   lat: number,
   lon: number
 ): Promise<PointInPolygonResult | null> {
   try {
-    const response = await fetch('/data/boundaries.geojson');
-    const geojson = await response.json();
-
     const point = { coordinates: [lon, lat] as [number, number] };
-
-    for (const feature of geojson.features) {
-      if (pointInPolygon(point, feature)) {
-        const districtId = feature.id || feature.properties.district_id;
-        return {
-          districtId,
-          districtName: feature.properties.district_name,
-        };
-      }
-    }
-
-    return null;
+    const stpaulResult = await findDistrictInFile('/data/boundaries.geojson', point);
+    if (stpaulResult) return stpaulResult;
+    return await findDistrictInFile('/data/boundaries_mpls.geojson', point);
   } catch (err) {
     console.error('Error finding district:', err);
     return null;
   }
+}
+
+// district_id ranges (1-17 = St. Paul, 101-111 = Minneapolis) distinguish the
+// two cities' data files everywhere in the pipeline/frontend.
+export function cityForDistrictId(districtId: number): 'stpaul' | 'mpls' {
+  return districtId >= 100 ? 'mpls' : 'stpaul';
 }
 
 export async function resolveNeighborhoodForPoint(lat: number, lon: number): Promise<Neighborhood | null> {

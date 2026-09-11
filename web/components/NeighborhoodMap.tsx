@@ -5,8 +5,16 @@ import { MapContainer, TileLayer, GeoJSON, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import { getHealthScoreColor } from '@/lib/ColorScale';
 import { loadNeighborhoodData, getNeighborhoodMap } from '@/lib/loadNeighborhoodData';
-import { POINT_LAYER_COLORS, POINT_LAYER_LABELS, POINT_LAYER_ICONS } from '@/lib/pointLayerColors';
+import { POINT_LAYER_COLORS, POINT_LAYER_LABELS, POINT_LAYER_ICONS, CANVAS_MARKER_THRESHOLD } from '@/lib/pointLayerColors';
 import { getScoreValue, ScoreMetricKey } from '@/lib/scoreMetric';
+import { findDistrictForPoint, cityForDistrictId, resolveNeighborhoodForPoint } from '@/lib/geo';
+import {
+  computeRadiusNeighborhood,
+  RadiusBaseline,
+  TractAffordabilityRow,
+  PointEntry,
+  TrailEntry,
+} from '@/lib/radiusScore';
 
 function makeMarkerIcon(color: string, emoji: string): L.DivIcon {
   return L.divIcon({
@@ -26,6 +34,14 @@ function makeMarkerIcon(color: string, emoji: string): L.DivIcon {
 const CLUSTER_MIN_COUNT = 50;
 const CLUSTER_CELL_PX = 60;
 
+// Layers with more points than CANVAS_MARKER_THRESHOLD render as canvas
+// circle markers instead of DOM divIcon markers. A divIcon is a real DOM node
+// that the browser has to paint/composite on every pan frame; at a few
+// hundred that's invisible, but a high-volume layer (thousands of crime
+// points, transit stops, etc.) makes dragging the map visibly stutter.
+// Canvas markers are pixels on one shared <canvas> element, so panning stays
+// cheap regardless of count.
+
 function makeClusterIcon(count: number): L.DivIcon {
   const size = count > 200 ? 46 : count > 100 ? 40 : 34;
   return L.divIcon({
@@ -35,12 +51,32 @@ function makeClusterIcon(count: number): L.DivIcon {
   });
 }
 
-function regroupEntries(
+type PointMarker = L.Marker | L.CircleMarker;
+
+// Toggling display via the marker's existing DOM element is far cheaper than
+// removing/re-adding the marker to its layer group: Leaflet rebuilds the icon
+// element from scratch (_initIcon) on every add, which is what caused the lag
+// when selecting through a high-volume layer. getElement() is undefined until
+// the marker's group has actually been added to the map, in which case there
+// is nothing to hide yet. Canvas circle markers have no DOM element per
+// marker to toggle — visibility for those is handled by add/remove instead
+// (see renderAllLabels), which is cheap for canvas layers since there's no
+// icon to rebuild.
+function setMarkerVisible(marker: PointMarker, visible: boolean) {
+  if (!(marker instanceof L.Marker)) return;
+  const el = marker.getElement();
+  if (el) el.style.display = visible ? '' : 'none';
+}
+
+function computeClusters(
   map: L.Map,
-  entries: { marker: L.Marker; districtId: number | null }[]
-): L.Marker[] {
+  entries: { marker: PointMarker; districtId: number | null }[]
+): {
+  individual: Set<PointMarker>;
+  clusters: { avgLat: number; avgLng: number; count: number; bounds: L.LatLngBounds }[];
+} {
   const zoom = map.getZoom();
-  const cells = new Map<string, { marker: L.Marker; districtId: number | null }[]>();
+  const cells = new Map<string, { marker: PointMarker; districtId: number | null }[]>();
   for (const entry of entries) {
     const pt = map.project(entry.marker.getLatLng(), zoom);
     const key = `${Math.floor(pt.x / CLUSTER_CELL_PX)}:${Math.floor(pt.y / CLUSTER_CELL_PX)}`;
@@ -52,21 +88,19 @@ function regroupEntries(
     cell.push(entry);
   }
 
-  const rendered: L.Marker[] = [];
+  const individual = new Set<PointMarker>();
+  const clusters: { avgLat: number; avgLng: number; count: number; bounds: L.LatLngBounds }[] = [];
   for (const group of cells.values()) {
     if (group.length > CLUSTER_MIN_COUNT) {
       const latlngs = group.map((g) => g.marker.getLatLng());
       const avgLat = latlngs.reduce((s, l) => s + l.lat, 0) / latlngs.length;
       const avgLng = latlngs.reduce((s, l) => s + l.lng, 0) / latlngs.length;
-      const clusterMarker = L.marker([avgLat, avgLng], { icon: makeClusterIcon(group.length) });
-      const bounds = L.latLngBounds(latlngs);
-      clusterMarker.on('click', () => map.fitBounds(bounds.pad(0.3)));
-      rendered.push(clusterMarker);
+      clusters.push({ avgLat, avgLng, count: group.length, bounds: L.latLngBounds(latlngs) });
     } else {
-      for (const entry of group) rendered.push(entry.marker);
+      for (const entry of group) individual.add(entry.marker);
     }
   }
-  return rendered;
+  return { individual, clusters };
 }
 import type { Neighborhood } from '@/types/neighborhood';
 import 'leaflet/dist/leaflet.css';
@@ -97,6 +131,7 @@ interface NeighborhoodMapProps {
   onMapClick?: (lat: number, lon: number) => void;
   clickMode?: MapClickMode;
   scoreMetric?: ScoreMetricKey;
+  onPlaceScoreComputed?: (neighborhood: Neighborhood) => void;
 }
 
 function makeSearchMarkerIcon(): L.DivIcon {
@@ -118,8 +153,13 @@ function MapContent({
   onMapClick,
   clickMode = 'district',
   scoreMetric = 'health_score',
+  onPlaceScoreComputed,
 }: NeighborhoodMapProps) {
   const map = useMap();
+  const radiusBaselineRef = useRef<Record<'stpaul' | 'mpls', RadiusBaseline | null>>({ stpaul: null, mpls: null });
+  const tractsAffordabilityRef = useRef<Record<'stpaul' | 'mpls', TractAffordabilityRow[]>>({ stpaul: [], mpls: [] });
+  const onPlaceScoreComputedRef = useRef(onPlaceScoreComputed);
+  onPlaceScoreComputedRef.current = onPlaceScoreComputed;
   const geoJsonLayersRef = useRef<L.GeoJSON[]>([]);
   const searchMarkerRef = useRef<L.Marker | null>(null);
   const searchRadiusCircleRef = useRef<L.Circle | null>(null);
@@ -127,13 +167,23 @@ function MapContent({
   // Stops"). Never added to the map directly — renderLabel() decides, per
   // zoom level and current filter, which subset gets grouped into cluster
   // bubbles vs. shown individually, and populates labelGroupsRef[label].
-  const labelEntriesRef = useRef<Record<string, { marker: L.Marker; districtId: number | null }[]>>({});
+  const labelEntriesRef = useRef<Record<string, { marker: PointMarker; districtId: number | null; source: string }[]>>({});
   const labelGroupsRef = useRef<Record<string, L.LayerGroup>>({});
+  // Synthetic cluster-bubble markers currently added per label, so
+  // renderAllLabels() can remove just these (cheap) instead of clearing and
+  // rebuilding the whole group's markers on every filter change.
+  const clusterMarkersRef = useRef<Record<string, L.Marker[]>>({});
+  // Canvas circle markers currently added to the map per label (individual,
+  // non-clustered). Canvas markers have no display style to toggle, so
+  // visibility is tracked here and applied via incremental add/remove —
+  // cheap for canvas layers since there's no DOM icon to rebuild.
+  const canvasMarkersShownRef = useRef<Record<string, Set<L.CircleMarker>>>({});
+  const canvasRendererRef = useRef<L.Canvas | null>(null);
   const groceryGroupRef = useRef<L.LayerGroup | null>(null);
   // Trail/path segments: kept separately from point markers since they're
   // polylines (no single lat/lon) and never carry a district_id, so they're
   // filtered purely by "does any vertex fall within the search radius".
-  const trailEntriesRef = useRef<{ layer: L.Layer; latlngs: L.LatLng[] }[]>([]);
+  const trailEntriesRef = useRef<{ layer: L.Layer; latlngs: L.LatLng[]; source: string }[]>([]);
   const trailGroupRef = useRef<L.LayerGroup | null>(null);
   const selectedDistrictRef = useRef<Neighborhood | null>(selectedDistrict);
   const searchMarkerPropRef = useRef<{ lat: number; lon: number; label: string } | null | undefined>(searchMarker);
@@ -143,7 +193,7 @@ function MapContent({
   const districtBoundsRef = useRef<Record<number, L.LatLngBounds>>({});
   const [isLoading, setIsLoading] = useState(true);
 
-  const isEntryVisible = (entry: { marker: L.Marker; districtId: number | null }) => {
+  const isEntryVisible = (entry: { marker: PointMarker; districtId: number | null }) => {
     const sm = searchMarkerPropRef.current;
     if (sm) {
       const searchLatLng = L.latLng(sm.lat, sm.lon);
@@ -157,11 +207,39 @@ function MapContent({
     for (const label of Object.keys(labelEntriesRef.current)) {
       const group = labelGroupsRef.current[label];
       if (!group) continue;
-      group.clearLayers();
-      const visible = labelEntriesRef.current[label].filter(isEntryVisible);
-      for (const marker of regroupEntries(map, visible)) {
-        group.addLayer(marker);
+      const allEntries = labelEntriesRef.current[label];
+      const visible = allEntries.filter(isEntryVisible);
+      const { individual, clusters } = computeClusters(map, visible);
+
+      const currentCanvasShown = canvasMarkersShownRef.current[label] || new Set<L.CircleMarker>();
+      const nextCanvasShown = new Set<L.CircleMarker>();
+      for (const entry of allEntries) {
+        const show = individual.has(entry.marker);
+        if (entry.marker instanceof L.Marker) {
+          setMarkerVisible(entry.marker, show);
+        } else if (show) {
+          nextCanvasShown.add(entry.marker);
+          if (!currentCanvasShown.has(entry.marker)) group.addLayer(entry.marker);
+        }
       }
+      for (const cm of currentCanvasShown) {
+        if (!nextCanvasShown.has(cm)) group.removeLayer(cm);
+      }
+      canvasMarkersShownRef.current[label] = nextCanvasShown;
+
+      const oldClusterMarkers = clusterMarkersRef.current[label] || [];
+      for (const clusterMarker of oldClusterMarkers) group.removeLayer(clusterMarker);
+
+      const newClusterMarkers: L.Marker[] = [];
+      for (const cluster of clusters) {
+        const clusterMarker = L.marker([cluster.avgLat, cluster.avgLng], {
+          icon: makeClusterIcon(cluster.count),
+        });
+        clusterMarker.on('click', () => map.fitBounds(cluster.bounds.pad(0.3)));
+        group.addLayer(clusterMarker);
+        newClusterMarkers.push(clusterMarker);
+      }
+      clusterMarkersRef.current[label] = newClusterMarkers;
     }
   };
 
@@ -220,17 +298,36 @@ function MapContent({
   // building/point within it) drops a search-style pin at that spot — same
   // marker, 1-mile radius, and nearby-groceries behavior as an address
   // search — so a click stands in for "search this place".
+  //
+  // District-mode selection is normally handled by each polygon's own
+  // layer.on('click', ...) below. But a high-volume point layer renders as
+  // canvas markers in 'markerPane' (above the polygons) so those markers stay
+  // clickable — and since a canvas element is one solid rectangle covering
+  // the whole view, it becomes the actual native click target everywhere,
+  // not just where a marker is drawn. When it doesn't hit a marker, Leaflet
+  // falls back to firing the map's own click event rather than the polygon
+  // underneath. So district selection also needs this map-level fallback,
+  // using the same point-in-polygon lookup 'place' mode already relies on.
   useEffect(() => {
-    if (!onMapClick) return;
     const onClick = (e: L.LeafletMouseEvent) => {
-      if (clickModeRef.current !== 'place') return;
-      onMapClick(e.latlng.lat, e.latlng.lng);
+      const mode = clickModeRef.current;
+      if (mode === 'place') {
+        onMapClick?.(e.latlng.lat, e.latlng.lng);
+        return;
+      }
+      if (mode === 'district') {
+        resolveNeighborhoodForPoint(e.latlng.lat, e.latlng.lng).then((neighborhood) => {
+          if (!neighborhood) return;
+          const isCurrentlySelected = selectedDistrictRef.current?.district_id === neighborhood.district_id;
+          onDistrictSelect(isCurrentlySelected ? null : neighborhood);
+        });
+      }
     };
     map.on('click', onClick);
     return () => {
       map.off('click', onClick);
     };
-  }, [map, onMapClick]);
+  }, [map, onMapClick, onDistrictSelect]);
 
   // Zoom control defaults to top-left, which the address search box and
   // score selector already occupy — move it to top-right instead, where it
@@ -269,6 +366,13 @@ function MapContent({
             color: isSelected ? '#ff00ff' : '#333',
             weight: isSelected ? 5 : 2,
             opacity: isSelected ? 1 : 0.5,
+            // Path layers bubble clicks to the map by default. Without this,
+            // every polygon click also fired the map's own click event —
+            // which now also runs the district-select fallback below — and
+            // since that fallback's point-in-polygon lookup is async, it
+            // resolved just after the polygon's own handler had selected the
+            // district, immediately toggling it back off.
+            bubblingMouseEvents: false,
           };
         },
         onEachFeature: (feature, layer) => {
@@ -344,6 +448,29 @@ function MapContent({
 
         if (cancelled) return;
 
+        // Load the small radius-scoring baseline/tract files (used for
+        // 1-mile "place" scoring) in the background; not required for the
+        // map itself to render.
+        (async () => {
+          for (const city of ['stpaul', 'mpls'] as const) {
+            try {
+              const [baselineResp, tractsResp] = await Promise.all([
+                fetch(`/data/radius_baseline_${city}.json`),
+                fetch(`/data/tracts_affordability_${city}.json`),
+              ]);
+              if (baselineResp.ok) {
+                radiusBaselineRef.current[city] = await baselineResp.json();
+              }
+              if (tractsResp.ok) {
+                const tractsData = await tractsResp.json();
+                tractsAffordabilityRef.current[city] = tractsData.tracts || [];
+              }
+            } catch (err) {
+              console.error(`Failed to load radius scoring data for ${city}:`, err);
+            }
+          }
+        })();
+
         // Fit map bounds to Twin Cities metro area
         const bounds = L.latLngBounds([
           [44.8, -93.4],   // Southwest corner
@@ -400,7 +527,7 @@ function MapContent({
                     html += '</table>';
                   }
                   polyline.bindPopup(html, { maxWidth: 280 });
-                  trailEntriesRef.current.push({ layer: polyline, latlngs });
+                  trailEntriesRef.current.push({ layer: polyline, latlngs, source });
                 }
                 continue;
               }
@@ -410,10 +537,35 @@ function MapContent({
               // CLUSTER_MIN_COUNT and should bundle into a cluster bubble.
               const emoji = POINT_LAYER_ICONS[source] || '📍';
               const icon = makeMarkerIcon(color, emoji);
+              const useCanvas = features.length > CANVAS_MARKER_THRESHOLD;
+              if (useCanvas && !canvasRendererRef.current) {
+                // Default renderer pane is 'overlayPane', shared with the
+                // district polygons — same-pane stacking let clicks fall
+                // through to the polygon underneath instead of the marker.
+                // 'markerPane' sits above it (same pane the old divIcon
+                // markers used), so canvas markers win clicks again.
+                canvasRendererRef.current = L.canvas({ padding: 0.5, pane: 'markerPane' });
+              }
               const geoJsonLayer = L.geoJSON(
                 { type: 'FeatureCollection', features } as any,
                 {
-                  pointToLayer: (feature, latlng) => L.marker(latlng, { icon }),
+                  pointToLayer: (feature, latlng) =>
+                    useCanvas
+                      ? L.circleMarker(latlng, {
+                          renderer: canvasRendererRef.current!,
+                          radius: 5,
+                          color: '#fff',
+                          weight: 1,
+                          fillColor: color,
+                          fillOpacity: 0.85,
+                          // Unlike L.Marker, Path layers bubble click events
+                          // to the map by default — without this, clicking a
+                          // circle marker also fired the map's own click
+                          // handler (drop search pin / select district),
+                          // which stole the popup before it could show.
+                          bubblingMouseEvents: false,
+                        })
+                      : L.marker(latlng, { icon }),
                   onEachFeature: (feature, layer) => {
                     const featLabel = feature.properties?.label || source;
                     const details = feature.properties?.details as Record<string, string | number> | undefined;
@@ -430,14 +582,6 @@ function MapContent({
                 }
               );
               if (!labelEntriesRef.current[label]) labelEntriesRef.current[label] = [];
-              for (let i = 0; i < features.length; i++) {
-                const marker = geoJsonLayer.getLayers()[i] as L.Marker;
-                const districtId = features[i].properties?.district_id;
-                labelEntriesRef.current[label].push({
-                  marker,
-                  districtId: typeof districtId === 'number' ? districtId : null,
-                });
-              }
               if (!labelGroupsRef.current[label]) {
                 const group = L.layerGroup();
                 labelGroupsRef.current[label] = group;
@@ -445,6 +589,27 @@ function MapContent({
                 if (source === 'groceries') {
                   groceryGroupRef.current = group;
                 }
+              }
+              const group = labelGroupsRef.current[label];
+              for (let i = 0; i < features.length; i++) {
+                const marker = geoJsonLayer.getLayers()[i] as PointMarker;
+                const districtId = features[i].properties?.district_id;
+                labelEntriesRef.current[label].push({
+                  marker,
+                  districtId: typeof districtId === 'number' ? districtId : null,
+                  source,
+                });
+                if (!useCanvas) {
+                  // Added once, permanently — renderAllLabels() toggles
+                  // display via setMarkerVisible() rather than re-adding, so
+                  // Leaflet never has to rebuild the icon DOM node per filter
+                  // change (the cause of selection lag on large layers).
+                  group.addLayer(marker);
+                }
+                // Canvas circle markers are left un-added here; renderAllLabels()
+                // adds/removes them directly since that's already cheap for a
+                // canvas layer (no DOM icon to rebuild) and also disables hit
+                // testing for markers that are currently filtered out.
               }
             }
           } catch (err) {
@@ -465,6 +630,14 @@ function MapContent({
           const control = L.control.layers(undefined, overlays, { collapsed: true });
           control.addTo(map);
           controlToClean = control;
+          // Markers in a layer that isn't on the map yet have no DOM element,
+          // so setMarkerVisible() no-ops for them until the layer is toggled
+          // on — at which point Leaflet shows every marker by default. Re-run
+          // the filters so the current selection/search radius still applies.
+          map.on('overlayadd', () => {
+            renderAllLabels();
+            renderTrails();
+          });
         }
 
         setIsLoading(false);
@@ -478,6 +651,7 @@ function MapContent({
 
     return () => {
       cancelled = true;
+      map.off('overlayadd');
       for (const layer of layersToClean) {
         map.removeLayer(layer);
       }
@@ -582,6 +756,39 @@ function MapContent({
       }
       if (trailGroupRef.current && !map.hasLayer(trailGroupRef.current)) {
         map.addLayer(trailGroupRef.current);
+      }
+
+      // Compute a 1-mile-radius score for the sidebar, on a comparable 0-100
+      // scale to district scores — see web/lib/radiusScore.ts for the method
+      // and its limitations (per-area, not per-capita; only sources with
+      // client-side raw geometry are included).
+      if (onPlaceScoreComputedRef.current) {
+        const { lat, lon, label } = searchMarker;
+        findDistrictForPoint(lat, lon).then((result) => {
+          const city = result ? cityForDistrictId(result.districtId) : 'stpaul';
+          const baseline = radiusBaselineRef.current[city];
+          if (!baseline) return;
+
+          const points: PointEntry[] = [];
+          for (const entries of Object.values(labelEntriesRef.current)) {
+            for (const entry of entries) {
+              points.push({ source: entry.source, latlng: entry.marker.getLatLng() });
+            }
+          }
+          const trails: TrailEntry[] = trailEntriesRef.current.map((t) => ({ latlngs: t.latlngs, source: t.source }));
+          const tracts = tractsAffordabilityRef.current[city];
+
+          const neighborhood = computeRadiusNeighborhood({
+            lat,
+            lon,
+            label,
+            baseline,
+            points,
+            trails,
+            tracts,
+          });
+          onPlaceScoreComputedRef.current?.(neighborhood);
+        });
       }
     }
   }, [searchMarker, map, onClearSearchMarker]);

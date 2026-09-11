@@ -48,6 +48,18 @@ jobs:
         working-directory: pipeline
         run: python exports/export_timeseries.py
 
+      - name: Export tract-level affordability data (for 1-mile radius scoring)
+        working-directory: pipeline
+        env:
+          CENSUS_API_KEY: ${{ secrets.CENSUS_API_KEY }}
+        run: python exports/export_tracts_affordability.py
+
+      - name: Export radius-scoring baseline (for 1-mile radius scoring)
+        working-directory: pipeline
+        env:
+          CENSUS_API_KEY: ${{ secrets.CENSUS_API_KEY }}
+        run: python exports/export_radius_baseline.py
+
       - name: Commit refreshed data
         run: |
           git config user.name "github-actions[bot]"

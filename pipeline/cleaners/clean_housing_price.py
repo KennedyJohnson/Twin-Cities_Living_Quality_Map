@@ -129,6 +129,28 @@ def _fetch_tract_centroids(county_fips):
     return pd.DataFrame(rows)
 
 
+def clean_housing_price_tracts(city="stpaul", year=ACS_YEAR):
+    """
+    Fetch ACS median home value / gross rent per tract, joined to tract
+    centroids, WITHOUT aggregating up to district level. Used for radius
+    (arbitrary point-in-circle) affordability queries, where district
+    boundaries aren't the right join target.
+
+    Returns:
+        DataFrame with columns: geoid, lat, lon, population,
+        median_home_value, median_gross_rent, median_household_income,
+        poverty_rate, housing_cost_burden_rate, homeownership_rate
+    """
+    county_fips = CITY_COUNTY[city]
+    acs = _fetch_acs_tracts(county_fips, year=year)
+    centroids = _fetch_tract_centroids(county_fips)
+    tracts = acs.merge(centroids, on="geoid", how="inner")
+    return tracts[[
+        "geoid", "lat", "lon", "population", "median_home_value", "median_gross_rent",
+        "median_household_income", "poverty_rate", "housing_cost_burden_rate", "homeownership_rate",
+    ]]
+
+
 def clean_housing_price(city="stpaul", year=ACS_YEAR):
     """
     Fetch ACS median home value / gross rent per tract and aggregate to
@@ -142,10 +164,7 @@ def clean_housing_price(city="stpaul", year=ACS_YEAR):
     Returns:
         DataFrame with columns: district_id, median_home_value, median_gross_rent, median_household_income
     """
-    county_fips = CITY_COUNTY[city]
-    acs = _fetch_acs_tracts(county_fips, year=year)
-    centroids = _fetch_tract_centroids(county_fips)
-    tracts = acs.merge(centroids, on="geoid", how="inner")
+    tracts = clean_housing_price_tracts(city=city, year=year)
 
     boundaries = load_boundaries(city=city)
     boundary_map = {}
@@ -160,6 +179,7 @@ def clean_housing_price(city="stpaul", year=ACS_YEAR):
                 return district_id
         return None
 
+    tracts = tracts.copy()
     tracts["district_id"] = tracts.apply(find_district, axis=1)
     tracts = tracts.dropna(subset=["district_id"])
     tracts["district_id"] = tracts["district_id"].astype(int)
