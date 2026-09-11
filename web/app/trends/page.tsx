@@ -59,7 +59,7 @@ export default function TrendsPage() {
 
       <section style={{ marginBottom: '40px' }}>
         <SectionTitle subtitle="Service requests and housing production per year (Housing Production uses the right-hand axis — its counts run far smaller than Service Requests)">
-          Quality of Life
+          Amenities & Services
         </SectionTitle>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '24px' }}>
           <div>

@@ -3,25 +3,31 @@
     "components": {
       "safety": 0.35,
       "opportunity": 0.25,
-      "quality_of_life": 0.20,
+      "amenities": 0.10,
+      "transportation": 0.10,
       "affordability": 0.20
     }
   },
   "components": {
     "safety": {
-      "sources": ["crime", "crashes"],
-      "formula": "average(100 - normalize(crime_rate_pc), 100 - normalize(crash_rate_pc))",
-      "description": "Blend of crime rate and pedestrian/cyclist crash rate (both inverted: lower = higher safety)"
+      "sources": ["crime", "crashes", "disaster_risk", "health"],
+      "formula": "average(100 - normalize(crime_rate_pc), 100 - normalize(crash_rate_pc), 100 - normalize(disaster_risk_pc), 100 - normalize(chronic_disease_pc))",
+      "description": "Blend of crime rate, pedestrian/cyclist crash rate, FEMA natural hazard risk, and chronic disease burden (all inverted: lower = higher safety)"
     },
     "opportunity": {
-      "sources": ["permits", "employment"],
-      "formula": "average(normalize(permit_rate_pc), 100 - normalize(unemployment_rate_pc))",
-      "description": "Blend of permit rate (more development = higher opportunity) and unemployment rate (more unemployment = lower opportunity)"
+      "sources": ["permits", "employment", "housing_market"],
+      "formula": "average(normalize(permit_rate_pc), 100 - normalize(unemployment_rate_pc), 100 - normalize(housing_inventory_pc))",
+      "description": "Blend of permit rate (more development = higher opportunity), unemployment rate (more unemployment = lower opportunity), and Zillow for-sale housing inventory per capita (fewer listings = tighter/more in-demand market = higher opportunity)"
     },
-    "quality_of_life": {
-      "sources": ["requests", "housing", "walkability", "transit", "schools", "groceries", "traffic", "healthcare", "health"],
-      "formula": "100 - normalize(request_rate_pc + traffic_vkm_pc + chronic_disease_pc) + normalize(housing_rate_pc + trail_km_pc + transit_stops_pc + schools_pc + grocery_pc + healthcare_pc)",
-      "description": "Inverse of service requests + traffic volume + chronic disease burden, plus housing/trails/transit/schools/groceries/healthcare access rate per capita"
+    "amenities": {
+      "sources": ["requests", "housing", "schools", "groceries", "restaurants", "healthcare"],
+      "formula": "100 - normalize(request_rate_pc) + normalize(housing_rate_pc + schools_pc + grocery_pc + restaurants_pc + healthcare_pc)",
+      "description": "Amenities & Services: inverse of service requests, plus housing production per capita, each weighted equally to a blended OpenStreetMap amenity-access sub-score (schools/groceries/restaurants/healthcare, each 0.25 so the group totals the same weight as one administrative source). Trails, transit, and traffic moved to the Transportation component; chronic disease burden moved to Safety."
+    },
+    "transportation": {
+      "sources": ["walkability", "transit", "traffic"],
+      "formula": "0.7 * [normalize(trail_km_pc + transit_stops_pc) - normalize(traffic_vkm_pc)] + 0.3 * walk_score",
+      "description": "Trail/path length and transit stop rate (direct) minus traffic volume (inverted), blended 70/30 with a Zillow-style Walk/Bike Score (core/walk_score.py: distance-decay proximity to groceries/restaurants/transit/schools/healthcare + street-intersection density + trail km, computed separately from the per-source pipeline)"
     },
     "affordability": {
       "sources": ["housing_price"],

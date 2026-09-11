@@ -34,5 +34,5 @@ test('changing the score selector updates the legend title', async ({ page }) =>
   await expect(page.getByText('Overall Health Score')).toBeVisible();
 
   await select.selectOption('safety');
-  await expect(page.getByText('Safety Index')).toBeVisible();
+  await expect(page.getByText('Safety', { exact: true })).toBeVisible();
 });

@@ -117,6 +117,11 @@ function escapeHtml(str: string): string {
 const POINT_LAYER_FILES: { key: string; url: string }[] = [
   { key: 'points_stpaul', url: '/data/points_stpaul.json' },
   { key: 'points_mpls', url: '/data/points_mpls.json' },
+  // Points that fell outside every district polygon in both cities (a
+  // boundary sliver, a neighboring suburb) — still real and still within
+  // reach of a 1-mile radius search near a city edge, so they're rendered
+  // and counted too, just with no district assignment.
+  { key: 'points_unassigned', url: '/data/points_unassigned.json' },
   { key: 'lines_trails', url: '/data/lines_trails.json' },
 ];
 
@@ -132,6 +137,7 @@ interface NeighborhoodMapProps {
   clickMode?: MapClickMode;
   scoreMetric?: ScoreMetricKey;
   onPlaceScoreComputed?: (neighborhood: Neighborhood) => void;
+  hiddenSources?: Set<string>;
 }
 
 function makeSearchMarkerIcon(): L.DivIcon {
@@ -154,6 +160,7 @@ function MapContent({
   clickMode = 'district',
   scoreMetric = 'health_score',
   onPlaceScoreComputed,
+  hiddenSources,
 }: NeighborhoodMapProps) {
   const map = useMap();
   const radiusBaselineRef = useRef<Record<'stpaul' | 'mpls', RadiusBaseline | null>>({ stpaul: null, mpls: null });
@@ -187,20 +194,23 @@ function MapContent({
   const trailGroupRef = useRef<L.LayerGroup | null>(null);
   const selectedDistrictRef = useRef<Neighborhood | null>(selectedDistrict);
   const searchMarkerPropRef = useRef<{ lat: number; lon: number; label: string } | null | undefined>(searchMarker);
+  const hiddenSourcesRef = useRef<Set<string>>(hiddenSources ?? new Set());
   const clickModeRef = useRef<MapClickMode>(clickMode);
+  const onMapClickRef = useRef(onMapClick);
+  onMapClickRef.current = onMapClick;
   const neighborhoodMapsRef = useRef<Map<number, Neighborhood>[]>([]);
   const scoreMetricRef = useRef<ScoreMetricKey>(scoreMetric);
   const districtBoundsRef = useRef<Record<number, L.LatLngBounds>>({});
   const [isLoading, setIsLoading] = useState(true);
 
-  const isEntryVisible = (entry: { marker: PointMarker; districtId: number | null }) => {
+  const isEntryVisible = (entry: { marker: PointMarker; districtId: number | null; source: string }) => {
+    if (hiddenSourcesRef.current.has(entry.source)) return false;
     const sm = searchMarkerPropRef.current;
     if (sm) {
       const searchLatLng = L.latLng(sm.lat, sm.lon);
       return entry.marker.getLatLng().distanceTo(searchLatLng) <= 1609.34; // 1 mile
     }
-    const sd = selectedDistrictRef.current;
-    return !sd || entry.districtId === sd.district_id;
+    return true;
   };
 
   const renderAllLabels = () => {
@@ -243,15 +253,15 @@ function MapContent({
     }
   };
 
-  // Trails only get radius-filtered when a place is selected (search or map
-  // click); with no search marker active, every trail is shown as before —
-  // there's no per-district trail filter to fall back to.
+  // Trails are radius-filtered when a place is selected (search or map
+  // click); otherwise every trail is shown (subject to hiddenSources).
   const renderTrails = () => {
     const group = trailGroupRef.current;
     if (!group) return;
     group.clearLayers();
     const sm = searchMarkerPropRef.current;
     for (const entry of trailEntriesRef.current) {
+      if (hiddenSourcesRef.current.has(entry.source)) continue;
       if (sm) {
         const searchLatLng = L.latLng(sm.lat, sm.lon);
         const withinRadius = entry.latlngs.some((ll) => ll.distanceTo(searchLatLng) <= 1609.34);
@@ -264,6 +274,7 @@ function MapContent({
   useEffect(() => {
     selectedDistrictRef.current = selectedDistrict;
     renderAllLabels();
+    renderTrails();
     if (selectedDistrict) {
       const bounds = districtBoundsRef.current[selectedDistrict.district_id];
       if (bounds) {
@@ -281,6 +292,12 @@ function MapContent({
   useEffect(() => {
     scoreMetricRef.current = scoreMetric;
   }, [scoreMetric]);
+
+  useEffect(() => {
+    hiddenSourcesRef.current = hiddenSources ?? new Set();
+    renderAllLabels();
+    renderTrails();
+  }, [hiddenSources]);
 
   useEffect(() => {
     clickModeRef.current = clickMode;
@@ -343,7 +360,6 @@ function MapContent({
   useEffect(() => {
     let cancelled = false;
     const layersToClean: L.Layer[] = [];
-    let controlToClean: L.Control | null = null;
     geoJsonLayersRef.current = [];
 
     const buildDistrictLayer = (
@@ -382,7 +398,11 @@ function MapContent({
           if (neighborhood) {
             districtBoundsRef.current[districtId] = (layer as L.Polygon).getBounds();
 
-            layer.on('click', () => {
+            layer.on('click', (e: L.LeafletMouseEvent) => {
+              if (clickModeRef.current === 'place') {
+                onMapClickRef.current?.(e.latlng.lat, e.latlng.lng);
+                return;
+              }
               if (clickModeRef.current !== 'district') return;
               const isCurrentlySelected = selectedDistrictRef.current?.district_id === districtId;
               onDistrictSelect(isCurrentlySelected ? null : neighborhood);
@@ -480,16 +500,28 @@ function MapContent({
 
         // Load point/line data-source layers (crime, permits, requests,
         // housing, transit, schools, trails) as toggleable overlays.
+        // Fetched in parallel (not one-by-one) since these are independent
+        // files — network latency no longer stacks up across all of them.
         const overlays: Record<string, L.Layer> = {};
         labelEntriesRef.current = {};
         labelGroupsRef.current = {};
         trailEntriesRef.current = [];
-        for (const { url } of POINT_LAYER_FILES) {
+        const fetchedLayerFiles = await Promise.all(
+          POINT_LAYER_FILES.map(async ({ url }) => {
+            try {
+              const resp = await fetch(url);
+              if (!resp.ok) return null;
+              return { url, geojson: await resp.json() };
+            } catch (err) {
+              console.error(`Failed to load point layer ${url}:`, err);
+              return null;
+            }
+          })
+        );
+        for (const fetched of fetchedLayerFiles) {
+          if (!fetched || cancelled) continue;
+          const { url, geojson } = fetched;
           try {
-            const resp = await fetch(url);
-            if (!resp.ok || cancelled) continue;
-            const geojson = await resp.json();
-
             const bySource: Record<string, any[]> = {};
             for (const feature of geojson.features || []) {
               const source = feature.properties?.source || 'other';
@@ -506,7 +538,7 @@ function MapContent({
                 // in trailEntriesRef so renderTrails() can filter each one
                 // to the search radius when a place is selected.
                 if (!trailGroupRef.current) {
-                  trailGroupRef.current = L.layerGroup();
+                  trailGroupRef.current = L.layerGroup().addTo(map);
                   overlays[label] = trailGroupRef.current;
                 } else if (!overlays[label]) {
                   overlays[label] = trailGroupRef.current;
@@ -583,7 +615,7 @@ function MapContent({
               );
               if (!labelEntriesRef.current[label]) labelEntriesRef.current[label] = [];
               if (!labelGroupsRef.current[label]) {
-                const group = L.layerGroup();
+                const group = L.layerGroup().addTo(map);
                 labelGroupsRef.current[label] = group;
                 overlays[label] = group;
                 if (source === 'groceries') {
@@ -626,20 +658,6 @@ function MapContent({
           layersToClean.push(layer);
         }
 
-        if (Object.keys(overlays).length > 0) {
-          const control = L.control.layers(undefined, overlays, { collapsed: true });
-          control.addTo(map);
-          controlToClean = control;
-          // Markers in a layer that isn't on the map yet have no DOM element,
-          // so setMarkerVisible() no-ops for them until the layer is toggled
-          // on — at which point Leaflet shows every marker by default. Re-run
-          // the filters so the current selection/search radius still applies.
-          map.on('overlayadd', () => {
-            renderAllLabels();
-            renderTrails();
-          });
-        }
-
         setIsLoading(false);
       } catch (error) {
         console.error('Failed to load boundary data:', error);
@@ -651,12 +669,8 @@ function MapContent({
 
     return () => {
       cancelled = true;
-      map.off('overlayadd');
       for (const layer of layersToClean) {
         map.removeLayer(layer);
-      }
-      if (controlToClean) {
-        map.removeControl(controlToClean);
       }
     };
   }, [map, onDistrictSelect]);
@@ -786,6 +800,7 @@ function MapContent({
             points,
             trails,
             tracts,
+            containingDistrictId: result?.districtId ?? null,
           });
           onPlaceScoreComputedRef.current?.(neighborhood);
         });
@@ -834,6 +849,8 @@ export default function NeighborhoodMap({
   onMapClick,
   clickMode,
   scoreMetric,
+  onPlaceScoreComputed,
+  hiddenSources,
 }: NeighborhoodMapProps) {
   return (
     <MapContainer
@@ -855,6 +872,8 @@ export default function NeighborhoodMap({
         onMapClick={onMapClick}
         clickMode={clickMode}
         scoreMetric={scoreMetric}
+        onPlaceScoreComputed={onPlaceScoreComputed}
+        hiddenSources={hiddenSources}
       />
     </MapContainer>
   );

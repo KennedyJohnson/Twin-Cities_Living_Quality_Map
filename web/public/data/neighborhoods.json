@@ -3,35 +3,35 @@
     {
       "district_id": 1,
       "district_name": "Battle Creek - Conway - Eastview - Highwood Hills",
-      "population": 25309,
+      "population": 25254,
       "metrics": {
         "crime_rate_pc": {
-          "raw_count": 57,
-          "rate_per_1000": 2.25
+          "raw_count": 23249,
+          "rate_per_1000": 920.61
         },
         "permit_rate_pc": {
           "raw_count": 17056,
-          "rate_per_1000": 673.91
+          "rate_per_1000": 675.38
         },
         "unemployment_rate_pc": {
-          "raw_count": 966,
-          "rate_per_1000": 38.17
+          "raw_count": 1016,
+          "rate_per_1000": 40.23
         },
         "request_rate_pc": {
           "raw_count": 11815,
-          "rate_per_1000": 466.83
+          "rate_per_1000": 467.85
         },
         "housing_rate_pc": {
           "raw_count": 37,
-          "rate_per_1000": 1.46
+          "rate_per_1000": 1.47
         },
         "trail_km_pc": {
-          "raw_count": 189,
-          "rate_per_1000": 7.49
+          "raw_count": 81,
+          "rate_per_1000": 3.23
         },
         "transit_stops_pc": {
           "raw_count": 124,
-          "rate_per_1000": 4.9
+          "rate_per_1000": 4.91
         },
         "schools_pc": {
           "raw_count": 8,
@@ -41,9 +41,13 @@
           "raw_count": 4,
           "rate_per_1000": 0.16
         },
+        "restaurants_pc": {
+          "raw_count": 5,
+          "rate_per_1000": 0.2
+        },
         "traffic_vkm_pc": {
           "raw_count": 895961,
-          "rate_per_1000": 35400.9
+          "rate_per_1000": 35478.0
         },
         "healthcare_pc": {
           "raw_count": 1,
@@ -51,53 +55,59 @@
         },
         "chronic_disease_pc": {
           "raw_count": 11344,
-          "rate_per_1000": 448.25
+          "rate_per_1000": 449.23
         },
         "crash_rate_pc": {
           "raw_count": 35,
-          "rate_per_1000": 1.38
+          "rate_per_1000": 1.39
+        },
+        "disaster_risk_pc": {
+          "raw_count": 10416,
+          "rate_per_1000": 412.48
         }
       },
       "indices": {
-        "safety": 67.36,
-        "opportunity": 46.49,
-        "quality_of_life": 51.54,
-        "affordability": 44.16
+        "safety": 54.51,
+        "opportunity": 51.39,
+        "amenities": 49.25,
+        "transportation": 42.13,
+        "affordability": 47.74,
+        "walkability_score": 22.64
       },
-      "health_score": 54.34
+      "health_score": 50.61
     },
     {
       "district_id": 2,
       "district_name": "Greater East Side",
-      "population": 32263,
+      "population": 30883,
       "metrics": {
         "crime_rate_pc": {
-          "raw_count": 70,
-          "rate_per_1000": 2.17
+          "raw_count": 33993,
+          "rate_per_1000": 1100.7
         },
         "permit_rate_pc": {
           "raw_count": 22417,
-          "rate_per_1000": 694.82
+          "rate_per_1000": 725.87
         },
         "unemployment_rate_pc": {
-          "raw_count": 757,
-          "rate_per_1000": 23.46
+          "raw_count": 688,
+          "rate_per_1000": 22.28
         },
         "request_rate_pc": {
           "raw_count": 25854,
-          "rate_per_1000": 801.35
+          "rate_per_1000": 837.16
         },
         "housing_rate_pc": {
           "raw_count": 130,
-          "rate_per_1000": 4.03
+          "rate_per_1000": 4.21
         },
         "trail_km_pc": {
-          "raw_count": 214,
-          "rate_per_1000": 6.65
+          "raw_count": 37,
+          "rate_per_1000": 1.2
         },
         "transit_stops_pc": {
           "raw_count": 120,
-          "rate_per_1000": 3.72
+          "rate_per_1000": 3.89
         },
         "schools_pc": {
           "raw_count": 6,
@@ -105,131 +115,159 @@
         },
         "grocery_pc": {
           "raw_count": 4,
-          "rate_per_1000": 0.12
+          "rate_per_1000": 0.13
+        },
+        "restaurants_pc": {
+          "raw_count": 4,
+          "rate_per_1000": 0.13
         },
         "traffic_vkm_pc": {
           "raw_count": 210995,
-          "rate_per_1000": 6539.87
+          "rate_per_1000": 6832.1
         },
         "healthcare_pc": {
           "raw_count": 4,
-          "rate_per_1000": 0.12
+          "rate_per_1000": 0.13
         },
         "chronic_disease_pc": {
           "raw_count": 14005,
-          "rate_per_1000": 434.12
+          "rate_per_1000": 453.52
         },
         "crash_rate_pc": {
           "raw_count": 79,
-          "rate_per_1000": 2.45
+          "rate_per_1000": 2.56
+        },
+        "disaster_risk_pc": {
+          "raw_count": 15906,
+          "rate_per_1000": 515.04
         }
       },
       "indices": {
-        "safety": 65.03,
-        "opportunity": 47.2,
-        "quality_of_life": 55.3,
-        "affordability": 55.55
+        "safety": 52.59,
+        "opportunity": 52.96,
+        "amenities": 43.96,
+        "transportation": 52.83,
+        "affordability": 57.19,
+        "walkability_score": 36.95
       },
-      "health_score": 56.73
+      "health_score": 52.77
     },
     {
       "district_id": 3,
       "district_name": "West Side",
-      "population": 15316,
+      "population": 15728,
       "metrics": {
         "crime_rate_pc": {
-          "raw_count": 48,
-          "rate_per_1000": 3.13
+          "raw_count": 34658,
+          "rate_per_1000": 2203.59
         },
         "permit_rate_pc": {
           "raw_count": 15247,
-          "rate_per_1000": 995.49
+          "rate_per_1000": 969.42
         },
         "unemployment_rate_pc": {
-          "raw_count": 420,
-          "rate_per_1000": 27.42
+          "raw_count": 619,
+          "rate_per_1000": 39.36
+        },
+        "housing_inventory_pc": {
+          "raw_count": 46,
+          "rate_per_1000": 2.92
         },
         "request_rate_pc": {
           "raw_count": 16376,
-          "rate_per_1000": 1069.21
+          "rate_per_1000": 1041.2
         },
         "housing_rate_pc": {
           "raw_count": 51,
-          "rate_per_1000": 3.33
+          "rate_per_1000": 3.24
         },
         "trail_km_pc": {
-          "raw_count": 202,
-          "rate_per_1000": 13.25
+          "raw_count": 53,
+          "rate_per_1000": 3.41
         },
         "transit_stops_pc": {
           "raw_count": 122,
-          "rate_per_1000": 7.97
+          "rate_per_1000": 7.76
         },
         "schools_pc": {
           "raw_count": 4,
-          "rate_per_1000": 0.26
+          "rate_per_1000": 0.25
         },
         "grocery_pc": {
           "raw_count": 2,
           "rate_per_1000": 0.13
         },
+        "restaurants_pc": {
+          "raw_count": 17,
+          "rate_per_1000": 1.08
+        },
         "traffic_vkm_pc": {
           "raw_count": 388727,
-          "rate_per_1000": 25380.49
+          "rate_per_1000": 24715.64
         },
         "healthcare_pc": {
           "raw_count": 3,
-          "rate_per_1000": 0.2
+          "rate_per_1000": 0.19
         },
         "chronic_disease_pc": {
           "raw_count": 7601,
-          "rate_per_1000": 496.32
+          "rate_per_1000": 483.32
         },
         "crash_rate_pc": {
           "raw_count": 49,
-          "rate_per_1000": 3.2
+          "rate_per_1000": 3.12
+        },
+        "disaster_risk_pc": {
+          "raw_count": 7353,
+          "rate_per_1000": 467.53
         }
       },
       "indices": {
-        "safety": 57.53,
-        "opportunity": 54.67,
-        "quality_of_life": 52.38,
-        "affordability": 51.42
+        "safety": 44.74,
+        "opportunity": 52.37,
+        "amenities": 42.27,
+        "transportation": 50.81,
+        "affordability": 45.62,
+        "walkability_score": 44.11
       },
-      "health_score": 54.56
+      "health_score": 47.18
     },
     {
       "district_id": 4,
       "district_name": "Dayton's Bluff",
-      "population": 16193,
+      "population": 15723,
       "metrics": {
         "crime_rate_pc": {
-          "raw_count": 91,
-          "rate_per_1000": 5.62
+          "raw_count": 30838,
+          "rate_per_1000": 1961.33
         },
         "permit_rate_pc": {
           "raw_count": 13625,
-          "rate_per_1000": 841.41
+          "rate_per_1000": 866.56
         },
         "unemployment_rate_pc": {
-          "raw_count": 587,
-          "rate_per_1000": 36.25
+          "raw_count": 439,
+          "rate_per_1000": 27.92
+        },
+        "housing_inventory_pc": {
+          "raw_count": 154,
+          "rate_per_1000": 9.79
         },
         "request_rate_pc": {
           "raw_count": 27843,
-          "rate_per_1000": 1719.45
+          "rate_per_1000": 1770.85
         },
         "housing_rate_pc": {
           "raw_count": 70,
-          "rate_per_1000": 4.32
+          "rate_per_1000": 4.45
         },
         "trail_km_pc": {
-          "raw_count": 196,
-          "rate_per_1000": 12.15
+          "raw_count": 51,
+          "rate_per_1000": 3.24
         },
         "transit_stops_pc": {
           "raw_count": 75,
-          "rate_per_1000": 4.63
+          "rate_per_1000": 4.77
         },
         "schools_pc": {
           "raw_count": 1,
@@ -239,9 +277,13 @@
           "raw_count": 1,
           "rate_per_1000": 0.06
         },
+        "restaurants_pc": {
+          "raw_count": 13,
+          "rate_per_1000": 0.83
+        },
         "traffic_vkm_pc": {
           "raw_count": 1013070,
-          "rate_per_1000": 62562.22
+          "rate_per_1000": 64432.37
         },
         "healthcare_pc": {
           "raw_count": 1,
@@ -249,119 +291,139 @@
         },
         "chronic_disease_pc": {
           "raw_count": 7698,
-          "rate_per_1000": 475.45
+          "rate_per_1000": 489.66
         },
         "crash_rate_pc": {
           "raw_count": 80,
-          "rate_per_1000": 4.94
+          "rate_per_1000": 5.09
+        },
+        "disaster_risk_pc": {
+          "raw_count": 6477,
+          "rate_per_1000": 411.97
         }
       },
       "indices": {
-        "safety": 37.93,
-        "opportunity": 50.84,
-        "quality_of_life": 50.25,
-        "affordability": 40.28
+        "safety": 46.44,
+        "opportunity": 50.58,
+        "amenities": 40.16,
+        "transportation": 45.52,
+        "affordability": 48.68,
+        "walkability_score": 47.25
       },
-      "health_score": 44.09
+      "health_score": 47.2
     },
     {
       "district_id": 5,
       "district_name": "Payne - Phalen",
-      "population": 32430,
+      "population": 30851,
       "metrics": {
         "crime_rate_pc": {
-          "raw_count": 128,
-          "rate_per_1000": 3.95
+          "raw_count": 52193,
+          "rate_per_1000": 1691.78
         },
         "permit_rate_pc": {
           "raw_count": 23917,
-          "rate_per_1000": 737.5
+          "rate_per_1000": 775.24
         },
         "unemployment_rate_pc": {
-          "raw_count": 790,
-          "rate_per_1000": 24.36
+          "raw_count": 838,
+          "rate_per_1000": 27.16
+        },
+        "housing_inventory_pc": {
+          "raw_count": 36,
+          "rate_per_1000": 1.17
         },
         "request_rate_pc": {
           "raw_count": 38346,
-          "rate_per_1000": 1182.42
+          "rate_per_1000": 1242.94
         },
         "housing_rate_pc": {
           "raw_count": 205,
-          "rate_per_1000": 6.32
+          "rate_per_1000": 6.64
         },
         "trail_km_pc": {
-          "raw_count": 294,
-          "rate_per_1000": 9.08
+          "raw_count": 65,
+          "rate_per_1000": 2.14
         },
         "transit_stops_pc": {
           "raw_count": 139,
-          "rate_per_1000": 4.29
+          "rate_per_1000": 4.51
         },
         "schools_pc": {
           "raw_count": 5,
-          "rate_per_1000": 0.15
+          "rate_per_1000": 0.16
         },
         "grocery_pc": {
           "raw_count": 11,
-          "rate_per_1000": 0.34
+          "rate_per_1000": 0.36
+        },
+        "restaurants_pc": {
+          "raw_count": 29,
+          "rate_per_1000": 0.94
         },
         "traffic_vkm_pc": {
           "raw_count": 1020008,
-          "rate_per_1000": 31452.62
+          "rate_per_1000": 33062.42
         },
         "healthcare_pc": {
           "raw_count": 5,
-          "rate_per_1000": 0.15
+          "rate_per_1000": 0.16
         },
         "chronic_disease_pc": {
           "raw_count": 15374,
-          "rate_per_1000": 474.08
+          "rate_per_1000": 498.34
         },
         "crash_rate_pc": {
           "raw_count": 137,
-          "rate_per_1000": 4.22
+          "rate_per_1000": 4.44
+        },
+        "disaster_risk_pc": {
+          "raw_count": 12374,
+          "rate_per_1000": 401.11
         }
       },
       "indices": {
-        "safety": 49.7,
-        "opportunity": 48.31,
-        "quality_of_life": 51.74,
-        "affordability": 42.44
+        "safety": 48.3,
+        "opportunity": 48.95,
+        "amenities": 41.33,
+        "transportation": 52.22,
+        "affordability": 47.14,
+        "walkability_score": 54.68
       },
-      "health_score": 48.31
+      "health_score": 47.93
     },
     {
       "district_id": 6,
       "district_name": "North End",
-      "population": 23719,
+      "population": 23393,
       "metrics": {
         "crime_rate_pc": {
-          "raw_count": 90,
-          "rate_per_1000": 3.79
+          "raw_count": 49284,
+          "rate_per_1000": 2106.78
         },
         "permit_rate_pc": {
           "raw_count": 15794,
-          "rate_per_1000": 665.88
+          "rate_per_1000": 675.16
         },
         "unemployment_rate_pc": {
-          "raw_count": 874,
-          "rate_per_1000": 36.85
+          "raw_count": 645,
+          "rate_per_1000": 27.57
         },
         "request_rate_pc": {
           "raw_count": 23163,
-          "rate_per_1000": 976.56
+          "rate_per_1000": 990.17
         },
         "housing_rate_pc": {
           "raw_count": 89,
-          "rate_per_1000": 3.75
+          "rate_per_1000": 3.8
         },
         "trail_km_pc": {
-          "raw_count": 208,
-          "rate_per_1000": 8.77
+          "raw_count": 41,
+          "rate_per_1000": 1.78
         },
         "transit_stops_pc": {
           "raw_count": 145,
-          "rate_per_1000": 6.11
+          "rate_per_1000": 6.2
         },
         "schools_pc": {
           "raw_count": 7,
@@ -371,9 +433,13 @@
           "raw_count": 7,
           "rate_per_1000": 0.3
         },
+        "restaurants_pc": {
+          "raw_count": 18,
+          "rate_per_1000": 0.77
+        },
         "traffic_vkm_pc": {
           "raw_count": 202093,
-          "rate_per_1000": 8520.31
+          "rate_per_1000": 8639.05
         },
         "healthcare_pc": {
           "raw_count": 1,
@@ -381,65 +447,79 @@
         },
         "chronic_disease_pc": {
           "raw_count": 11285,
-          "rate_per_1000": 475.81
+          "rate_per_1000": 482.44
         },
         "crash_rate_pc": {
           "raw_count": 88,
-          "rate_per_1000": 3.71
+          "rate_per_1000": 3.76
+        },
+        "disaster_risk_pc": {
+          "raw_count": 11593,
+          "rate_per_1000": 495.58
         }
       },
       "indices": {
-        "safety": 52.16,
-        "opportunity": 46.3,
-        "quality_of_life": 54.91,
-        "affordability": 42.18
+        "safety": 45.21,
+        "opportunity": 51.54,
+        "amenities": 42.63,
+        "transportation": 56.44,
+        "affordability": 47.84,
+        "walkability_score": 50.39
       },
-      "health_score": 49.25
+      "health_score": 48.18
     },
     {
       "district_id": 7,
       "district_name": "Frogtown",
-      "population": 15896,
+      "population": 15577,
       "metrics": {
         "crime_rate_pc": {
-          "raw_count": 65,
-          "rate_per_1000": 4.09
+          "raw_count": 51917,
+          "rate_per_1000": 3332.93
         },
         "permit_rate_pc": {
           "raw_count": 11284,
-          "rate_per_1000": 709.86
+          "rate_per_1000": 724.4
         },
         "unemployment_rate_pc": {
-          "raw_count": 493,
-          "rate_per_1000": 31.01
+          "raw_count": 366,
+          "rate_per_1000": 23.5
+        },
+        "housing_inventory_pc": {
+          "raw_count": 23,
+          "rate_per_1000": 1.48
         },
         "request_rate_pc": {
           "raw_count": 25844,
-          "rate_per_1000": 1625.82
+          "rate_per_1000": 1659.11
         },
         "housing_rate_pc": {
           "raw_count": 75,
-          "rate_per_1000": 4.72
+          "rate_per_1000": 4.81
         },
         "trail_km_pc": {
-          "raw_count": 148,
-          "rate_per_1000": 9.35
+          "raw_count": 24,
+          "rate_per_1000": 1.57
         },
         "transit_stops_pc": {
           "raw_count": 85,
-          "rate_per_1000": 5.35
+          "rate_per_1000": 5.46
         },
         "schools_pc": {
           "raw_count": 4,
-          "rate_per_1000": 0.25
+          "rate_per_1000": 0.26
         },
         "grocery_pc": {
           "raw_count": 6,
-          "rate_per_1000": 0.38
+          "rate_per_1000": 0.39
+        },
+        "restaurants_pc": {
+          "raw_count": 16,
+          "rate_per_1000": 1.03
         },
         "traffic_vkm_pc": {
           "raw_count": 161473,
-          "rate_per_1000": 10158.09
+          "rate_per_1000": 10366.12
         },
         "healthcare_pc": {
           "raw_count": 1,
@@ -447,53 +527,59 @@
         },
         "chronic_disease_pc": {
           "raw_count": 8506,
-          "rate_per_1000": 535.17
+          "rate_per_1000": 546.13
         },
         "crash_rate_pc": {
           "raw_count": 86,
-          "rate_per_1000": 5.41
+          "rate_per_1000": 5.52
+        },
+        "disaster_risk_pc": {
+          "raw_count": 6071,
+          "rate_per_1000": 389.77
         }
       },
       "indices": {
-        "safety": 45.42,
-        "opportunity": 47.51,
-        "quality_of_life": 54.5,
-        "affordability": 40.85
+        "safety": 39.73,
+        "opportunity": 47.99,
+        "amenities": 40.29,
+        "transportation": 59.2,
+        "affordability": 41.47,
+        "walkability_score": 60.94
       },
-      "health_score": 46.85
+      "health_score": 44.15
     },
     {
       "district_id": 8,
       "district_name": "Summit - University",
-      "population": 21666,
+      "population": 21380,
       "metrics": {
         "crime_rate_pc": {
-          "raw_count": 65,
-          "rate_per_1000": 3.0
+          "raw_count": 35628,
+          "rate_per_1000": 1666.42
         },
         "permit_rate_pc": {
           "raw_count": 16386,
-          "rate_per_1000": 756.3
+          "rate_per_1000": 766.42
         },
         "unemployment_rate_pc": {
-          "raw_count": 538,
-          "rate_per_1000": 24.83
+          "raw_count": 883,
+          "rate_per_1000": 41.3
         },
         "request_rate_pc": {
           "raw_count": 15286,
-          "rate_per_1000": 705.53
+          "rate_per_1000": 714.97
         },
         "housing_rate_pc": {
           "raw_count": 56,
-          "rate_per_1000": 2.58
+          "rate_per_1000": 2.62
         },
         "trail_km_pc": {
-          "raw_count": 172,
-          "rate_per_1000": 7.97
+          "raw_count": 30,
+          "rate_per_1000": 1.43
         },
         "transit_stops_pc": {
           "raw_count": 49,
-          "rate_per_1000": 2.26
+          "rate_per_1000": 2.29
         },
         "schools_pc": {
           "raw_count": 9,
@@ -501,11 +587,15 @@
         },
         "grocery_pc": {
           "raw_count": 4,
-          "rate_per_1000": 0.18
+          "rate_per_1000": 0.19
+        },
+        "restaurants_pc": {
+          "raw_count": 35,
+          "rate_per_1000": 1.64
         },
         "traffic_vkm_pc": {
           "raw_count": 872665,
-          "rate_per_1000": 40278.09
+          "rate_per_1000": 40816.89
         },
         "healthcare_pc": {
           "raw_count": 1,
@@ -513,53 +603,63 @@
         },
         "chronic_disease_pc": {
           "raw_count": 10038,
-          "rate_per_1000": 463.33
+          "rate_per_1000": 469.53
         },
         "crash_rate_pc": {
           "raw_count": 96,
-          "rate_per_1000": 4.43
+          "rate_per_1000": 4.49
+        },
+        "disaster_risk_pc": {
+          "raw_count": 6365,
+          "rate_per_1000": 297.74
         }
       },
       "indices": {
-        "safety": 54.65,
-        "opportunity": 48.79,
-        "quality_of_life": 51.17,
-        "affordability": 48.75
+        "safety": 49.02,
+        "opportunity": 53.79,
+        "amenities": 45.34,
+        "transportation": 53.19,
+        "affordability": 51.74,
+        "walkability_score": 62.71
       },
-      "health_score": 51.31
+      "health_score": 50.81
     },
     {
       "district_id": 9,
       "district_name": "West Seventh - Fort Road",
-      "population": 13719,
+      "population": 13866,
       "metrics": {
         "crime_rate_pc": {
-          "raw_count": 41,
-          "rate_per_1000": 2.99
+          "raw_count": 24555,
+          "rate_per_1000": 1770.88
         },
         "permit_rate_pc": {
           "raw_count": 14008,
-          "rate_per_1000": 1021.07
+          "rate_per_1000": 1010.24
         },
         "unemployment_rate_pc": {
-          "raw_count": 256,
-          "rate_per_1000": 18.66
+          "raw_count": 481,
+          "rate_per_1000": 34.69
+        },
+        "housing_inventory_pc": {
+          "raw_count": 106,
+          "rate_per_1000": 7.64
         },
         "request_rate_pc": {
           "raw_count": 10787,
-          "rate_per_1000": 786.28
+          "rate_per_1000": 777.95
         },
         "housing_rate_pc": {
           "raw_count": 56,
-          "rate_per_1000": 4.08
+          "rate_per_1000": 4.04
         },
         "trail_km_pc": {
-          "raw_count": 180,
-          "rate_per_1000": 13.16
+          "raw_count": 46,
+          "rate_per_1000": 3.35
         },
         "transit_stops_pc": {
           "raw_count": 54,
-          "rate_per_1000": 3.94
+          "rate_per_1000": 3.89
         },
         "schools_pc": {
           "raw_count": 5,
@@ -567,11 +667,15 @@
         },
         "grocery_pc": {
           "raw_count": 2,
-          "rate_per_1000": 0.15
+          "rate_per_1000": 0.14
+        },
+        "restaurants_pc": {
+          "raw_count": 32,
+          "rate_per_1000": 2.31
         },
         "traffic_vkm_pc": {
           "raw_count": 904518,
-          "rate_per_1000": 65931.82
+          "rate_per_1000": 65232.84
         },
         "healthcare_pc": {
           "raw_count": 3,
@@ -579,131 +683,151 @@
         },
         "chronic_disease_pc": {
           "raw_count": 5632,
-          "rate_per_1000": 410.54
+          "rate_per_1000": 406.19
         },
         "crash_rate_pc": {
           "raw_count": 57,
-          "rate_per_1000": 4.15
+          "rate_per_1000": 4.11
+        },
+        "disaster_risk_pc": {
+          "raw_count": 4705,
+          "rate_per_1000": 339.35
         }
       },
       "indices": {
-        "safety": 55.54,
-        "opportunity": 55.36,
-        "quality_of_life": 50.37,
-        "affordability": 48.88
+        "safety": 48.37,
+        "opportunity": 53.05,
+        "amenities": 44.61,
+        "transportation": 48.37,
+        "affordability": 45.75,
+        "walkability_score": 57.01
       },
-      "health_score": 53.13
+      "health_score": 48.64
     },
     {
       "district_id": 10,
       "district_name": "Como Park",
-      "population": 17351,
+      "population": 16074,
       "metrics": {
         "crime_rate_pc": {
-          "raw_count": 33,
-          "rate_per_1000": 1.9
+          "raw_count": 20675,
+          "rate_per_1000": 1286.24
         },
         "permit_rate_pc": {
           "raw_count": 23118,
-          "rate_per_1000": 1332.37
+          "rate_per_1000": 1438.22
         },
         "unemployment_rate_pc": {
-          "raw_count": 256,
-          "rate_per_1000": 14.75
+          "raw_count": 236,
+          "rate_per_1000": 14.68
         },
         "request_rate_pc": {
           "raw_count": 7002,
-          "rate_per_1000": 403.55
+          "rate_per_1000": 435.61
         },
         "housing_rate_pc": {
           "raw_count": 34,
-          "rate_per_1000": 1.96
+          "rate_per_1000": 2.12
         },
         "trail_km_pc": {
-          "raw_count": 209,
-          "rate_per_1000": 12.07
+          "raw_count": 69,
+          "rate_per_1000": 4.35
         },
         "transit_stops_pc": {
           "raw_count": 124,
-          "rate_per_1000": 7.15
+          "rate_per_1000": 7.71
         },
         "schools_pc": {
           "raw_count": 10,
-          "rate_per_1000": 0.58
+          "rate_per_1000": 0.62
         },
         "grocery_pc": {
           "raw_count": 1,
           "rate_per_1000": 0.06
         },
+        "restaurants_pc": {
+          "raw_count": 10,
+          "rate_per_1000": 0.62
+        },
         "traffic_vkm_pc": {
           "raw_count": 220513,
-          "rate_per_1000": 12708.99
+          "rate_per_1000": 13718.66
         },
         "healthcare_pc": {
           "raw_count": 3,
-          "rate_per_1000": 0.17
+          "rate_per_1000": 0.19
         },
         "chronic_disease_pc": {
           "raw_count": 6411,
-          "rate_per_1000": 369.53
+          "rate_per_1000": 398.89
         },
         "crash_rate_pc": {
           "raw_count": 27,
-          "rate_per_1000": 1.56
+          "rate_per_1000": 1.68
+        },
+        "disaster_risk_pc": {
+          "raw_count": 7167,
+          "rate_per_1000": 445.88
         }
       },
       "indices": {
-        "safety": 68.78,
-        "opportunity": 61.85,
-        "quality_of_life": 54.32,
-        "affordability": 67.83
+        "safety": 51.61,
+        "opportunity": 67.75,
+        "amenities": 49.9,
+        "transportation": 56.09,
+        "affordability": 71.35,
+        "walkability_score": 53.23
       },
-      "health_score": 63.96
+      "health_score": 59.87
     },
     {
       "district_id": 11,
       "district_name": "Hamline - Midway",
-      "population": 11850,
+      "population": 12765,
       "metrics": {
         "crime_rate_pc": {
-          "raw_count": 47,
-          "rate_per_1000": 3.97
+          "raw_count": 30699,
+          "rate_per_1000": 2404.94
         },
         "permit_rate_pc": {
           "raw_count": 15425,
-          "rate_per_1000": 1301.69
+          "rate_per_1000": 1208.38
         },
         "unemployment_rate_pc": {
-          "raw_count": 487,
-          "rate_per_1000": 41.1
+          "raw_count": 734,
+          "rate_per_1000": 57.5
         },
         "request_rate_pc": {
           "raw_count": 13915,
-          "rate_per_1000": 1174.26
+          "rate_per_1000": 1090.09
         },
         "housing_rate_pc": {
           "raw_count": 15,
-          "rate_per_1000": 1.27
+          "rate_per_1000": 1.18
         },
         "trail_km_pc": {
-          "raw_count": 140,
-          "rate_per_1000": 11.87
+          "raw_count": 17,
+          "rate_per_1000": 1.36
         },
         "transit_stops_pc": {
           "raw_count": 45,
-          "rate_per_1000": 3.8
+          "rate_per_1000": 3.53
         },
         "schools_pc": {
           "raw_count": 6,
-          "rate_per_1000": 0.51
+          "rate_per_1000": 0.47
         },
         "grocery_pc": {
           "raw_count": 3,
-          "rate_per_1000": 0.25
+          "rate_per_1000": 0.24
+        },
+        "restaurants_pc": {
+          "raw_count": 18,
+          "rate_per_1000": 1.41
         },
         "traffic_vkm_pc": {
           "raw_count": 128335,
-          "rate_per_1000": 10829.99
+          "rate_per_1000": 10053.7
         },
         "healthcare_pc": {
           "raw_count": 1,
@@ -711,197 +835,239 @@
         },
         "chronic_disease_pc": {
           "raw_count": 4897,
-          "rate_per_1000": 413.33
+          "rate_per_1000": 383.7
         },
         "crash_rate_pc": {
           "raw_count": 44,
-          "rate_per_1000": 3.71
+          "rate_per_1000": 3.45
+        },
+        "disaster_risk_pc": {
+          "raw_count": 2703,
+          "rate_per_1000": 211.8
         }
       },
       "indices": {
-        "safety": 51.09,
-        "opportunity": 60.99,
-        "quality_of_life": 54.49,
-        "affordability": 60.66
+        "safety": 45.03,
+        "opportunity": 63.47,
+        "amenities": 41.94,
+        "transportation": 58.91,
+        "affordability": 61.29,
+        "walkability_score": 59.74
       },
-      "health_score": 56.16
+      "health_score": 53.97
     },
     {
       "district_id": 12,
       "district_name": "Saint Anthony Park",
-      "population": 10743,
+      "population": 12404,
       "metrics": {
         "crime_rate_pc": {
-          "raw_count": 18,
-          "rate_per_1000": 1.68
+          "raw_count": 16377,
+          "rate_per_1000": 1320.3
         },
         "permit_rate_pc": {
           "raw_count": 12220,
-          "rate_per_1000": 1137.48
+          "rate_per_1000": 985.17
         },
         "unemployment_rate_pc": {
-          "raw_count": 351,
-          "rate_per_1000": 32.67
+          "raw_count": 330,
+          "rate_per_1000": 26.6
+        },
+        "housing_inventory_pc": {
+          "raw_count": 14,
+          "rate_per_1000": 1.13
         },
         "request_rate_pc": {
           "raw_count": 3244,
-          "rate_per_1000": 301.96
+          "rate_per_1000": 261.53
         },
         "housing_rate_pc": {
           "raw_count": 52,
-          "rate_per_1000": 4.84
+          "rate_per_1000": 4.19
         },
         "trail_km_pc": {
-          "raw_count": 108,
-          "rate_per_1000": 10.13
+          "raw_count": 24,
+          "rate_per_1000": 1.94
         },
         "transit_stops_pc": {
           "raw_count": 63,
-          "rate_per_1000": 5.86
+          "rate_per_1000": 5.08
         },
         "schools_pc": {
           "raw_count": 8,
-          "rate_per_1000": 0.74
+          "rate_per_1000": 0.64
         },
         "grocery_pc": {
           "raw_count": 5,
-          "rate_per_1000": 0.47
+          "rate_per_1000": 0.4
+        },
+        "restaurants_pc": {
+          "raw_count": 23,
+          "rate_per_1000": 1.85
         },
         "traffic_vkm_pc": {
           "raw_count": 364860,
-          "rate_per_1000": 33962.6
+          "rate_per_1000": 29414.72
         },
         "healthcare_pc": {
           "raw_count": 8,
-          "rate_per_1000": 0.74
+          "rate_per_1000": 0.64
         },
         "chronic_disease_pc": {
           "raw_count": 4440,
-          "rate_per_1000": 413.37
+          "rate_per_1000": 358.02
         },
         "crash_rate_pc": {
           "raw_count": 38,
-          "rate_per_1000": 3.54
+          "rate_per_1000": 3.06
+        },
+        "disaster_risk_pc": {
+          "raw_count": 7454,
+          "rate_per_1000": 600.97
         }
       },
       "indices": {
-        "safety": 64.44,
-        "opportunity": 57.79,
-        "quality_of_life": 51.69,
-        "affordability": 48.15
+        "safety": 50.87,
+        "opportunity": 52.77,
+        "amenities": 53.66,
+        "transportation": 55.13,
+        "affordability": 40.38,
+        "walkability_score": 61.92
       },
-      "health_score": 56.97
+      "health_score": 49.95
     },
     {
       "district_id": 13,
       "district_name": "Union Park",
-      "population": 10842,
+      "population": 11260,
       "metrics": {
         "crime_rate_pc": {
-          "raw_count": 79,
-          "rate_per_1000": 7.29
+          "raw_count": 42437,
+          "rate_per_1000": 3768.83
         },
         "permit_rate_pc": {
           "raw_count": 21236,
-          "rate_per_1000": 1958.68
+          "rate_per_1000": 1885.97
         },
         "unemployment_rate_pc": {
-          "raw_count": 390,
-          "rate_per_1000": 35.97
+          "raw_count": 434,
+          "rate_per_1000": 38.54
+        },
+        "housing_inventory_pc": {
+          "raw_count": 92,
+          "rate_per_1000": 8.17
         },
         "request_rate_pc": {
           "raw_count": 11314,
-          "rate_per_1000": 1043.53
+          "rate_per_1000": 1004.8
         },
         "housing_rate_pc": {
           "raw_count": 66,
-          "rate_per_1000": 6.09
+          "rate_per_1000": 5.86
         },
         "trail_km_pc": {
-          "raw_count": 211,
-          "rate_per_1000": 19.52
+          "raw_count": 48,
+          "rate_per_1000": 4.31
         },
         "transit_stops_pc": {
           "raw_count": 92,
-          "rate_per_1000": 8.49
+          "rate_per_1000": 8.17
         },
         "schools_pc": {
           "raw_count": 8,
-          "rate_per_1000": 0.74
+          "rate_per_1000": 0.71
         },
         "grocery_pc": {
           "raw_count": 2,
           "rate_per_1000": 0.18
         },
+        "restaurants_pc": {
+          "raw_count": 30,
+          "rate_per_1000": 2.66
+        },
         "traffic_vkm_pc": {
           "raw_count": 1306494,
-          "rate_per_1000": 120503.1
+          "rate_per_1000": 116029.72
         },
         "healthcare_pc": {
           "raw_count": 8,
-          "rate_per_1000": 0.74
+          "rate_per_1000": 0.71
         },
         "chronic_disease_pc": {
           "raw_count": 4478,
-          "rate_per_1000": 413.06
+          "rate_per_1000": 397.73
         },
         "crash_rate_pc": {
           "raw_count": 149,
-          "rate_per_1000": 13.74
+          "rate_per_1000": 13.23
+        },
+        "disaster_risk_pc": {
+          "raw_count": 3928,
+          "rate_per_1000": 348.88
         }
       },
       "indices": {
-        "safety": 16.81,
-        "opportunity": 69.98,
-        "quality_of_life": 50.13,
-        "affordability": 46.38
+        "safety": 39.29,
+        "opportunity": 62.47,
+        "amenities": 42.59,
+        "transportation": 47.42,
+        "affordability": 46.56,
+        "walkability_score": 60.67
       },
-      "health_score": 42.68
+      "health_score": 47.68
     },
     {
       "district_id": 14,
       "district_name": "Macalester - Groveland",
-      "population": 22501,
+      "population": 23323,
       "metrics": {
         "crime_rate_pc": {
-          "raw_count": 37,
-          "rate_per_1000": 1.64
+          "raw_count": 20279,
+          "rate_per_1000": 869.49
         },
         "permit_rate_pc": {
           "raw_count": 33589,
-          "rate_per_1000": 1492.78
+          "rate_per_1000": 1440.17
         },
         "unemployment_rate_pc": {
-          "raw_count": 474,
-          "rate_per_1000": 21.07
+          "raw_count": 497,
+          "rate_per_1000": 21.31
+        },
+        "housing_inventory_pc": {
+          "raw_count": 74,
+          "rate_per_1000": 3.17
         },
         "request_rate_pc": {
           "raw_count": 8552,
-          "rate_per_1000": 380.07
+          "rate_per_1000": 366.68
         },
         "housing_rate_pc": {
           "raw_count": 117,
-          "rate_per_1000": 5.2
+          "rate_per_1000": 5.02
         },
         "trail_km_pc": {
-          "raw_count": 220,
-          "rate_per_1000": 9.79
+          "raw_count": 32,
+          "rate_per_1000": 1.41
         },
         "transit_stops_pc": {
           "raw_count": 76,
-          "rate_per_1000": 3.38
+          "rate_per_1000": 3.26
         },
         "schools_pc": {
           "raw_count": 7,
-          "rate_per_1000": 0.31
+          "rate_per_1000": 0.3
         },
         "grocery_pc": {
           "raw_count": 2,
           "rate_per_1000": 0.09
         },
+        "restaurants_pc": {
+          "raw_count": 39,
+          "rate_per_1000": 1.67
+        },
         "traffic_vkm_pc": {
           "raw_count": 186520,
-          "rate_per_1000": 8289.45
+          "rate_per_1000": 7997.3
         },
         "healthcare_pc": {
           "raw_count": 3,
@@ -909,119 +1075,139 @@
         },
         "chronic_disease_pc": {
           "raw_count": 7050,
-          "rate_per_1000": 313.34
+          "rate_per_1000": 302.3
         },
         "crash_rate_pc": {
           "raw_count": 34,
-          "rate_per_1000": 1.51
+          "rate_per_1000": 1.46
+        },
+        "disaster_risk_pc": {
+          "raw_count": 8424,
+          "rate_per_1000": 361.21
         }
       },
       "indices": {
-        "safety": 70.22,
-        "opportunity": 64.49,
-        "quality_of_life": 55.08,
-        "affordability": 55.32
+        "safety": 55.74,
+        "opportunity": 59.06,
+        "amenities": 51.37,
+        "transportation": 57.39,
+        "affordability": 53.17,
+        "walkability_score": 53.06
       },
-      "health_score": 62.78
+      "health_score": 55.78
     },
     {
       "district_id": 15,
       "district_name": "Highland Park",
-      "population": 23952,
+      "population": 23379,
       "metrics": {
         "crime_rate_pc": {
-          "raw_count": 47,
-          "rate_per_1000": 1.96
+          "raw_count": 29051,
+          "rate_per_1000": 1242.61
         },
         "permit_rate_pc": {
           "raw_count": 36832,
-          "rate_per_1000": 1537.74
+          "rate_per_1000": 1575.43
         },
         "unemployment_rate_pc": {
-          "raw_count": 432,
-          "rate_per_1000": 18.04
+          "raw_count": 378,
+          "rate_per_1000": 16.17
+        },
+        "housing_inventory_pc": {
+          "raw_count": 62,
+          "rate_per_1000": 2.65
         },
         "request_rate_pc": {
           "raw_count": 7593,
-          "rate_per_1000": 317.01
+          "rate_per_1000": 324.78
         },
         "housing_rate_pc": {
           "raw_count": 196,
-          "rate_per_1000": 8.18
+          "rate_per_1000": 8.38
         },
         "trail_km_pc": {
-          "raw_count": 356,
-          "rate_per_1000": 14.87
+          "raw_count": 138,
+          "rate_per_1000": 5.92
         },
         "transit_stops_pc": {
           "raw_count": 107,
-          "rate_per_1000": 4.47
+          "rate_per_1000": 4.58
         },
         "schools_pc": {
           "raw_count": 12,
-          "rate_per_1000": 0.5
+          "rate_per_1000": 0.51
         },
         "grocery_pc": {
           "raw_count": 5,
           "rate_per_1000": 0.21
         },
+        "restaurants_pc": {
+          "raw_count": 38,
+          "rate_per_1000": 1.63
+        },
         "traffic_vkm_pc": {
           "raw_count": 526069,
-          "rate_per_1000": 21963.5
+          "rate_per_1000": 22501.8
         },
         "healthcare_pc": {
           "raw_count": 7,
-          "rate_per_1000": 0.29
+          "rate_per_1000": 0.3
         },
         "chronic_disease_pc": {
           "raw_count": 11152,
-          "rate_per_1000": 465.62
+          "rate_per_1000": 477.03
         },
         "crash_rate_pc": {
           "raw_count": 47,
-          "rate_per_1000": 1.96
+          "rate_per_1000": 2.01
+        },
+        "disaster_risk_pc": {
+          "raw_count": 10860,
+          "rate_per_1000": 464.53
         }
       },
       "indices": {
-        "safety": 67.45,
-        "opportunity": 65.21,
-        "quality_of_life": 52.94,
-        "affordability": 56.11
+        "safety": 51.56,
+        "opportunity": 60.45,
+        "amenities": 52.34,
+        "transportation": 52.27,
+        "affordability": 51.95,
+        "walkability_score": 47.32
       },
-      "health_score": 61.72
+      "health_score": 54.01
     },
     {
       "district_id": 16,
       "district_name": "Summit Hill",
-      "population": 6702,
+      "population": 6669,
       "metrics": {
         "crime_rate_pc": {
-          "raw_count": 15,
-          "rate_per_1000": 2.24
+          "raw_count": 11446,
+          "rate_per_1000": 1716.3
         },
         "permit_rate_pc": {
           "raw_count": 10139,
-          "rate_per_1000": 1512.83
+          "rate_per_1000": 1520.32
         },
         "unemployment_rate_pc": {
-          "raw_count": 116,
-          "rate_per_1000": 17.31
+          "raw_count": 158,
+          "rate_per_1000": 23.69
         },
         "request_rate_pc": {
           "raw_count": 2842,
-          "rate_per_1000": 424.05
+          "rate_per_1000": 426.15
         },
         "housing_rate_pc": {
           "raw_count": 36,
-          "rate_per_1000": 5.37
+          "rate_per_1000": 5.4
         },
         "trail_km_pc": {
-          "raw_count": 80,
-          "rate_per_1000": 11.98
+          "raw_count": 15,
+          "rate_per_1000": 2.33
         },
         "transit_stops_pc": {
           "raw_count": 31,
-          "rate_per_1000": 4.63
+          "rate_per_1000": 4.65
         },
         "schools_pc": {
           "raw_count": 2,
@@ -1031,9 +1217,13 @@
           "raw_count": 1,
           "rate_per_1000": 0.15
         },
+        "restaurants_pc": {
+          "raw_count": 29,
+          "rate_per_1000": 4.35
+        },
         "traffic_vkm_pc": {
           "raw_count": 154236,
-          "rate_per_1000": 23013.53
+          "rate_per_1000": 23127.41
         },
         "healthcare_pc": {
           "raw_count": 3,
@@ -1041,87 +1231,107 @@
         },
         "chronic_disease_pc": {
           "raw_count": 2389,
-          "rate_per_1000": 356.49
+          "rate_per_1000": 358.25
         },
         "crash_rate_pc": {
           "raw_count": 23,
-          "rate_per_1000": 3.43
+          "rate_per_1000": 3.45
+        },
+        "disaster_risk_pc": {
+          "raw_count": 1169,
+          "rate_per_1000": 175.37
         }
       },
       "indices": {
-        "safety": 61.85,
-        "opportunity": 64.84,
-        "quality_of_life": 52.8,
-        "affordability": 62.7
+        "safety": 49.6,
+        "opportunity": 68.76,
+        "amenities": 50.18,
+        "transportation": 54.63,
+        "affordability": 64.28,
+        "walkability_score": 55.68
       },
-      "health_score": 60.96
+      "health_score": 57.89
     },
     {
       "district_id": 17,
       "district_name": "Downtown",
-      "population": 8354,
+      "population": 8755,
       "metrics": {
         "crime_rate_pc": {
-          "raw_count": 69,
-          "rate_per_1000": 8.26
+          "raw_count": 72451,
+          "rate_per_1000": 8275.39
         },
         "permit_rate_pc": {
           "raw_count": 11310,
-          "rate_per_1000": 1353.84
+          "rate_per_1000": 1291.83
         },
         "unemployment_rate_pc": {
-          "raw_count": 391,
-          "rate_per_1000": 46.8
+          "raw_count": 429,
+          "rate_per_1000": 49.0
+        },
+        "housing_inventory_pc": {
+          "raw_count": 73,
+          "rate_per_1000": 8.34
         },
         "request_rate_pc": {
           "raw_count": 6270,
-          "rate_per_1000": 750.54
+          "rate_per_1000": 716.16
         },
         "housing_rate_pc": {
           "raw_count": 32,
-          "rate_per_1000": 3.83
+          "rate_per_1000": 3.66
         },
         "trail_km_pc": {
-          "raw_count": 121,
-          "rate_per_1000": 14.51
+          "raw_count": 55,
+          "rate_per_1000": 6.29
         },
         "transit_stops_pc": {
           "raw_count": 123,
-          "rate_per_1000": 14.72
+          "rate_per_1000": 14.05
         },
         "schools_pc": {
           "raw_count": 1,
-          "rate_per_1000": 0.12
+          "rate_per_1000": 0.11
+        },
+        "restaurants_pc": {
+          "raw_count": 65,
+          "rate_per_1000": 7.42
         },
         "traffic_vkm_pc": {
           "raw_count": 830094,
-          "rate_per_1000": 99364.97
+          "rate_per_1000": 94813.82
         },
         "healthcare_pc": {
           "raw_count": 5,
-          "rate_per_1000": 0.6
+          "rate_per_1000": 0.57
         },
         "chronic_disease_pc": {
           "raw_count": 4048,
-          "rate_per_1000": 484.66
+          "rate_per_1000": 462.46
         },
         "crash_rate_pc": {
           "raw_count": 108,
-          "rate_per_1000": 12.93
+          "rate_per_1000": 12.34
+        },
+        "disaster_risk_pc": {
+          "raw_count": 4269,
+          "rate_per_1000": 487.65
         }
       },
       "indices": {
-        "safety": 13.35,
-        "opportunity": 61.89,
-        "quality_of_life": 49.37,
-        "affordability": 39.18
+        "safety": 35.49,
+        "opportunity": 57.03,
+        "amenities": 44.09,
+        "transportation": 51.71,
+        "affordability": 28.33,
+        "walkability_score": 73.5
       },
-      "health_score": 37.85
+      "health_score": 41.92
     }
   ],
   "metadata": {
     "total_districts": 17,
-    "data_generated": "2026-09-10T16:04:57.785172",
+    "data_generated": "2026-09-11T16:42:14.782259",
     "note": "Snapshot of all-time aggregated health metrics"
   }
 }

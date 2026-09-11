@@ -91,6 +91,75 @@ export async function reverseGeocode(lat: number, lon: number): Promise<string> 
   return `${lat.toFixed(5)}, ${lon.toFixed(5)}`;
 }
 
+// Snap a clicked point to the centroid of the nearest OSM building, store,
+// or park within ~40m, so a slightly-off click still lands on the place the
+// user meant. Deliberately excludes roads/paths (highway=*) — only tagged
+// places (buildings, shops, amenities, parks) count as snap targets. Falls
+// back to the original point if nothing is found nearby.
+export async function snapToNearestBuilding(lat: number, lon: number): Promise<{ lat: number; lon: number }> {
+  const radiusMeters = 40;
+  const around = `(around:${radiusMeters},${lat},${lon})`;
+  const query = `[out:json][timeout:5];(
+    way["building"]${around};
+    way["shop"]${around};
+    node["shop"]${around};
+    way["amenity"]${around};
+    node["amenity"]${around};
+    way["leisure"~"^(park|garden|nature_reserve|playground)$"]${around};
+    relation["leisure"~"^(park|garden|nature_reserve|playground)$"]${around};
+  );out geom center;`;
+
+  try {
+    const response = await fetch('https://overpass-api.de/api/interpreter', {
+      method: 'POST',
+      body: `data=${encodeURIComponent(query)}`,
+    });
+    if (!response.ok) return { lat, lon };
+    const result = await response.json();
+    const elements: {
+      type: string;
+      lat?: number;
+      lon?: number;
+      center?: { lat: number; lon: number };
+      geometry?: { lat: number; lon: number }[];
+    }[] = result?.elements || [];
+    if (elements.length === 0) return { lat, lon };
+
+    const distanceMeters = (a: { lat: number; lon: number }, b: { lat: number; lon: number }) => {
+      const dLat = (a.lat - b.lat) * 111320;
+      const dLon = (a.lon - b.lon) * 111320 * Math.cos((a.lat * Math.PI) / 180);
+      return Math.sqrt(dLat * dLat + dLon * dLon);
+    };
+
+    let nearest: { lat: number; lon: number } | null = null;
+    let nearestDist = Infinity;
+    for (const el of elements) {
+      let point: { lat: number; lon: number } | null = null;
+      if (el.type === 'node' && el.lat != null && el.lon != null) {
+        point = { lat: el.lat, lon: el.lon };
+      } else if (el.center) {
+        point = el.center;
+      } else if (el.geometry && el.geometry.length > 0) {
+        const geom = el.geometry;
+        point = {
+          lat: geom.reduce((s, p) => s + p.lat, 0) / geom.length,
+          lon: geom.reduce((s, p) => s + p.lon, 0) / geom.length,
+        };
+      }
+      if (!point) continue;
+      const dist = distanceMeters({ lat, lon }, point);
+      if (dist < nearestDist) {
+        nearestDist = dist;
+        nearest = point;
+      }
+    }
+    return nearest || { lat, lon };
+  } catch (err) {
+    console.error('Building snap failed:', err);
+    return { lat, lon };
+  }
+}
+
 export function googleMapsSearchUrl(lat: number, lon: number, label?: string): string {
   const query = label ? `${label} @${lat},${lon}` : `${lat},${lon}`;
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;

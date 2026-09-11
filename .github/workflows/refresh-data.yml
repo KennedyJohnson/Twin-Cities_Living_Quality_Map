@@ -1,9 +1,9 @@
 name: Refresh Pipeline Data
 
-# Twice a month: 1st and 15th at 08:00 UTC. Also runnable manually.
+# Weekly: every Monday at 08:00 UTC. Also runnable manually.
 on:
   schedule:
-    - cron: '0 8 1,15 * *'
+    - cron: '0 8 * * 1'
   workflow_dispatch: {}
 
 permissions:

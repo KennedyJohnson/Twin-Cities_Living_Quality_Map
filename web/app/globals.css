@@ -75,6 +75,20 @@ body {
   margin-bottom: 8px;
 }
 
+.legend-deselect-all-button {
+  padding: 2px 7px;
+  font-size: 11px;
+  color: #333;
+  background: #f2f2f2;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.legend-deselect-all-button:hover {
+  background: #e5e5e5;
+}
+
 .legend-scale {
   display: flex;
   gap: 4px;
@@ -327,7 +341,7 @@ body {
 
 .selected-place {
   position: absolute;
-  top: 208px;
+  top: 240px;
   left: 20px;
   width: 300px;
   box-sizing: border-box;
@@ -355,4 +369,19 @@ body {
   color: #756bb1;
   white-space: nowrap;
   flex-shrink: 0;
+}
+
+.deselect-marker-button {
+  flex-shrink: 0;
+  padding: 3px 8px;
+  font-size: 12px;
+  color: #333;
+  background: #f2f2f2;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.deselect-marker-button:hover {
+  background: #e5e5e5;
 }

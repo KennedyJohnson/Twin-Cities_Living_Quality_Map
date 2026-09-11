@@ -10,7 +10,8 @@ import ScoreSelector from '@/components/ScoreSelector';
 import type { Neighborhood } from '@/types/neighborhood';
 import type { ScoreMetricKey } from '@/lib/scoreMetric';
 import type { MapClickMode } from '@/components/NeighborhoodMap';
-import { reverseGeocode, googleMapsSearchUrl } from '@/lib/geo';
+import { reverseGeocode, googleMapsSearchUrl, snapToNearestBuilding } from '@/lib/geo';
+import { POINT_LAYER_LABELS } from '@/lib/pointLayerColors';
 
 const NeighborhoodMap = dynamic(() => import('@/components/NeighborhoodMap'), {
   ssr: false,
@@ -23,6 +24,9 @@ export default function Home() {
   const [searchMarker, setSearchMarker] = useState<{ lat: number; lon: number; label: string } | null>(null);
   const [scoreMetric, setScoreMetric] = useState<ScoreMetricKey>('health_score');
   const [clickMode, setClickMode] = useState<MapClickMode>('district');
+  const [hiddenSources, setHiddenSources] = useState<Set<string>>(
+    () => new Set(Object.keys(POINT_LAYER_LABELS))
+  );
   const [sidebarWidth, setSidebarWidth] = useState(320);
   const [isDraggingSidebar, setIsDraggingSidebar] = useState(false);
   const dragStateRef = useRef<{ startX: number; startWidth: number } | null>(null);
@@ -60,17 +64,54 @@ export default function Home() {
     [sidebarWidth]
   );
 
+  // Grocery stores and restaurants/bars are the two point layers most
+  // relevant to "what's near this place" — auto-reveal them (without
+  // touching any other layer the user has toggled) whenever a place gets
+  // selected, so results show up without digging into the layer control.
+  const revealNearbyLayers = () => {
+    setHiddenSources((prev) => {
+      if (!prev.has('groceries') && !prev.has('restaurants')) return prev;
+      const next = new Set(prev);
+      next.delete('groceries');
+      next.delete('restaurants');
+      return next;
+    });
+  };
+
   const handleAddressSelect = (address: string, lat: number, lon: number, district: Neighborhood | null, label: string) => {
     // Shown briefly until NeighborhoodMap's radius-score effect reports the
     // computed 1-mile-radius result for this same searchMarker.
     setSelectedDistrict(district);
     setFlyToLocation({ lat, lon });
     setSearchMarker({ lat, lon, label });
+    revealNearbyLayers();
   };
 
   const handleMapClick = async (lat: number, lon: number) => {
-    const label = await reverseGeocode(lat, lon);
-    setSearchMarker({ lat, lon, label });
+    // Clicking back near the currently-selected place deselects it instead
+    // of re-searching — mirrors the toggle-off behavior district mode
+    // already has when you click the same district twice.
+    if (searchMarker) {
+      const dLat = (lat - searchMarker.lat) * 111320;
+      const dLon = (lon - searchMarker.lon) * 111320 * Math.cos((lat * Math.PI) / 180);
+      const distanceMeters = Math.sqrt(dLat * dLat + dLon * dLon);
+      if (distanceMeters <= 60) {
+        setSearchMarker(null);
+        setSelectedDistrict(null);
+        return;
+      }
+    }
+
+    // Drop the marker immediately at the raw click point so it appears
+    // instantly, then refine it in place once the building-snap and
+    // reverse-geocode calls (run in parallel, not sequentially) resolve.
+    setSearchMarker({ lat, lon, label: 'Loading…' });
+    revealNearbyLayers();
+    const [snapped, label] = await Promise.all([
+      snapToNearestBuilding(lat, lon),
+      reverseGeocode(lat, lon),
+    ]);
+    setSearchMarker({ lat: snapped.lat, lon: snapped.lon, label });
   };
 
   return (
@@ -86,8 +127,21 @@ export default function Home() {
           clickMode={clickMode}
           scoreMetric={scoreMetric}
           onPlaceScoreComputed={setSelectedDistrict}
+          hiddenSources={hiddenSources}
         />
-        <Legend scoreMetric={scoreMetric} />
+        <Legend
+          scoreMetric={scoreMetric}
+          hiddenSources={hiddenSources}
+          onToggleSource={(key) =>
+            setHiddenSources((prev) => {
+              const next = new Set(prev);
+              if (next.has(key)) next.delete(key);
+              else next.add(key);
+              return next;
+            })
+          }
+          onDeselectAll={(allKeys) => setHiddenSources(new Set(allKeys))}
+        />
         <ScoreSelector value={scoreMetric} onChange={setScoreMetric} />
         <AddressSearch onAddressSelect={handleAddressSelect} />
         <div className="click-mode-toggle">
@@ -109,17 +163,34 @@ export default function Home() {
             </button>
           </div>
         </div>
-        {searchMarker && (
+        {(searchMarker || selectedDistrict) && (
           <div className="selected-place">
-            <span className="selected-place-name">{searchMarker.label}</span>
-            <a
-              href={googleMapsSearchUrl(searchMarker.lat, searchMarker.lon, searchMarker.label)}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="selected-place-reviews-link"
+            {searchMarker && (
+              <>
+                <span className="selected-place-name">{searchMarker.label}</span>
+                <a
+                  href={googleMapsSearchUrl(searchMarker.lat, searchMarker.lon, searchMarker.label)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="selected-place-reviews-link"
+                >
+                  View reviews on Google ↗
+                </a>
+              </>
+            )}
+            {!searchMarker && selectedDistrict && (
+              <span className="selected-place-name">{selectedDistrict.district_name}</span>
+            )}
+            <button
+              type="button"
+              className="deselect-marker-button"
+              onClick={() => {
+                setSearchMarker(null);
+                setSelectedDistrict(null);
+              }}
             >
-              View reviews on Google ↗
-            </a>
+              Deselect all
+            </button>
           </div>
         )}
         <div
@@ -138,7 +209,6 @@ export default function Home() {
           }}
         >
           <Link href="/trends" style={{ color: '#756bb1' }}>Trends</Link>
-          <Link href="/methodology" style={{ color: '#756bb1' }}>How we calculate this</Link>
           <Link href="/about" style={{ color: '#756bb1' }}>About</Link>
         </div>
       </div>

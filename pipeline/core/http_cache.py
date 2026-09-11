@@ -30,6 +30,11 @@ import requests
 CACHE_DIR = Path(__file__).parent / ".cache"
 DEFAULT_TTL_SECONDS = 6 * 60 * 60  # 6 hours: comfortably covers one full pipeline run
 
+# Shared session: reuses TCP/TLS connections across the many sequential and
+# parallel requests a full refresh makes to the same handful of hosts
+# (ArcGIS, Census, Overpass), instead of paying a fresh handshake each call.
+_session = requests.Session()
+
 
 class _CachedResponse:
     """Minimal requests.Response look-alike for cache hits."""
@@ -75,7 +80,7 @@ def cached_request(method, url, ttl_seconds=DEFAULT_TTL_SECONDS, **kwargs):
             cached = json.loads(cache_file.read_text())
             return _CachedResponse(cached["status_code"], cached["payload"])
 
-    resp = requests.request(method, url, **kwargs)
+    resp = _session.request(method, url, **kwargs)
     if resp.status_code < 400:
         try:
             payload = resp.json()
