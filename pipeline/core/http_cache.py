@@ -7,12 +7,20 @@ export_affordability*.py, export_timeseries.py) that legitimately need the
 same underlying data — without a cache, each script re-fetches it from
 scratch, multiplying both wall-clock time and rate-limit risk.
 
-This cache uses a short TTL (comfortably longer than one full manual
-pipeline run, much shorter than the twice-a-month scheduled refresh) so
-reuse *within* a single refresh session is free, while the next real
-refresh always starts with a cold/expired cache and fetches live data —
-no stale data ever ships. pipeline/.cache/ is gitignored and never
-committed.
+pipeline/.cache/ is gitignored and the scheduled GitHub Actions refresh
+checks out a fresh repo on every run, so no TTL chosen here can ever cause
+CI to ship stale data — CI is always cold regardless. That means the TTL
+only actually matters for a developer's own machine across repeated local
+runs, so its default (DEFAULT_TTL_SECONDS) just needs to outlast one
+real workday of iteration.
+
+For the "I'm testing locally and want to avoid re-fetching anything
+already on disk, at all, for as long as possible" case, set
+PIPELINE_LOCAL_CACHE=1 in the environment before running build.py /
+exports/*.py — every cached_get/cached_post call then uses a 30-day TTL
+regardless of what ttl_seconds it individually requested. To force one
+call fresh again without clearing the whole cache, delete its specific
+file under pipeline/core/.cache/, or clear the directory entirely.
 """
 
 import sys
@@ -22,13 +30,17 @@ sys.path.insert(0, str(_BootstrapPath(__file__).resolve().parent.parent))
 
 import hashlib
 import json
+import os
 import time
 from pathlib import Path
 
 import requests
 
 CACHE_DIR = Path(__file__).parent / ".cache"
-DEFAULT_TTL_SECONDS = 6 * 60 * 60  # 6 hours: comfortably covers one full pipeline run
+DEFAULT_TTL_SECONDS = 6 * 60 * 60  # 6 hours: comfortably covers one full manual pipeline run
+LONG_TTL_SECONDS = 30 * 24 * 60 * 60  # 30 days: used for sources that barely change (OSM/Overpass, Nominatim) and, when PIPELINE_LOCAL_CACHE is set, for every call
+
+_LOCAL_CACHE_MODE = os.environ.get("PIPELINE_LOCAL_CACHE", "").strip().lower() in ("1", "true", "yes")
 
 # Shared session: reuses TCP/TLS connections across the many sequential and
 # parallel requests a full refresh makes to the same handful of hosts
@@ -39,12 +51,13 @@ _session = requests.Session()
 class _CachedResponse:
     """Minimal requests.Response look-alike for cache hits."""
 
-    def __init__(self, status_code, payload):
+    def __init__(self, status_code, payload=None, text=None):
         self.status_code = status_code
         self._payload = payload
+        self.text = text if text is not None else json.dumps(payload)
 
     def json(self):
-        return self._payload
+        return self._payload if self._payload is not None else json.loads(self.text)
 
     def raise_for_status(self):
         if self.status_code >= 400:
@@ -60,42 +73,58 @@ def _cache_key(method, url, params=None, data=None):
     return hashlib.sha256(raw.encode()).hexdigest()
 
 
-def cached_request(method, url, ttl_seconds=DEFAULT_TTL_SECONDS, **kwargs):
+def cached_request(method, url, ttl_seconds=DEFAULT_TTL_SECONDS, response_type="json", **kwargs):
     """Drop-in replacement for requests.get/requests.post that caches the
-    parsed JSON response on disk for ttl_seconds.
+    response on disk for ttl_seconds (bumped to LONG_TTL_SECONDS whenever
+    PIPELINE_LOCAL_CACHE is set, no matter what the caller asked for).
 
-    Only successful, genuinely-valid JSON responses are cached. Some
-    ArcGIS services return rate-limit/errors as HTTP 200 with an
-    {"error": ...} body instead of a real error status — those are never
-    cached, so a transient 429 can't get "frozen" as if it were real data.
+    response_type="json" (default) parses+caches the JSON body, the shape
+    every ArcGIS/Overpass/Census/CDC endpoint in this pipeline returns.
+    response_type="text" instead caches the raw response text verbatim —
+    for the handful of sources (e.g. Zillow's CSV downloads) that aren't
+    JSON at all.
+
+    Only successful, genuinely-valid responses are cached. Some ArcGIS
+    services return rate-limit/errors as HTTP 200 with an {"error": ...}
+    JSON body instead of a real error status — those are never cached, so
+    a transient 429 can't get "frozen" as if it were real data.
     """
+    if _LOCAL_CACHE_MODE:
+        ttl_seconds = max(ttl_seconds, LONG_TTL_SECONDS)
+
     params = kwargs.get("params")
     data = kwargs.get("data")
-    key = _cache_key(method, url, params, data)
+    key = _cache_key(method, url, params, data) + f":{response_type}"
     cache_file = CACHE_DIR / f"{key}.json"
 
     if cache_file.exists():
         age = time.time() - cache_file.stat().st_mtime
         if age < ttl_seconds:
             cached = json.loads(cache_file.read_text())
-            return _CachedResponse(cached["status_code"], cached["payload"])
+            if response_type == "text":
+                return _CachedResponse(cached["status_code"], text=cached["text"])
+            return _CachedResponse(cached["status_code"], payload=cached["payload"])
 
     resp = _session.request(method, url, **kwargs)
     if resp.status_code < 400:
-        try:
-            payload = resp.json()
-        except ValueError:
-            return resp
-        if isinstance(payload, dict) and "error" in payload:
-            return resp  # ArcGIS-style 200-with-error-body — don't cache
-        CACHE_DIR.mkdir(parents=True, exist_ok=True)
-        cache_file.write_text(json.dumps({"status_code": resp.status_code, "payload": payload}))
+        if response_type == "text":
+            CACHE_DIR.mkdir(parents=True, exist_ok=True)
+            cache_file.write_text(json.dumps({"status_code": resp.status_code, "text": resp.text}))
+        else:
+            try:
+                payload = resp.json()
+            except ValueError:
+                return resp
+            if isinstance(payload, dict) and "error" in payload:
+                return resp  # ArcGIS-style 200-with-error-body — don't cache
+            CACHE_DIR.mkdir(parents=True, exist_ok=True)
+            cache_file.write_text(json.dumps({"status_code": resp.status_code, "payload": payload}))
     return resp
 
 
-def cached_get(url, ttl_seconds=DEFAULT_TTL_SECONDS, **kwargs):
-    return cached_request("GET", url, ttl_seconds=ttl_seconds, **kwargs)
+def cached_get(url, ttl_seconds=DEFAULT_TTL_SECONDS, response_type="json", **kwargs):
+    return cached_request("GET", url, ttl_seconds=ttl_seconds, response_type=response_type, **kwargs)
 
 
-def cached_post(url, ttl_seconds=DEFAULT_TTL_SECONDS, **kwargs):
-    return cached_request("POST", url, ttl_seconds=ttl_seconds, **kwargs)
+def cached_post(url, ttl_seconds=DEFAULT_TTL_SECONDS, response_type="json", **kwargs):
+    return cached_request("POST", url, ttl_seconds=ttl_seconds, response_type=response_type, **kwargs)

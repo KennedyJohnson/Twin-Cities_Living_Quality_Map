@@ -9,18 +9,17 @@ sys.path.insert(0, str(_BootstrapPath(__file__).resolve().parent.parent))
 
 
 import json
-import math
-import time
-import requests
 import pandas as pd
 from pathlib import Path
+from core.load import _fetch_arcgis_paginated, load_zip_boundaries
+from core.date_window import filter_recent_years
+from shapely.geometry import Point, shape
 
 PIPELINE_DIR = Path(__file__).resolve().parent.parent
 MPLS_SOURCES = json.loads((PIPELINE_DIR / "config" / "mpls_sources.json").read_text())
 CROSSWALK_FILE = PIPELINE_DIR / "config" / "mpls_neighborhood_to_community.json"
 
 FEATURE_SERVER = MPLS_SOURCES["crime"]["featureServer"]
-PAGE_SIZE = 2000
 
 COMMUNITY_TO_DISTRICT_ID = {
     "Calhoun Isle": 101,
@@ -37,79 +36,40 @@ COMMUNITY_TO_DISTRICT_ID = {
 }
 
 
-def _web_mercator_to_wgs84(x, y):
-    """Convert EPSG:3857 (Web Mercator) coordinates to WGS84 lon/lat."""
-    origin_shift = 20037508.34
-    lon = (x / origin_shift) * 180.0
-    lat = (y / origin_shift) * 180.0
-    lat = 180.0 / math.pi * (2 * math.atan(math.exp(lat * math.pi / 180.0)) - math.pi / 2.0)
-    return lon, lat
-
-
 def _fetch_all_features(out_fields="Neighborhood,Offense_Category,Occurred_Date,Offense,Address,Precinct"):
-    query_url = f"{FEATURE_SERVER}/query"
+    # _fetch_arcgis_paginated requests outSR=4326 (WGS84), so geometry comes
+    # back as lon/lat directly — no manual Web Mercator conversion needed.
+    # It also doesn't stop early on a short page (some FeatureServers cap
+    # responses below the requested page size regardless), unlike the old
+    # hand-rolled loop here that silently truncated on any such cap.
+    df = _fetch_arcgis_paginated(FEATURE_SERVER, out_fields=out_fields)
     features = []
-    offset = 0
-    while True:
-        params = {
-            "where": "1=1",
-            "outFields": out_fields,
-            "resultOffset": offset,
-            "resultRecordCount": PAGE_SIZE,
-            "f": "json",
-        }
-        for attempt in range(5):
-            resp = requests.get(query_url, params=params, timeout=60)
-            resp.raise_for_status()
-            data = resp.json()
-            if data.get("error", {}).get("code") == 429:
-                time.sleep(15 * (attempt + 1))
-                continue
-            break
-        batch = data.get("features", [])
-        if not batch:
-            break
-        features.extend(batch)
-        if len(batch) < PAGE_SIZE:
-            break
-        offset += PAGE_SIZE
+    for _, row in df.iterrows():
+        attrs = row.drop(labels=["geometry"], errors="ignore").to_dict()
+        geom = row.get("geometry")
+        if isinstance(geom, dict) and "x" in geom and "y" in geom:
+            attrs["longitude"] = geom["x"]
+            attrs["latitude"] = geom["y"]
+        features.append(attrs)
     return features
 
 
-def clean_crime_mpls(crosswalk_file=CROSSWALK_FILE):
+def clean_crime_mpls(crosswalk_file=CROSSWALK_FILE, granularity="district"):
     """
-    Fetch Minneapolis crime data and assign district_id via crosswalk.
+    Fetch Minneapolis crime data and assign district_id via crosswalk
+    (district granularity), or via direct point-in-polygon against zip
+    boundaries using the feed's own longitude/latitude (zip granularity —
+    more accurate than the crosswalk anyway, but district granularity keeps
+    the crosswalk for continuity with existing scores).
 
     Returns:
         DataFrame with columns: district_id, offense_category, occurred_date
     """
-    crosswalk = json.loads(Path(crosswalk_file).read_text())
-
     features = _fetch_all_features()
-    rows = []
-    for f in features:
-        attrs = dict(f["attributes"])
-        geom = f.get("geometry")
-        if geom and "x" in geom and "y" in geom:
-            lon, lat = _web_mercator_to_wgs84(geom["x"], geom["y"])
-            attrs["longitude"] = lon
-            attrs["latitude"] = lat
-        rows.append(attrs)
-    crime = pd.DataFrame(rows)
+    crime = pd.DataFrame(features)
 
     if "Neighborhood" not in crime.columns:
         raise ValueError("Minneapolis crime data missing Neighborhood column")
-
-    crime["community_name"] = crime["Neighborhood"].map(
-        lambda x: crosswalk.get(str(x).strip())
-    )
-
-    before_filter = len(crime)
-    crime = crime.dropna(subset=["community_name"])
-    after_filter = len(crime)
-    filtered_count = before_filter - after_filter
-    if filtered_count > 0:
-        print(f"[WARNING] Filtered {filtered_count} MPLS crime records with unmapped neighborhoods")
 
     crime = crime.rename(columns={
         "Offense_Category": "offense_category",
@@ -119,7 +79,44 @@ def clean_crime_mpls(crosswalk_file=CROSSWALK_FILE):
         "Precinct": "precinct",
     })
 
-    crime["district_id"] = crime["community_name"].map(COMMUNITY_TO_DISTRICT_ID)
+    if granularity == "zip":
+        crime = crime.dropna(subset=["longitude", "latitude"])
+        boundaries = load_zip_boundaries()
+        boundary_map = {f["properties"]["district_id"]: shape(f["geometry"]) for f in boundaries["features"]}
+
+        def find_zone(row):
+            point = Point(row["longitude"], row["latitude"])
+            for zone_id, polygon in boundary_map.items():
+                if polygon.contains(point):
+                    return zone_id
+            return None
+
+        crime["district_id"] = crime.apply(find_zone, axis=1)
+        before_filter = len(crime)
+        crime = crime.dropna(subset=["district_id"])
+        after_filter = len(crime)
+        filtered_count = before_filter - after_filter
+        if filtered_count > 0:
+            print(f"[WARNING] Filtered {filtered_count} MPLS crime records with no zip match via spatial join")
+        crime["district_id"] = crime["district_id"].astype(int)
+    else:
+        crosswalk = json.loads(Path(crosswalk_file).read_text())
+        crime["community_name"] = crime["Neighborhood"].map(
+            lambda x: crosswalk.get(str(x).strip())
+        )
+
+        before_filter = len(crime)
+        crime = crime.dropna(subset=["community_name"])
+        after_filter = len(crime)
+        filtered_count = before_filter - after_filter
+        if filtered_count > 0:
+            print(f"[WARNING] Filtered {filtered_count} MPLS crime records with unmapped neighborhoods")
+
+        crime["district_id"] = crime["community_name"].map(COMMUNITY_TO_DISTRICT_ID)
+
+    # Restricted to a shared recent-years window so this compares fairly
+    # against St. Paul's longer crime history — see core/date_window.py.
+    crime = filter_recent_years(crime, "occurred_date", epoch_ms=True)
 
     cols = ["district_id", "offense_category", "occurred_date"]
     for extra in ["offense", "address", "precinct"]:

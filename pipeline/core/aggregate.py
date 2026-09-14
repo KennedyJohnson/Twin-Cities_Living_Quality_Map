@@ -14,7 +14,7 @@ import inspect
 import pandas as pd
 from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from core.load import load_population
+from core.load import load_population, load_zip_population
 
 PIPELINE_DIR = Path(__file__).resolve().parent.parent
 
@@ -24,6 +24,21 @@ def load_config(city="stpaul"):
     config_file = PIPELINE_DIR / "config" / filename
     with open(config_file) as f:
         return json.load(f)
+
+# Sources where a district missing from the cleaned data genuinely means
+# "we have no data for this district" (e.g. Zillow's ZIP-code coverage
+# doesn't reach every district) rather than "this district has zero of the
+# thing" — these keep the old drop-and-rescale-weight behavior instead of
+# zero-fill. Every other count/sum-based source (crime, permits, requests,
+# housing, schools, groceries, restaurants, healthcare, transit, trails,
+# crashes, disaster risk, chronic disease, traffic) DOES successfully join
+# every district's geometry, so an absent district there means a real zero
+# (e.g. zero grocery stores) — treating that as "excused from scoring"
+# instead of "scored as zero" silently rewards zero over a low-but-nonzero
+# count, and lets districts within the same city be scored on different
+# metric sets. See Severity 5 in the pipeline fairness audit.
+NO_ZERO_FILL_SOURCES = {"housing_market"}
+
 
 def aggregate_by_source(source_id, cleaned_data, population_df):
     """
@@ -44,8 +59,25 @@ def aggregate_by_source(source_id, cleaned_data, population_df):
     else:
         grouped = cleaned_data.groupby("district_id").size().reset_index(name="raw_count")
 
-    # Merge with population
-    merged = grouped.merge(population_df[["district_id", "population"]], on="district_id", how="left")
+    if source_id in NO_ZERO_FILL_SOURCES:
+        # Inner join against population — NOT left. A source like Zillow's
+        # housing_market can carry raw ZIP codes that aren't in our scored
+        # zip set (e.g. one that failed the district-coverage filter in
+        # load_zip_boundaries, or a zero-population zip already dropped from
+        # population_df); a left join here would keep that row with
+        # population=NaN, producing rate_per_1000=NaN. A single NaN in the
+        # rates list poisons min_max_normalize's mean/std for EVERY district/
+        # zip sharing that metric, not just the offending one — silently
+        # zeroing out an entire component (e.g. Opportunity) and the overall
+        # health_score for the whole pool. Inner join drops any row whose
+        # district/zip isn't a real, scored one, same as the fillna(0) branch
+        # below does for its own set of valid ids.
+        merged = grouped.merge(population_df[["district_id", "population"]], on="district_id", how="inner")
+    else:
+        # Reindex against every district in the city, filling absent
+        # districts with a real zero rather than dropping them.
+        merged = population_df[["district_id", "population"]].merge(grouped, on="district_id", how="left")
+        merged["raw_count"] = merged["raw_count"].fillna(0)
 
     # Compute per-capita rate (per 1000)
     merged["rate_per_1000"] = (merged["raw_count"] / merged["population"]) * 1000
@@ -60,7 +92,7 @@ def aggregate_by_source(source_id, cleaned_data, population_df):
 
     return result
 
-def _load_source(source, city):
+def _load_source(source, city, granularity="district"):
     """Import a source's loader module and fetch+clean its data. Runs in a worker thread."""
     source_id = source["id"]
     loader_module_name = source["loader_module"]
@@ -73,12 +105,19 @@ def _load_source(source, city):
         raise AttributeError(f"No function {loader_func_name} in {loader_module_name}")
 
     loader_func = getattr(loader_module, loader_func_name)
+    params = inspect.signature(loader_func).parameters
+    kwargs = {}
     # City-agnostic loaders (OSM-based: walkability, transit, schools,
     # groceries) accept a `city` kwarg; city-specific loader modules
     # (e.g. clean_crime_mpls) don't, so only pass it when supported.
-    if "city" in inspect.signature(loader_func).parameters:
-        return loader_func(city=city)
-    return loader_func()
+    if "city" in params:
+        kwargs["city"] = city
+    # `granularity` ("district" or "zip") is supported by every cleaner
+    # that does its own spatial join; a handful of the oldest ones may not
+    # yet, so only pass it when supported (mirrors the `city` check above).
+    if "granularity" in params:
+        kwargs["granularity"] = granularity
+    return loader_func(**kwargs)
 
 
 def aggregate_all(city="stpaul"):
@@ -125,6 +164,100 @@ def aggregate_all(city="stpaul"):
     # for downstream consumers, but keeps output/log diffs stable).
     ordered = {s["id"]: results[s["id"]] for s in sources if s["id"] in results}
     return ordered
+
+
+def aggregate_all_combined():
+    """
+    Aggregate both cities and merge into one per-source dict spanning all 28
+    districts, so scoring can normalize St. Paul and Minneapolis together
+    instead of each city only against itself (see Severity 1 in the
+    pipeline fairness audit — two independently-normalized 0-100 scales
+    aren't actually comparable even though the frontend displays and ranks
+    them as if they were).
+
+    St. Paul district_ids (1-17) and Minneapolis's (101-111) never collide,
+    so merging is a plain dict union per source_id. Both cities' source
+    configs define the same 16 source ids with matching health_component/
+    rate_direction/weight_in_component (verified) — they only differ in
+    metric_name/label text and loader_module, which don't affect scoring.
+
+    Returns:
+        dict: {source_id: {district_id: {rate_per_1000, raw_count}}} for
+        all 28 districts, plus each source's "metric_name" (from whichever
+        city defined it, since only cosmetic wording ever differs).
+    """
+    stpaul = aggregate_all(city="stpaul")
+    mpls = aggregate_all(city="mpls")
+
+    combined = {}
+    for source_id in set(stpaul) | set(mpls):
+        sp_entry = stpaul.get(source_id)
+        mp_entry = mpls.get(source_id)
+        metric_name = (sp_entry or mp_entry)["metric_name"]
+        metrics = {}
+        if sp_entry:
+            metrics.update(sp_entry["metrics"])
+        if mp_entry:
+            metrics.update(mp_entry["metrics"])
+        combined[source_id] = {"metric_name": metric_name, "metrics": metrics}
+    return combined
+
+
+def aggregate_all_zip():
+    """
+    Aggregate all registered data sources by ZIP code, pooling both cities
+    into ONE set of zips (not split per city) so every zip in the metro is
+    compared directly against every other zip — see
+    core/health_score.py's compute_health_scores_zip.
+
+    Each source is loaded once per city (the underlying raw data is
+    fetched per city, e.g. St. Paul's crime feed vs Minneapolis's), each
+    joined to the SAME shared zip boundary set, then concatenated before
+    counting — a boundary zip that catches records from both cities' feeds
+    gets both cities' counts correctly summed, rather than one city's
+    result silently overwriting the other's contribution to that zip (the
+    dict-union approach aggregate_all_combined() uses for districts would
+    be wrong here, since zip ids CAN collide across cities at the border).
+
+    Returns:
+        dict: {source_id: {metric_name: ..., metrics: {zip_id: {...}}}}
+    """
+    config_stpaul = load_config(city="stpaul")["sources"]
+    config_mpls = {s["id"]: s for s in load_config(city="mpls")["sources"]}
+    population = load_zip_population()
+
+    frames_by_source = {}
+    with ThreadPoolExecutor(max_workers=8) as executor:
+        future_to_info = {}
+        for source in config_stpaul:
+            future_to_info[executor.submit(_load_source, source, "stpaul", "zip")] = source
+            mpls_source = config_mpls.get(source["id"])
+            if mpls_source:
+                future_to_info[executor.submit(_load_source, mpls_source, "mpls", "zip")] = source
+
+        for future in as_completed(future_to_info):
+            source = future_to_info[future]
+            source_id = source["id"]
+            try:
+                df = future.result()
+                frames_by_source.setdefault(source_id, []).append(df)
+            except Exception as e:
+                print(f"Aggregating {source_id} (zip)... [ERROR] {e}")
+
+    results = {}
+    for source in config_stpaul:
+        source_id = source["id"]
+        frames = [f for f in frames_by_source.get(source_id, []) if f is not None and not f.empty]
+        if not frames:
+            continue
+        combined_df = pd.concat(frames, ignore_index=True)
+        metrics = aggregate_by_source(source_id, combined_df, population)
+        results[source_id] = {"metric_name": source["metric_name"], "metrics": metrics}
+        print(f"Aggregating {source_id} (zip)... [OK] {len(metrics)} zips")
+
+    ordered = {s["id"]: results[s["id"]] for s in config_stpaul if s["id"] in results}
+    return ordered
+
 
 if __name__ == "__main__":
     print("Aggregating all data sources by district...")

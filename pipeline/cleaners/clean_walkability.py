@@ -17,23 +17,30 @@ sys.path.insert(0, str(_BootstrapPath(__file__).resolve().parent.parent))
 import json
 import time
 import requests
-from core.http_cache import cached_post
+from core.http_cache import cached_post, LONG_TTL_SECONDS
 import pandas as pd
 from pathlib import Path
-from core.load import load_boundaries
+from core.load import resolve_boundaries
 from shapely.geometry import LineString, shape
 
 PIPELINE_DIR = Path(__file__).resolve().parent.parent
 OVERPASS_URL = "https://overpass-api.de/api/interpreter"
 
 # Twin Cities bounding box (south, west, north, east) - covers both St. Paul
-# and Minneapolis so this loader works for either city's districts.
-BBOX = "44.85, -93.35, 45.05, -92.95"
+# and Minneapolis so this loader works for either city's districts, plus
+# enough margin for the 1-mile radius click feature and for regional trails
+# (Gateway State Trail, Luce Line, Mississippi River Trail) that extend past
+# the two cities' limits. Minneapolis' northern edge alone reaches ~45.0512,
+# so the old 45.05 cap was clipping the city itself.
+BBOX = "44.78, -93.50, 45.15, -92.80"
 
 OVERPASS_QUERY = f"""
-[out:json][timeout:60];
+[out:json][timeout:180];
 (
   way["highway"~"^(path|footway|cycleway|pedestrian|track|bridleway|steps)$"]({BBOX});
+  way["highway"]["bicycle"="designated"]({BBOX});
+  way["highway"]["foot"="designated"]({BBOX});
+  way["leisure"="track"]["area"!="yes"]({BBOX});
   way["leisure"="park"]({BBOX});
 );
 out geom;
@@ -48,10 +55,22 @@ out geom;
 # query above (path/cycleway/pedestrian/track/bridleway/steps) is kept as-is.
 _NON_TRAIL_FOOTWAY_SUBTAGS = {"sidewalk", "crossing", "traffic_island", "access_aisle", "link"}
 
+# Natural/recreational surfaces that mark an unsubtagged footway as a real
+# trail rather than a paved city sidewalk.
+_TRAIL_SURFACES = {"unpaved", "gravel", "dirt", "ground", "fine_gravel", "wood", "grass", "sand", "woodchips"}
+
 
 def _is_real_trail(element):
     tags = element.get("tags", {})
-    if tags.get("highway") == "footway" and tags.get("footway") in _NON_TRAIL_FOOTWAY_SUBTAGS:
+    if tags.get("highway") != "footway":
+        return True
+    if tags.get("footway") in _NON_TRAIL_FOOTWAY_SUBTAGS:
+        return False
+    if tags.get("is_sidepath") == "yes":
+        return False
+    # An unsubtagged footway with no name and no trail-like surface is almost
+    # always a plain sidewalk that OSM mappers didn't bother subtagging.
+    if not tags.get("footway") and not tags.get("name") and tags.get("surface") not in _TRAIL_SURFACES:
         return False
     return True
 
@@ -69,7 +88,7 @@ def _fetch_ways(max_retries=3):
     last_error = None
     for attempt in range(max_retries):
         try:
-            response = cached_post(OVERPASS_URL, data={"data": OVERPASS_QUERY}, headers=headers, timeout=120)
+            response = cached_post(OVERPASS_URL, data={"data": OVERPASS_QUERY}, headers=headers, timeout=120, ttl_seconds=LONG_TTL_SECONDS)
             response.raise_for_status()
             elements = response.json()["elements"]
             return [e for e in elements if _is_real_trail(e)]
@@ -79,15 +98,16 @@ def _fetch_ways(max_retries=3):
                 time.sleep(15 * (attempt + 1))
     raise last_error
 
-def clean_walkability(fallback_behavior="exclude_from_scoring_if_geography_fails", city="stpaul"):
+def clean_walkability(fallback_behavior="exclude_from_scoring_if_geography_fails", city="stpaul", granularity="district"):
     """
     Fetch trail/path data from Overpass API and compute length (km) within
-    each district via line-polygon intersection. city: 'stpaul' or 'mpls'.
+    each district or zip via line-polygon intersection. city: 'stpaul' or
+    'mpls'. granularity: 'district' or 'zip'.
 
     Returns:
         DataFrame with columns: way_id, district_id, value (length_km)
     """
-    boundaries = load_boundaries(city=city)
+    boundaries = resolve_boundaries(city=city, granularity=granularity)
 
     boundary_map = {}
     for feature in boundaries["features"]:

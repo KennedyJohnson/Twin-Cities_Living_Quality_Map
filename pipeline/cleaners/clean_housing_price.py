@@ -19,7 +19,7 @@ from core.http_cache import cached_get
 import pandas as pd
 from pathlib import Path
 from shapely.geometry import Point, shape
-from core.load import load_boundaries, get_latest_acs_year
+from core.load import resolve_boundaries, get_latest_acs_year
 
 PIPELINE_DIR = Path(__file__).resolve().parent.parent
 
@@ -30,13 +30,17 @@ def _acs_url(year):
 # Median home value, median gross rent, median household income, total
 # population, poverty universe + count below poverty line, renter
 # households by gross-rent-as-%-of-income bracket (30-34.9, 35-39.9,
-# 40-49.9, 50+ = cost-burdened) + total renter households (universe), and
-# occupied housing units by tenure (total + owner-occupied)
+# 40-49.9, 50+ = cost-burdened) + total renter households (universe),
+# occupied housing units by tenure (total + owner-occupied),
+# households universe + households with no internet access (broadband proxy),
+# and unemployed labor-force count (opportunity trend proxy)
 ACS_VARS = (
     "B25077_001E,B25064_001E,B19013_001E,B01003_001E,"
     "B17001_001E,B17001_002E,"
     "B25070_001E,B25070_007E,B25070_008E,B25070_009E,B25070_010E,"
-    "B25003_001E,B25003_002E"
+    "B25003_001E,B25003_002E,"
+    "B28002_001E,B28002_013E,"
+    "B23025_005E"
 )
 
 # state=MN (27); county FIPS per city
@@ -97,6 +101,13 @@ def _fetch_acs_tracts(county_fips, year=ACS_YEAR):
     owner_occupied = pd.to_numeric(df["B25003_002E"], errors="coerce")
     df["homeownership_rate"] = (owner_occupied / tenure_universe * 100).where(tenure_universe > 0)
 
+    household_universe = pd.to_numeric(df["B28002_001E"], errors="coerce")
+    no_internet = pd.to_numeric(df["B28002_013E"], errors="coerce")
+    df["broadband_rate"] = (100 - no_internet / household_universe * 100).where(household_universe > 0)
+
+    unemployed = pd.to_numeric(df["B23025_005E"], errors="coerce")
+    df["unemployment_rate_pc"] = (unemployed / df["population"] * 1000).where(df["population"] > 0)
+
     # Census codes negative sentinel values (e.g. -666666666) for unavailable estimates
     df.loc[df["median_home_value"] < 0, "median_home_value"] = None
     df.loc[df["median_gross_rent"] < 0, "median_gross_rent"] = None
@@ -104,9 +115,12 @@ def _fetch_acs_tracts(county_fips, year=ACS_YEAR):
     df.loc[poverty_count < 0, "poverty_rate"] = None
     df.loc[cost_burdened_count < 0, "housing_cost_burden_rate"] = None
     df.loc[owner_occupied < 0, "homeownership_rate"] = None
+    df.loc[no_internet < 0, "broadband_rate"] = None
+    df.loc[unemployed < 0, "unemployment_rate_pc"] = None
     return df[[
         "geoid", "median_home_value", "median_gross_rent", "median_household_income",
-        "poverty_rate", "housing_cost_burden_rate", "homeownership_rate", "population",
+        "poverty_rate", "housing_cost_burden_rate", "homeownership_rate", "broadband_rate",
+        "unemployment_rate_pc", "population",
     ]]
 
 
@@ -150,13 +164,15 @@ def clean_housing_price_tracts(city="stpaul", year=ACS_YEAR):
     return tracts[[
         "geoid", "lat", "lon", "population", "median_home_value", "median_gross_rent",
         "median_household_income", "poverty_rate", "housing_cost_burden_rate", "homeownership_rate",
+        "broadband_rate", "unemployment_rate_pc",
     ]]
 
 
-def clean_housing_price(city="stpaul", year=ACS_YEAR):
+def clean_housing_price(city="stpaul", year=ACS_YEAR, granularity="district"):
     """
     Fetch ACS median home value / gross rent per tract and aggregate to
-    district level (population-weighted mean) via tract-centroid spatial join.
+    district or zip level (population-weighted mean) via tract-centroid
+    spatial join. granularity: 'district' or 'zip'.
 
     Note on tract vintage: TIGERweb's "current" tract boundaries are 2020
     Census vintage. ACS years >= 2020 match that vintage; earlier years use
@@ -168,7 +184,7 @@ def clean_housing_price(city="stpaul", year=ACS_YEAR):
     """
     tracts = clean_housing_price_tracts(city=city, year=year)
 
-    boundaries = load_boundaries(city=city)
+    boundaries = resolve_boundaries(city=city, granularity=granularity)
     boundary_map = {}
     for feature in boundaries["features"]:
         district_id = feature["properties"]["district_id"]
@@ -203,11 +219,14 @@ def clean_housing_price(city="stpaul", year=ACS_YEAR):
             "poverty_rate": weighted_mean(group, "poverty_rate"),
             "housing_cost_burden_rate": weighted_mean(group, "housing_cost_burden_rate"),
             "homeownership_rate": weighted_mean(group, "homeownership_rate"),
+            "broadband_rate": weighted_mean(group, "broadband_rate"),
+            "unemployment_rate_pc": weighted_mean(group, "unemployment_rate_pc"),
         })
 
     return pd.DataFrame(rows, columns=[
         "district_id", "median_home_value", "median_gross_rent", "median_household_income",
-        "poverty_rate", "housing_cost_burden_rate", "homeownership_rate",
+        "poverty_rate", "housing_cost_burden_rate", "homeownership_rate", "broadband_rate",
+        "unemployment_rate_pc",
     ])
 
 

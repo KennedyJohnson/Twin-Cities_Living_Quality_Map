@@ -49,6 +49,7 @@ def export_city_timeseries(city):
                 "poverty_rate": None if row["poverty_rate"] is None else round(row["poverty_rate"], 1),
                 "housing_cost_burden_rate": None if row["housing_cost_burden_rate"] is None else round(row["housing_cost_burden_rate"], 1),
                 "homeownership_rate": None if row["homeownership_rate"] is None else round(row["homeownership_rate"], 1),
+                "unemployment_rate_pc": None if row["unemployment_rate_pc"] is None else round(row["unemployment_rate_pc"], 1),
             }
 
     all_district_ids = set()
@@ -64,6 +65,7 @@ def export_city_timeseries(city):
             "poverty_rate": [by_year[y].get(district_id, {}).get("poverty_rate") for y in years_included],
             "housing_cost_burden_rate": [by_year[y].get(district_id, {}).get("housing_cost_burden_rate") for y in years_included],
             "homeownership_rate": [by_year[y].get(district_id, {}).get("homeownership_rate") for y in years_included],
+            "unemployment_rate_pc": [by_year[y].get(district_id, {}).get("unemployment_rate_pc") for y in years_included],
         }
 
     return {"years": years_included, "districts": per_district}

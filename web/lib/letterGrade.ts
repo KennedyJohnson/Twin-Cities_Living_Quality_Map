@@ -1,3 +1,5 @@
+import { getHealthScoreColor } from './ColorScale';
+
 export type LetterGrade = 'A' | 'B' | 'C' | 'D' | 'F';
 
 // Health Score and each component index are z-score-normalized against the
@@ -25,12 +27,29 @@ export function getLetterGrade(percentile: number): LetterGrade {
   return 'F';
 }
 
+// One fixed color per letter grade, sampled from the same purple sequential
+// scale used for the map fill (ColorScale.ts) — so grade badges use the same
+// low->high color language as the rest of the site, while every district
+// sharing a letter grade still renders as the exact same shade (grades are a
+// discrete category, not a continuous value). Stops are evenly spaced across
+// the full scale (rather than at each grade band's percentile midpoint) so
+// adjacent grades — especially A vs. B, both drawn from the dark end of the
+// percentile range — stay visually distinct instead of collapsing into
+// near-identical dark purple.
+const GRADE_MIDPOINTS: Record<LetterGrade, number> = {
+  F: 0,
+  D: 25,
+  C: 50,
+  B: 75,
+  A: 100,
+};
+
 export function gradeColor(grade: LetterGrade): string {
-  switch (grade) {
-    case 'A': return '#2e7d32';
-    case 'B': return '#66a61e';
-    case 'C': return '#b8a000';
-    case 'D': return '#d97706';
-    case 'F': return '#c0392b';
-  }
+  return getHealthScoreColor(GRADE_MIDPOINTS[grade], 0, 100);
+}
+
+// Purple stops below the midpoint are light enough that white badge text
+// would be unreadable, so badges need dark text there instead.
+export function gradeTextColor(grade: LetterGrade): string {
+  return GRADE_MIDPOINTS[grade] < 50 ? '#333' : '#fff';
 }

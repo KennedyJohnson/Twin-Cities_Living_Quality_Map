@@ -1,8 +1,10 @@
 // Colorblind-safe, high-contrast palette (Okabe-Ito based) so each source
-// is easy to tell apart at a glance. Building permits, service requests,
-// and housing production are intentionally not point-layer sources (too
-// granular / low user interest) — they still feed the health score, just
-// aren't plotted.
+// is easy to tell apart at a glance. Building permits are intentionally not
+// a point-layer source (too granular / low user interest) — it still feeds
+// the health score, just isn't plotted. Service requests and housing
+// production were removed from the health score entirely (see weights.json)
+// due to data-comparability problems between the two cities' source
+// datasets, so neither is plotted or scored anymore.
 export const POINT_LAYER_COLORS: Record<string, string> = {
   crime: '#d55e00',    // vermillion
   transit: '#56b4e9',  // sky blue
@@ -31,7 +33,7 @@ export const POINT_LAYER_ICONS: Record<string, string> = {
 export const CANVAS_MARKER_THRESHOLD = 0;
 
 export const POINT_LAYER_LABELS: Record<string, string> = {
-  crime: 'Crime Incidents (Minneapolis only)',
+  crime: 'Crime Incidents',
   transit: 'Transit Stops',
   schools: 'Schools',
   groceries: 'Grocery Stores',

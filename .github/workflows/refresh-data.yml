@@ -28,37 +28,11 @@ jobs:
           CENSUS_API_KEY: ${{ secrets.CENSUS_API_KEY }}
         run: python build.py
 
-      - name: Export point-layer map data
-        working-directory: pipeline
-        run: python exports/export_points.py
-
-      - name: Export housing affordability data
+      - name: Export map/trend/affordability data (parallelized)
         working-directory: pipeline
         env:
           CENSUS_API_KEY: ${{ secrets.CENSUS_API_KEY }}
-        run: python exports/export_affordability.py
-
-      - name: Export housing affordability time-series data
-        working-directory: pipeline
-        env:
-          CENSUS_API_KEY: ${{ secrets.CENSUS_API_KEY }}
-        run: python exports/export_affordability_timeseries.py
-
-      - name: Export crime/permits/requests/housing time-series data
-        working-directory: pipeline
-        run: python exports/export_timeseries.py
-
-      - name: Export tract-level affordability data (for 1-mile radius scoring)
-        working-directory: pipeline
-        env:
-          CENSUS_API_KEY: ${{ secrets.CENSUS_API_KEY }}
-        run: python exports/export_tracts_affordability.py
-
-      - name: Export radius-scoring baseline (for 1-mile radius scoring)
-        working-directory: pipeline
-        env:
-          CENSUS_API_KEY: ${{ secrets.CENSUS_API_KEY }}
-        run: python exports/export_radius_baseline.py
+        run: python exports/export_all.py
 
       - name: Commit refreshed data
         run: |

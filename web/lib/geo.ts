@@ -73,22 +73,29 @@ export async function resolveNeighborhoodForPoint(lat: number, lon: number): Pro
 
 // Reverse-geocode a clicked map point to a short place label, via Nominatim
 // (same OSM service AddressSearch uses for forward search).
-export async function reverseGeocode(lat: number, lon: number): Promise<string> {
+// `isNamedPlace` is true only when Nominatim returned a real POI name (a
+// business, park, etc.) rather than falling back to a bare street address or
+// raw coordinates — those fallbacks aren't things Google Maps has a reviews
+// page for, so callers use this to decide whether to show a reviews link.
+export async function reverseGeocode(
+  lat: number,
+  lon: number
+): Promise<{ label: string; isNamedPlace: boolean; address?: string }> {
   try {
     const response = await fetch(
       `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=18`
     );
     const result = await response.json();
     if (result?.name && result.name.trim().length > 0) {
-      return result.name.trim();
+      return { label: result.name.trim(), isNamedPlace: true, address: result.display_name };
     }
     if (result?.display_name) {
-      return result.display_name.split(',')[0].trim();
+      return { label: result.display_name.split(',')[0].trim(), isNamedPlace: false, address: result.display_name };
     }
   } catch (err) {
     console.error('Reverse geocode failed:', err);
   }
-  return `${lat.toFixed(5)}, ${lon.toFixed(5)}`;
+  return { label: `${lat.toFixed(5)}, ${lon.toFixed(5)}`, isNamedPlace: false };
 }
 
 // Snap a clicked point to the centroid of the nearest OSM building, store,

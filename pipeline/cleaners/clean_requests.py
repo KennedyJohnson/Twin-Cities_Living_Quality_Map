@@ -11,21 +11,27 @@ sys.path.insert(0, str(_BootstrapPath(__file__).resolve().parent.parent))
 import pandas as pd
 import json
 from pathlib import Path
-from core.load import load_requests, load_boundaries
+from core.load import load_requests, resolve_boundaries
+from core.date_window import filter_recent_years
 from shapely.geometry import Point, shape
 
 PIPELINE_DIR = Path(__file__).resolve().parent.parent
 
-def clean_requests():
+def clean_requests(granularity="district"):
     """
-    Clean requests data. Map to districts via spatial join of Latitude/Longtitude
-    against boundary polygons.
+    Clean requests data. Map to districts or zips via spatial join of
+    Latitude/Longtitude against boundary polygons. granularity: 'district'
+    or 'zip'.
 
     Returns:
         DataFrame with columns: request_id (or index), district_id, date, Latitude, Longtitude
     """
     requests = load_requests()
-    boundaries = load_boundaries()
+    # Restricted to a shared recent-years window (filtered before the
+    # spatial join, so there's less to join) so this compares fairly
+    # against Minneapolis's shorter 311 history — see core/date_window.py.
+    requests = filter_recent_years(requests, "REQUEST_DATE", epoch_ms=True)
+    boundaries = resolve_boundaries(city="stpaul", granularity=granularity)
 
     # Ensure required columns exist
     if "Latitude" not in requests.columns or "Longtitude" not in requests.columns:

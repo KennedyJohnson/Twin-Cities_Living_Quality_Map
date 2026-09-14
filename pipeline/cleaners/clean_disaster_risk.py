@@ -22,7 +22,7 @@ from core.http_cache import cached_get
 import pandas as pd
 from pathlib import Path
 from shapely.geometry import Point, shape
-from core.load import load_boundaries
+from core.load import resolve_boundaries
 
 PIPELINE_DIR = Path(__file__).resolve().parent.parent
 NRI_FEATURE_SERVER = "https://services.arcgis.com/XG15cJAlne2vxtgt/arcgis/rest/services/National_Risk_Index_Census_Tracts/FeatureServer/0"
@@ -70,15 +70,16 @@ def _fetch_nri_tracts(county_name):
     return pd.DataFrame(records)
 
 
-def clean_disaster_risk(fallback_behavior="exclude_from_scoring_if_geography_fails", city="stpaul"):
+def clean_disaster_risk(fallback_behavior="exclude_from_scoring_if_geography_fails", city="stpaul", granularity="district"):
     """
     Fetch FEMA NRI composite risk score per tract, convert to a
-    population-weighted at-risk count, and join to districts via tract
-    centroid point-in-polygon. city: 'stpaul' or 'mpls'.
+    population-weighted at-risk count, and join to districts or zips via
+    tract centroid point-in-polygon. city: 'stpaul' or 'mpls'.
+    granularity: 'district' or 'zip'.
 
     Returns:
         DataFrame with columns: geoid, district_id, value (population x
-        risk score; aggregate_by_source() sums this per district)
+        risk score; aggregate_by_source() sums this per zone)
     """
     county_name = CITY_COUNTY_NAME[city]
 
@@ -97,7 +98,7 @@ def clean_disaster_risk(fallback_behavior="exclude_from_scoring_if_geography_fai
 
     tracts["risk_weighted_count"] = tracts["risk_score"] * tracts["population"] / 100
 
-    boundaries = load_boundaries(city=city)
+    boundaries = resolve_boundaries(city=city, granularity=granularity)
     boundary_map = {}
     for feature in boundaries["features"]:
         district_id = feature["properties"]["district_id"]

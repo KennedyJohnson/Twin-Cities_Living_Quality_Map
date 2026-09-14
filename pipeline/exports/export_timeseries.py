@@ -29,6 +29,7 @@ from cleaners.clean_crime_mpls import clean_crime_mpls
 from cleaners.clean_permits_mpls import clean_permits_mpls
 from cleaners.clean_requests_mpls import clean_requests_mpls
 from cleaners.clean_housing_mpls import clean_housing_mpls
+from core.load import load_population
 
 PIPELINE_DIR = Path(__file__).resolve().parent.parent
 OUT_DIR = PIPELINE_DIR.parent / "web" / "public" / "data"
@@ -102,6 +103,11 @@ def _build_city_timeseries(sources):
     return {"citywide": citywide, "districts": districts}
 
 
+def _citywide_population(city):
+    pop = load_population(city)
+    return int(pop["population"].sum())
+
+
 def export_stpaul_timeseries():
     # St. Paul's ArcGIS date fields now come back as epoch milliseconds
     # (same format Minneapolis always used), not the string dates they used
@@ -118,12 +124,14 @@ def export_stpaul_timeseries():
     housing = clean_housing()
     housing["year"] = _years_from_epoch_ms(housing["ProjectPermitIssueDate"])
 
-    return _build_city_timeseries({
+    result = _build_city_timeseries({
         "crime": (crime, "year"),
         "permits": (permits, "year"),
         "requests": (requests, "year"),
         "housing": (housing, "year"),
     })
+    result["citywide"]["population"] = _citywide_population("stpaul")
+    return result
 
 
 def export_mpls_timeseries():
@@ -139,12 +147,14 @@ def export_mpls_timeseries():
     housing = clean_housing_mpls()
     housing["year"] = _years_from_epoch_ms(housing["issue_date"])
 
-    return _build_city_timeseries({
+    result = _build_city_timeseries({
         "crime": (crime, "year"),
         "permits": (permits, "year"),
         "requests": (requests, "year"),
         "housing": (housing, "year"),
     })
+    result["citywide"]["population"] = _citywide_population("mpls")
+    return result
 
 
 def main():

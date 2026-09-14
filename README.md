@@ -34,10 +34,11 @@ python build.py
 
 A **Health Score** (0–100, where 100 is excellent) measures how well a district is doing across four weighted components:
 
-1. **Safety (35%)** — crime rate and pedestrian/cyclist crash rate (both inverted: lower is better)
-2. **Opportunity (25%)** — building permit rate (higher is better) and unemployment rate (inverted)
-3. **Amenities & Services (10%)** — service requests (inverted), plus housing production, schools, grocery stores, restaurants/bars, and healthcare access
-4. **Affordability (20%)** — Census median home value, rent, and poverty rate (inverted), plus median household income and homeownership rate
+1. **Safety (20%)** — crime rate and pedestrian/cyclist crash rate (both inverted: lower is better)
+2. **Opportunity (20%)** — building permit rate (higher is better) and unemployment rate (inverted)
+3. **Amenities & Services (20%)** — schools, grocery stores, restaurants/bars, and healthcare access, blended with a Census broadband/internet-access rate
+4. **Transportation (20%)** — trail/path length and transit stop rate, minus traffic volume (inverted); blended with a Walk/Bike Score
+5. **Affordability (20%)** — Census median home value, rent, and poverty rate (inverted), plus median household income and homeownership rate
 
 Each metric is normalized against every other district (z-score, squashed to 0–100) and blended by weight. See the in-app **[How we calculate this](/methodology)** page for full detail.
 
@@ -46,9 +47,9 @@ Each metric is normalized against every other district (z-score, squashed to 0�
 ## How to Use the Map
 
 1. **Color by any metric** — use the "Color districts by" selector to recolor the map by Overall Health Score or any individual component index.
-2. **Click a district** — view its full score breakdown, click any component score to see what feeds it (and a small trend chart, where historical data exists), and see housing affordability figures.
+2. **Click a district** — view its full score breakdown, click any component score to see what feeds it (and a small trend chart, where historical data exists), see housing affordability figures, and see a bar chart comparing the district against its city's average on each component.
 3. **Toggle data layers** — crime, transit, schools, grocery stores, and trails render as map markers/lines; toggle each on/off from the layers control.
-4. **Search an address** — drops a labeled marker and filters nearby data-point markers to a 1-mile radius; click the marker again to clear it.
+4. **Click anywhere on the map, or search an address** — drops a labeled marker, filters nearby data-point markers to a 1-mile radius, and computes a 1-mile-radius Living Quality Score from OpenStreetMap + Census data (its own sidebar panel, comparable to district scores but excluding metrics only available at the district level); click the marker again to clear it.
 5. **Resize the sidebar** — drag the handle on the left edge of the detail panel.
 
 ---
@@ -57,8 +58,8 @@ Each metric is normalized against every other district (z-score, squashed to 0�
 
 | Source | Used for |
 |---|---|
-| [City of St. Paul](https://information.stpaul.gov/) | Crime, permits, service requests, housing production |
-| [City of Minneapolis](https://opendata.minneapolismn.gov/) | Crime, permits, service requests, housing production |
+| [City of St. Paul](https://information.stpaul.gov/) | Crime, permits |
+| [City of Minneapolis](https://opendata.minneapolismn.gov/) | Crime, permits |
 | [OpenStreetMap](https://www.openstreetmap.org/) | Trails, transit stops, schools, grocery stores, healthcare facilities |
 | [U.S. Census Bureau](https://www.census.gov/programs-surveys/acs) | Population, unemployment, affordability metrics (home value/rent/income) |
 | [MnDOT](https://www.dot.state.mn.us/traffic/data/) | Annual Average Daily Traffic (AADT), pedestrian/cyclist crash locations |
@@ -66,12 +67,12 @@ Each metric is normalized against every other district (z-score, squashed to 0�
 
 **Fully automated:** All data is fetched from official APIs with no manual downloads. See [SETUP_API.md](SETUP_API.md) for setup (1 required key: Census API).
 
-Some sources are intentionally excluded from the map's point layers (permits, service requests, housing production) — too granular for the map — but still feed the Health Score.
+Some sources are intentionally excluded from the map's point layers (permits) — too granular for the map — but still feed the Health Score.
 
 **Known limitations:**
 - St. Paul's crime data has no geocoded address, only a district, so individual incidents aren't plotted as markers (Minneapolis crime does include coordinates).
-- Minneapolis's 311 service request dataset only covers 2025, so no multi-year trend is available for that metric in that city.
 - Pedestrian/cyclist crash data covers 2016–2021 (the most recent public MnDOT extract); it is not live.
+- **Housing Production and Service Requests were removed from the Health Score** (see `pipeline/config/weights.json`) after an audit found the two cities' source datasets weren't comparable: Minneapolis has no dedicated housing-production dataset (its residential-permit proxy undercounted new units ~5x vs. St. Paul's purpose-built dataset), and St. Paul's Service Requests dataset is scoped narrowly to livability complaints while Minneapolis's 311 feed is a much broader contact-center system covering categories St. Paul doesn't track and logging the same complaint across multiple intake channels.
 
 ---
 
@@ -168,7 +169,7 @@ Extensible per-city registry of data sources. Each entry defines:
 Adding a new data source: create a `cleaners/clean_<source>.py` loader, add one entry to `sources.json` (and `sources_mpls.json` for city parity), then re-run `pipeline/build.py`.
 
 ### `pipeline/config/weights.json`
-Health score component weights (currently 35% Safety / 25% Opportunity / 10% Amenities & Services / 10% Transportation / 20% Affordability) and each component's formula description.
+Health score component weights (currently 20% Safety / 20% Opportunity / 20% Amenities & Services / 20% Transportation / 20% Affordability) and each component's formula description.
 
 ---
 

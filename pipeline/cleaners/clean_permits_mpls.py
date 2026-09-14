@@ -9,17 +9,17 @@ sys.path.insert(0, str(_BootstrapPath(__file__).resolve().parent.parent))
 
 
 import json
-import time
-import requests
 import pandas as pd
 from pathlib import Path
+from core.load import _fetch_arcgis_paginated, load_zip_boundaries
+from core.date_window import filter_recent_years
+from shapely.geometry import Point, shape
 
 PIPELINE_DIR = Path(__file__).resolve().parent.parent
 MPLS_SOURCES = json.loads((PIPELINE_DIR / "config" / "mpls_sources.json").read_text())
 CROSSWALK_FILE = PIPELINE_DIR / "config" / "mpls_neighborhood_to_community.json"
 
 FEATURE_SERVER = MPLS_SOURCES["permits"]["featureServer"]
-PAGE_SIZE = 2000
 
 COMMUNITY_TO_DISTRICT_ID = {
     "Calhoun Isle": 101,
@@ -37,68 +37,34 @@ COMMUNITY_TO_DISTRICT_ID = {
 
 
 def _fetch_all_features(out_fields="Neighborhoods_Desc,permitNumber,issueDate,permitType,Display,workType,status,value"):
-    query_url = f"{FEATURE_SERVER}/query"
+    # See clean_crime_mpls.py for why this now goes through the shared,
+    # non-truncating paginator instead of a hand-rolled loop.
+    df = _fetch_arcgis_paginated(FEATURE_SERVER, out_fields=out_fields)
     features = []
-    offset = 0
-    while True:
-        params = {
-            "where": "1=1",
-            "outFields": out_fields,
-            "resultOffset": offset,
-            "resultRecordCount": PAGE_SIZE,
-            "f": "json",
-        }
-        for attempt in range(5):
-            resp = requests.get(query_url, params=params, timeout=60)
-            resp.raise_for_status()
-            data = resp.json()
-            if data.get("error", {}).get("code") == 429:
-                time.sleep(15 * (attempt + 1))
-                continue
-            break
-        batch = data.get("features", [])
-        if not batch:
-            break
-        features.extend(batch)
-        if len(batch) < PAGE_SIZE:
-            break
-        offset += PAGE_SIZE
+    for _, row in df.iterrows():
+        attrs = row.drop(labels=["geometry"], errors="ignore").to_dict()
+        geom = row.get("geometry")
+        if isinstance(geom, dict) and "x" in geom and "y" in geom:
+            attrs["longitude"] = geom["x"]
+            attrs["latitude"] = geom["y"]
+        features.append(attrs)
     return features
 
 
-def clean_permits_mpls(crosswalk_file=CROSSWALK_FILE):
+def clean_permits_mpls(crosswalk_file=CROSSWALK_FILE, granularity="district"):
     """
-    Fetch Minneapolis permits data and assign district_id via crosswalk.
+    Fetch Minneapolis permits data and assign district_id via crosswalk
+    (district granularity), or via direct point-in-polygon against zip
+    boundaries using the feed's own longitude/latitude (zip granularity).
 
     Returns:
         DataFrame with columns: district_id, permit_number, issue_date, permit_type
     """
-    crosswalk = json.loads(Path(crosswalk_file).read_text())
-
     features = _fetch_all_features()
-    rows = []
-    for f in features:
-        attrs = dict(f["attributes"])
-        geom = f.get("geometry")
-        if geom and "x" in geom and "y" in geom:
-            attrs["longitude"] = geom["x"]
-            attrs["latitude"] = geom["y"]
-        rows.append(attrs)
-    permits = pd.DataFrame(rows)
+    permits = pd.DataFrame(features)
 
     if "Neighborhoods_Desc" not in permits.columns:
         raise ValueError("Minneapolis permits data missing Neighborhoods_Desc column")
-
-    permits["community_name"] = permits["Neighborhoods_Desc"].map(
-        lambda x: crosswalk.get(str(x).strip())
-    )
-
-    before_filter = len(permits)
-    permits = permits.dropna(subset=["community_name"])
-    after_filter = len(permits)
-    filtered_count = before_filter - after_filter
-    if filtered_count > 0:
-        print(f"[WARNING] Filtered {filtered_count} MPLS permit records with unmapped neighborhoods")
 
     permits = permits.rename(columns={
         "permitNumber": "permit_number",
@@ -110,7 +76,43 @@ def clean_permits_mpls(crosswalk_file=CROSSWALK_FILE):
         "value": "permit_value",
     })
 
-    permits["district_id"] = permits["community_name"].map(COMMUNITY_TO_DISTRICT_ID)
+    if granularity == "zip":
+        permits = permits.dropna(subset=["longitude", "latitude"])
+        boundaries = load_zip_boundaries()
+        boundary_map = {f["properties"]["district_id"]: shape(f["geometry"]) for f in boundaries["features"]}
+
+        def find_zone(row):
+            point = Point(row["longitude"], row["latitude"])
+            for zone_id, polygon in boundary_map.items():
+                if polygon.contains(point):
+                    return zone_id
+            return None
+
+        permits["district_id"] = permits.apply(find_zone, axis=1)
+        before_filter = len(permits)
+        permits = permits.dropna(subset=["district_id"])
+        after_filter = len(permits)
+        filtered_count = before_filter - after_filter
+        if filtered_count > 0:
+            print(f"[WARNING] Filtered {filtered_count} MPLS permit records with no zip match via spatial join")
+        permits["district_id"] = permits["district_id"].astype(int)
+    else:
+        crosswalk = json.loads(Path(crosswalk_file).read_text())
+        permits["community_name"] = permits["Neighborhoods_Desc"].map(
+            lambda x: crosswalk.get(str(x).strip())
+        )
+
+        before_filter = len(permits)
+        permits = permits.dropna(subset=["community_name"])
+        after_filter = len(permits)
+        filtered_count = before_filter - after_filter
+        if filtered_count > 0:
+            print(f"[WARNING] Filtered {filtered_count} MPLS permit records with unmapped neighborhoods")
+
+        permits["district_id"] = permits["community_name"].map(COMMUNITY_TO_DISTRICT_ID)
+
+    # Restricted to a shared recent-years window — see core/date_window.py.
+    permits = filter_recent_years(permits, "issue_date", epoch_ms=True)
 
     cols = ["district_id", "permit_number", "issue_date", "permit_type"]
     for extra in ["address", "work_type", "permit_status", "permit_value"]:

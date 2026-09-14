@@ -21,9 +21,11 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 import pandas as pd
-from shapely.geometry import Point, shape
+from shapely.geometry import Point, LineString, shape
+from shapely.ops import unary_union
 
 from core.load import load_boundaries
+from cleaners.clean_crime import clean_crime_with_points
 from cleaners.clean_crime_mpls import clean_crime_mpls
 from cleaners.clean_transit import _fetch_nodes as _fetch_transit_nodes
 from cleaners.clean_schools import _fetch_nodes as _fetch_school_nodes
@@ -36,10 +38,24 @@ PIPELINE_DIR = Path(__file__).resolve().parent.parent
 OUT_DIR = PIPELINE_DIR.parent / "web" / "public" / "data"
 
 MAX_POINTS_PER_SOURCE = 3000
-# Raised from 6000 now that clean_walkability filters out sidewalks/crossings
-# before this cap is applied — the pre-filter pool is real trails only, so a
-# 6000 cap was dropping most of them. ~20k keeps the exported file a few MB.
-MAX_WAYS = 20000
+# Pure runaway guard on the leftover, unnamed footway/steps residue (plain
+# sidewalks/stairs that _is_real_trail lets through because they can't be
+# distinguished from a short trail spur by tags alone). Named ways and every
+# other trail-like highway type (path/cycleway/pedestrian/track/bridleway)
+# are always kept in full — they're a few tens of thousands at most across
+# the wider metro bbox and are the actual trails users are looking for.
+MAX_WAYS = 60000
+MAX_UNNAMED_FOOTWAY_STEPS = 5000
+
+# Trail geometry precision/simplification — trails were by far the largest
+# exported file (~7.5MB), almost entirely raw coordinate bytes. Neither
+# change removes any trail or visibly alters its shape on the map:
+# - COORD_DECIMALS=6 is ~11cm of precision, already far finer than a trail
+#   line's on-screen pixel width; Overpass returns 15+ significant digits.
+# - SIMPLIFY_TOLERANCE_DEG (~2m at this latitude) drops near-collinear
+#   vertices via Douglas-Peucker while preserving the line's visual path.
+COORD_DECIMALS = 6
+SIMPLIFY_TOLERANCE_DEG = 0.00002
 
 
 def _sample(df, n=MAX_POINTS_PER_SOURCE, seed=42):
@@ -93,7 +109,7 @@ def _points_feature_collection(records):
             continue
         features.append({
             "type": "Feature",
-            "geometry": {"type": "Point", "coordinates": [float(lon), float(lat)]},
+            "geometry": {"type": "Point", "coordinates": [round(float(lon), COORD_DECIMALS), round(float(lat), COORD_DECIMALS)]},
             "properties": {
                 "source": source,
                 "label": title,
@@ -268,15 +284,69 @@ def _export_mpls_crime_records():
     return records
 
 
-def _export_trail_lines():
+CRIME_FIELDS_STPAUL = {
+    "INCIDENT_TYPE": "Offense",
+    "INCIDENT": "Category",
+    "BLOCK": "Block",
+    "NEIGHBORHOOD_NAME": "Neighborhood",
+    "DATE": "Occurred Date",
+}
+
+
+def _export_stpaul_crime_records():
+    """St. Paul's crime feed has no true coordinates — only a block-level
+    BLOCK string, which clean_crime_with_points() geocodes to a block-center
+    approximation (see core/geocode_blocks.py). Every exported point is
+    flagged with an explicit "Precision" detail so the map popup never
+    implies exact-location accuracy it doesn't have."""
+    records = []
+    crime = clean_crime_with_points()
+    if "longitude" in crime.columns:
+        crime = _sample(crime)
+        if "DATE" in crime.columns:
+            crime = crime.copy()
+            crime["DATE"] = crime["DATE"].map(_format_epoch_ms)
+        for _, r in crime.iterrows():
+            title = _clean(r.get("INCIDENT_TYPE")) or _clean(r.get("INCIDENT")) or "Crime Incident"
+            details = _details(r, CRIME_FIELDS_STPAUL)
+            details["Precision"] = "Approximate — block-level estimate, not exact location"
+            records.append((r["longitude"], r["latitude"], "crime", title, details, r.get("district_id")))
+    return records
+
+
+# ~1 mile in degrees latitude (1609.34m / ~111,000m per degree latitude).
+# Used to buffer the combined St. Paul + Minneapolis district boundary so
+# trails far outside the metro (Overpass's bbox is wider than the districts)
+# don't get exported.
+TRAIL_BUFFER_DEG = 1609.34 / 111_000
+
+
+def _export_trail_lines(boundary_union):
     """Trails are city-agnostic (single Overpass bbox already covers the metro),
-    so we export one shared lines file rather than per-city."""
+    so we export one shared lines file rather than per-city. Only trails
+    within 1 mile of a St. Paul/Minneapolis district border are kept."""
     try:
         elements = _fetch_ways()
     except Exception as e:
         print(f"[WARNING] Trail fetch failed: {e}")
         return {"type": "FeatureCollection", "features": []}
 
+    # Split into real trail types (kept in full) vs. unnamed footway/steps
+    # residue (plain sidewalks/stairs _is_real_trail can't confidently
+    # exclude by tags alone), which gets its own, much smaller budget so it
+    # can't crowd real trails out of a single shared random sample.
+    core, residue = [], []
+    for el in elements:
+        tags = el.get("tags", {})
+        highway = tags.get("highway")
+        if highway in ("footway", "steps") and not tags.get("name") and not tags.get("footway"):
+            residue.append(el)
+        else:
+            core.append(el)
+    if len(residue) > MAX_UNNAMED_FOOTWAY_STEPS:
+        random.Random(42).shuffle(residue)
+        residue = residue[:MAX_UNNAMED_FOOTWAY_STEPS]
+    elements = core + residue
     if len(elements) > MAX_WAYS:
         random.Random(42).shuffle(elements)
         elements = elements[:MAX_WAYS]
@@ -287,10 +357,16 @@ def _export_trail_lines():
             continue
         tags = el.get("tags", {})
         if not tags.get("highway"):
-            # leisure=park ways are park boundary polygons, not trails —
+            # leisure=park/track ways are polygon-ish features, not trails —
             # useful for the walkability score but not for the trail layer.
             continue
-        coords = [[pt["lon"], pt["lat"]] for pt in geometry]
+        raw_coords = [(pt["lon"], pt["lat"]) for pt in geometry]
+        if len(raw_coords) >= 2:
+            simplified = LineString(raw_coords).simplify(SIMPLIFY_TOLERANCE_DEG, preserve_topology=False)
+            raw_coords = list(simplified.coords) if len(simplified.coords) >= 2 else raw_coords
+        if not boundary_union.intersects(LineString(raw_coords)):
+            continue
+        coords = [[round(lon, COORD_DECIMALS), round(lat, COORD_DECIMALS)] for lon, lat in raw_coords]
         title = _clean(tags.get("name")) or "Trail / Path"
         details = {}
         if _clean(tags.get("highway")):
@@ -311,11 +387,12 @@ def main():
     stpaul_map = _load_boundary_map("stpaul")
     mpls_map = _load_boundary_map("mpls")
 
-    # St. Paul crime data has no geocoded lat/lon — only a district and a
-    # block-level address string — so individual incidents aren't plotted
-    # as markers (a random point within the district would imply a false
-    # precision we don't have). Crime still feeds the Safety index via
-    # crime_rate_pc; MPLS crime does have real coordinates and is plotted.
+    # St. Paul's crime feed has no geocoded lat/lon — only a district and a
+    # block-level address string — so incidents are plotted at a geocoded
+    # block-center approximation (clean_crime_with_points(), backed by
+    # core/geocode_blocks.py) rather than a true location. Each point's
+    # popup carries an explicit "Precision" note flagging this. MPLS crime
+    # has real coordinates from its source and is plotted as-is.
     #
     # Building permits, service requests, and housing production are
     # intentionally excluded from the map's point layers (too granular /
@@ -325,7 +402,7 @@ def main():
     stpaul_records, mpls_records, unassigned_records = _fetch_and_classify_all(stpaul_map, mpls_map)
 
     print("Exporting St. Paul points...")
-    stpaul_points = _points_feature_collection(stpaul_records)
+    stpaul_points = _points_feature_collection(stpaul_records + _export_stpaul_crime_records())
     (OUT_DIR / "points_stpaul.json").write_text(json.dumps(stpaul_points))
     print(f"[OK] {len(stpaul_points['features'])} St. Paul point features")
 
@@ -340,7 +417,10 @@ def main():
     print(f"[OK] {len(unassigned_points['features'])} unassigned point features")
 
     print("Exporting trail lines...")
-    trail_lines = _export_trail_lines()
+    boundary_union = unary_union(
+        list(stpaul_map.values()) + list(mpls_map.values())
+    ).buffer(TRAIL_BUFFER_DEG)
+    trail_lines = _export_trail_lines(boundary_union)
     (OUT_DIR / "lines_trails.json").write_text(json.dumps(trail_lines))
     print(f"[OK] {len(trail_lines['features'])} trail line features")
 

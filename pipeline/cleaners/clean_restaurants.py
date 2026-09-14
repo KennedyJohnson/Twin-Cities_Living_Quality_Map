@@ -16,10 +16,10 @@ sys.path.insert(0, str(_BootstrapPath(__file__).resolve().parent.parent))
 
 import time
 import requests
-from core.http_cache import cached_post
+from core.http_cache import cached_post, LONG_TTL_SECONDS
 import pandas as pd
 from pathlib import Path
-from core.load import load_boundaries
+from core.load import resolve_boundaries
 from shapely.geometry import Point, shape
 
 PIPELINE_DIR = Path(__file__).resolve().parent.parent
@@ -56,7 +56,7 @@ def _fetch_nodes(max_retries=3):
     last_error = None
     for attempt in range(max_retries):
         try:
-            response = cached_post(OVERPASS_URL, data={"data": OVERPASS_QUERY}, headers=headers, timeout=120)
+            response = cached_post(OVERPASS_URL, data={"data": OVERPASS_QUERY}, headers=headers, timeout=120, ttl_seconds=LONG_TTL_SECONDS)
             response.raise_for_status()
             return response.json()["elements"]
         except Exception as e:
@@ -66,17 +66,18 @@ def _fetch_nodes(max_retries=3):
     raise last_error
 
 
-def clean_restaurants(fallback_behavior="exclude_from_scoring_if_geography_fails", city="stpaul"):
+def clean_restaurants(fallback_behavior="exclude_from_scoring_if_geography_fails", city="stpaul", granularity="district"):
     """
     Fetch restaurant/bar/cafe/fast-food data from Overpass API and count
-    them within each district (point-in-polygon). city: 'stpaul' or 'mpls'.
+    them within each district or zip (point-in-polygon). city: 'stpaul'
+    or 'mpls'. granularity: 'district' or 'zip'.
 
     Returns:
         DataFrame with columns: node_id, district_id, name
-        (one row per venue found inside a district; aggregate_by_source()
+        (one row per venue found inside a zone; aggregate_by_source()
         counts rows per district_id since there is no "value" column)
     """
-    boundaries = load_boundaries(city=city)
+    boundaries = resolve_boundaries(city=city, granularity=granularity)
 
     boundary_map = {}
     for feature in boundaries["features"]:

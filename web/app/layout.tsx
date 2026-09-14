@@ -1,10 +1,15 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Analytics } from '@vercel/analytics/next';
 import './globals.css';
 
 export const metadata: Metadata = {
   title: 'Twin Cities Living Quality Map',
-  description: 'Interactive health score visualization for St. Paul and Minneapolis districts',
+  description: 'Interactive living quality score visualization for St. Paul and Minneapolis districts',
+};
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
 };
 
 export default function RootLayout({

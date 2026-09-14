@@ -20,7 +20,7 @@ from cleaners.clean_housing_price import (
     _load_census_api_key,
     _fetch_tract_centroids,
 )
-from core.load import load_boundaries
+from core.load import resolve_boundaries
 from shapely.geometry import Point, shape
 import requests
 from core.http_cache import cached_get
@@ -51,12 +51,13 @@ def _fetch_unemployment_tracts(county_fips, year=ACS_YEAR):
     return df[["geoid", "unemployed"]]
 
 
-def clean_employment(city="stpaul", year=ACS_YEAR):
+def clean_employment(city="stpaul", year=ACS_YEAR, granularity="district"):
     """
-    Fetch unemployed-person counts per tract and assign to districts via
-    tract-centroid point-in-polygon, matching the aggregate_by_source
-    count-based pattern (one row per tract/district, summed and divided by
-    population downstream).
+    Fetch unemployed-person counts per tract and assign to districts or
+    zips via tract-centroid point-in-polygon, matching the
+    aggregate_by_source count-based pattern (one row per tract/zone,
+    summed and divided by population downstream). granularity: 'district'
+    or 'zip'.
 
     Returns:
         DataFrame with columns: geoid, district_id, value (unemployed count)
@@ -66,7 +67,7 @@ def clean_employment(city="stpaul", year=ACS_YEAR):
     centroids = _fetch_tract_centroids(county_fips)
     tracts = acs.merge(centroids, on="geoid", how="inner")
 
-    boundaries = load_boundaries(city=city)
+    boundaries = resolve_boundaries(city=city, granularity=granularity)
     boundary_map = {}
     for feature in boundaries["features"]:
         district_id = feature["properties"]["district_id"]

@@ -16,73 +16,50 @@ from pathlib import Path as _BootstrapPath
 sys.path.insert(0, str(_BootstrapPath(__file__).resolve().parent.parent))
 
 
-import time
-import requests
-from core.http_cache import cached_get
 import pandas as pd
 from pathlib import Path
-from core.load import load_boundaries
+from core.load import resolve_boundaries, _fetch_arcgis_paginated
 from shapely.geometry import LineString, shape
 
 PIPELINE_DIR = Path(__file__).resolve().parent.parent
 FEATURE_SERVER = "https://webgis.dot.state.mn.us/65agsf1/rest/services/sdw_incdt/AADT_SEGMENT_CURRENT/FeatureServer/0"
-PAGE_SIZE = 2000
 
 # Twin Cities counties - covers both St. Paul (Ramsey) and Minneapolis
 # (Hennepin) so this loader works for either city's districts.
 COUNTIES = "'Ramsey','Hennepin'"
 
 
-def _fetch_segments(max_retries=3):
+def _fetch_segments():
     """Query MnDOT's AADT FeatureServer for current traffic volume segments
     in the Twin Cities, reprojected to WGS84 (outSR=4326) so they line up
-    with our district boundaries without needing a UTM conversion."""
-    query_url = f"{FEATURE_SERVER}/query"
-    features = []
-    offset = 0
-    while True:
-        params = {
-            "where": f"COUNTY IN ({COUNTIES})",
-            "outFields": "CURRENT_VOLUME,CURRENT_YEAR,COUNTY",
-            "outSR": 4326,
-            "resultOffset": offset,
-            "resultRecordCount": PAGE_SIZE,
-            "f": "json",
-        }
-        last_error = None
-        for attempt in range(max_retries):
-            try:
-                resp = cached_get(query_url, params=params, timeout=60)
-                resp.raise_for_status()
-                data = resp.json()
-                break
-            except Exception as e:
-                last_error = e
-                if attempt < max_retries - 1:
-                    time.sleep(10 * (attempt + 1))
-        else:
-            raise last_error
+    with our district boundaries without needing a UTM conversion.
 
-        batch = data.get("features", [])
-        if not batch:
-            break
-        features.extend(batch)
-        if len(batch) < PAGE_SIZE:
-            break
-        offset += PAGE_SIZE
+    See clean_crime_mpls.py for why this now goes through the shared,
+    non-truncating paginator instead of a hand-rolled loop."""
+    df = _fetch_arcgis_paginated(
+        FEATURE_SERVER,
+        where=f"COUNTY IN ({COUNTIES})",
+        out_fields="CURRENT_VOLUME,CURRENT_YEAR,COUNTY",
+    )
+    features = []
+    for i, row in df.iterrows():
+        geom = row.get("geometry")
+        attrs = row.drop(labels=["geometry"], errors="ignore").to_dict()
+        attrs.setdefault("OBJECTID", i)
+        features.append({"geometry": geom, "attributes": attrs})
     return features
 
 
-def clean_traffic(fallback_behavior="exclude_from_scoring_if_geography_fails", city="stpaul"):
+def clean_traffic(fallback_behavior="exclude_from_scoring_if_geography_fails", city="stpaul", granularity="district"):
     """
     Fetch current AADT road segments and compute vehicle-km traveled
-    (AADT x length) within each district via line-polygon intersection.
-    city: 'stpaul' or 'mpls'.
+    (AADT x length) within each district or zip via line-polygon
+    intersection. city: 'stpaul' or 'mpls'. granularity: 'district' or 'zip'.
 
     Returns:
         DataFrame with columns: segment_id, district_id, value (vehicle-km/day)
     """
-    boundaries = load_boundaries(city=city)
+    boundaries = resolve_boundaries(city=city, granularity=granularity)
 
     boundary_map = {}
     for feature in boundaries["features"]:
@@ -102,7 +79,7 @@ def clean_traffic(fallback_behavior="exclude_from_scoring_if_geography_fails", c
         attrs = feature.get("attributes", {})
         aadt = attrs.get("CURRENT_VOLUME")
         geometry = feature.get("geometry")
-        if aadt is None or aadt <= 0 or not geometry or not geometry.get("paths"):
+        if aadt is None or aadt <= 0 or not isinstance(geometry, dict) or not geometry.get("paths"):
             continue
 
         try:

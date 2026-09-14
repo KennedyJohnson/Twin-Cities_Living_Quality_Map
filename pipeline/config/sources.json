@@ -13,7 +13,7 @@
       "metric_name": "crime_rate_pc",
       "metric_label": "Crime Rate per 1000 residents",
       "metric_unit": "incidents per 1000 pop",
-      "description": "Police-reported crime incidents (major incidents only)"
+      "description": "Police-reported crime incidents (full unfiltered feed)"
     },
     {
       "id": "permits",
@@ -54,36 +54,7 @@
       "metric_name": "housing_inventory_pc",
       "metric_label": "For-Sale Home Listings per 1000 residents",
       "metric_unit": "listings per 1000 pop",
-      "description": "Zillow Research for-sale home inventory by ZIP; fewer active listings relative to population indicates a tighter, more in-demand housing market, raising Opportunity",
-      "fallback_behavior": "exclude_from_scoring_if_geography_fails"
-    },
-    {
-      "id": "requests",
-      "name": "Service Requests",
-      "loader_module": "clean_requests",
-      "geo_join_method": "spatial_join",
-      "rate_direction": "invert",
-      "health_component": "amenities",
-      "weight_in_component": 1.0,
-      "raw_data_file": "../data/Resident_Service_Requests_7024824928576740068.csv",
-      "metric_name": "request_rate_pc",
-      "metric_label": "Service Requests per 1000 residents",
-      "metric_unit": "requests per 1000 pop",
-      "description": "Resident-reported infrastructure & service issues"
-    },
-    {
-      "id": "housing",
-      "name": "Housing Production",
-      "loader_module": "clean_housing",
-      "geo_join_method": "best_effort_spatial_join",
-      "rate_direction": "direct",
-      "health_component": "amenities",
-      "weight_in_component": 1.0,
-      "raw_data_file": "../data/Housing_Production.csv",
-      "metric_name": "housing_rate_pc",
-      "metric_label": "Housing Units Produced per 1000 residents",
-      "metric_unit": "units per 1000 pop",
-      "description": "New housing units (includes all unit types)",
+      "description": "Zillow Research for-sale home inventory by ZIP; fewer active listings relative to population indicates a tighter, more in-demand housing market, raising Opportunity. NOTE: this is a deliberate but debatable modeling choice (the seller's-market reading) — an equally defensible buyer's-market reading would treat fewer listings as LESS opportunity, since there's less available to buy into.",
       "fallback_behavior": "exclude_from_scoring_if_geography_fails"
     },
     {

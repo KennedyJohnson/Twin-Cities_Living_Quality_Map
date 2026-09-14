@@ -1,4 +1,4 @@
-import { getLetterGrade, gradeColor } from '@/lib/letterGrade';
+import { getLetterGrade, gradeColor, gradeTextColor } from '@/lib/letterGrade';
 
 interface GradeBadgeProps {
   percentile: number | null;
@@ -9,6 +9,7 @@ export default function GradeBadge({ percentile, size = 'small' }: GradeBadgePro
   if (percentile == null) return null;
   const grade = getLetterGrade(percentile);
   const color = gradeColor(grade);
+  const textColor = gradeTextColor(grade);
   const isLarge = size === 'large';
 
   return (
@@ -21,7 +22,7 @@ export default function GradeBadge({ percentile, size = 'small' }: GradeBadgePro
         borderRadius: '4px',
         fontSize: isLarge ? '20px' : '11px',
         fontWeight: 700,
-        color: '#fff',
+        color: textColor,
         background: color,
         verticalAlign: 'middle',
       }}

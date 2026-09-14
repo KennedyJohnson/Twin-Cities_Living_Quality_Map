@@ -12,7 +12,8 @@ import math
 import pandas as pd
 import json
 from pathlib import Path
-from core.load import load_housing, load_boundaries
+from core.load import load_housing, resolve_boundaries
+from core.date_window import filter_recent_years
 from shapely.geometry import Point, shape
 
 PIPELINE_DIR = Path(__file__).resolve().parent.parent
@@ -25,9 +26,10 @@ def _web_mercator_to_lonlat(x, y):
     lat = 180.0 / math.pi * (2 * math.atan(math.exp(lat * math.pi / 180.0)) - math.pi / 2.0)
     return lon, lat
 
-def clean_housing(fallback_behavior="exclude_from_scoring_if_geography_fails"):
+def clean_housing(fallback_behavior="exclude_from_scoring_if_geography_fails", granularity="district"):
     """
-    Clean housing data. Map to districts via spatial join of coordinates.
+    Clean housing data. Map to districts or zips via spatial join of
+    coordinates. granularity: 'district' or 'zip'.
 
     Supports two fallback behaviors:
     - "exclude_from_scoring_if_geography_fails": mark rows with no district_id
@@ -37,7 +39,9 @@ def clean_housing(fallback_behavior="exclude_from_scoring_if_geography_fails"):
         DataFrame with columns: housing_id (or index), district_id (may be NaN), ...
     """
     housing = load_housing()
-    boundaries = load_boundaries()
+    # Restricted to a shared recent-years window — see core/date_window.py.
+    housing = filter_recent_years(housing, "ProjectPermitIssueDate", epoch_ms=True)
+    boundaries = resolve_boundaries(city="stpaul", granularity=granularity)
 
     # Look for coordinate columns (latitude/longitude or x/y)
     has_lat = any(col.lower() in ["latitude", "lat"] for col in housing.columns)
@@ -109,6 +113,16 @@ def clean_housing(fallback_behavior="exclude_from_scoring_if_geography_fails"):
             # Mark all as unmapped; they will be excluded from scoring
             housing["district_id"] = None
             print("[WARNING] Housing data has no coordinate columns; all records marked for exclusion from scoring")
+
+    # Sum actual new dwelling units per project rather than counting rows —
+    # a single project permit can cover a multi-unit building, so counting
+    # rows undercounts large developments and overcounts single-unit
+    # remodel/addition permits equally with new construction. "value" is
+    # aggregate.py's convention for a column to sum instead of counting
+    # rows; this makes housing_rate_pc comparable with Minneapolis's
+    # dwellingUnitsNew-based figure (see clean_housing_mpls.py).
+    if "NewDwellingUnits" in housing.columns:
+        housing["value"] = pd.to_numeric(housing["NewDwellingUnits"], errors="coerce").fillna(0)
 
     return housing
 

@@ -23,7 +23,7 @@ from core.http_cache import cached_get
 import pandas as pd
 from pathlib import Path
 from shapely.geometry import Point, shape
-from core.load import load_boundaries
+from core.load import resolve_boundaries
 
 PIPELINE_DIR = Path(__file__).resolve().parent.parent
 PLACES_URL = "https://data.cdc.gov/resource/cwsq-ngmh.json"
@@ -68,15 +68,16 @@ def _fetch_places_tracts(county_name, measure_id):
     return pd.DataFrame(records)
 
 
-def clean_health(fallback_behavior="exclude_from_scoring_if_geography_fails", city="stpaul"):
+def clean_health(fallback_behavior="exclude_from_scoring_if_geography_fails", city="stpaul", granularity="district"):
     """
     Fetch CDC PLACES obesity + diabetes prevalence per tract, convert each
-    to an estimated affected-resident count, and join to districts via
-    tract centroid point-in-polygon. city: 'stpaul' or 'mpls'.
+    to an estimated affected-resident count, and join to districts or zips
+    via tract centroid point-in-polygon. city: 'stpaul' or 'mpls'.
+    granularity: 'district' or 'zip'.
 
     Returns:
         DataFrame with columns: geoid, district_id, value (estimated
-        affected residents; aggregate_by_source() sums this per district)
+        affected residents; aggregate_by_source() sums this per zone)
     """
     county_name = CITY_COUNTY_NAME[city]
 
@@ -96,7 +97,7 @@ def clean_health(fallback_behavior="exclude_from_scoring_if_geography_fails", ci
 
     combined["affected_count"] = combined["prevalence_pct"] / 100 * combined["population"]
 
-    boundaries = load_boundaries(city=city)
+    boundaries = resolve_boundaries(city=city, granularity=granularity)
     boundary_map = {}
     for feature in boundaries["features"]:
         district_id = feature["properties"]["district_id"]

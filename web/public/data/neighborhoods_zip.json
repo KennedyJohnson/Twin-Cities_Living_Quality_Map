@@ -1,0 +1,1972 @@
+{
+  "neighborhoods": [
+    {
+      "district_id": 55101,
+      "district_name": "ZIP 55101",
+      "population": 8755,
+      "metrics": {
+        "crime_rate_pc": {
+          "raw_count": 12826,
+          "rate_per_1000": 1464.99
+        },
+        "permit_rate_pc": {
+          "raw_count": 1350,
+          "rate_per_1000": 154.2
+        },
+        "unemployment_rate_pc": {
+          "raw_count": 429,
+          "rate_per_1000": 49.0
+        },
+        "housing_inventory_pc": {
+          "raw_count": 73,
+          "rate_per_1000": 8.34
+        },
+        "trail_km_pc": {
+          "raw_count": 56,
+          "rate_per_1000": 6.4
+        },
+        "transit_stops_pc": {
+          "raw_count": 192,
+          "rate_per_1000": 21.93
+        },
+        "schools_pc": {
+          "raw_count": 2,
+          "rate_per_1000": 0.23
+        },
+        "grocery_pc": {
+          "raw_count": 0,
+          "rate_per_1000": 0.0
+        },
+        "restaurants_pc": {
+          "raw_count": 90,
+          "rate_per_1000": 10.28
+        },
+        "traffic_vkm_pc": {
+          "raw_count": 1959437,
+          "rate_per_1000": 223807.79
+        },
+        "healthcare_pc": {
+          "raw_count": 8,
+          "rate_per_1000": 0.91
+        },
+        "chronic_disease_pc": {
+          "raw_count": 4048,
+          "rate_per_1000": 462.46
+        },
+        "crash_rate_pc": {
+          "raw_count": 168,
+          "rate_per_1000": 19.19
+        },
+        "disaster_risk_pc": {
+          "raw_count": 4269,
+          "rate_per_1000": 487.65
+        }
+      },
+      "indices": {
+        "safety": 29.77,
+        "opportunity": NaN,
+        "amenities": 44.62,
+        "transportation": 56.85,
+        "affordability": 44.51,
+        "walkability_score": 63.85,
+        "broadband_score": 22.69
+      },
+      "health_score": NaN
+    },
+    {
+      "district_id": 55102,
+      "district_name": "ZIP 55102",
+      "population": 20967,
+      "metrics": {
+        "crime_rate_pc": {
+          "raw_count": 13821,
+          "rate_per_1000": 659.18
+        },
+        "permit_rate_pc": {
+          "raw_count": 5442,
+          "rate_per_1000": 259.55
+        },
+        "unemployment_rate_pc": {
+          "raw_count": 726,
+          "rate_per_1000": 34.63
+        },
+        "housing_inventory_pc": {
+          "raw_count": 106,
+          "rate_per_1000": 5.06
+        },
+        "trail_km_pc": {
+          "raw_count": 118,
+          "rate_per_1000": 5.66
+        },
+        "transit_stops_pc": {
+          "raw_count": 186,
+          "rate_per_1000": 8.87
+        },
+        "schools_pc": {
+          "raw_count": 10,
+          "rate_per_1000": 0.48
+        },
+        "grocery_pc": {
+          "raw_count": 4,
+          "rate_per_1000": 0.19
+        },
+        "restaurants_pc": {
+          "raw_count": 130,
+          "rate_per_1000": 6.2
+        },
+        "traffic_vkm_pc": {
+          "raw_count": 2334300,
+          "rate_per_1000": 111332.11
+        },
+        "healthcare_pc": {
+          "raw_count": 10,
+          "rate_per_1000": 0.48
+        },
+        "chronic_disease_pc": {
+          "raw_count": 8407,
+          "rate_per_1000": 400.98
+        },
+        "crash_rate_pc": {
+          "raw_count": 206,
+          "rate_per_1000": 9.82
+        },
+        "disaster_risk_pc": {
+          "raw_count": 6172,
+          "rate_per_1000": 294.38
+        }
+      },
+      "indices": {
+        "safety": 54.47,
+        "opportunity": NaN,
+        "amenities": 45.24,
+        "transportation": 45.74,
+        "affordability": 58.82,
+        "walkability_score": 51.35,
+        "broadband_score": 41.5
+      },
+      "health_score": NaN
+    },
+    {
+      "district_id": 55103,
+      "district_name": "ZIP 55103",
+      "population": 12052,
+      "metrics": {
+        "crime_rate_pc": {
+          "raw_count": 6120,
+          "rate_per_1000": 507.8
+        },
+        "permit_rate_pc": {
+          "raw_count": 2756,
+          "rate_per_1000": 228.68
+        },
+        "unemployment_rate_pc": {
+          "raw_count": 300,
+          "rate_per_1000": 24.89
+        },
+        "housing_inventory_pc": {
+          "raw_count": 23,
+          "rate_per_1000": 1.91
+        },
+        "trail_km_pc": {
+          "raw_count": 47,
+          "rate_per_1000": 3.95
+        },
+        "transit_stops_pc": {
+          "raw_count": 196,
+          "rate_per_1000": 16.26
+        },
+        "schools_pc": {
+          "raw_count": 14,
+          "rate_per_1000": 1.16
+        },
+        "grocery_pc": {
+          "raw_count": 6,
+          "rate_per_1000": 0.5
+        },
+        "restaurants_pc": {
+          "raw_count": 38,
+          "rate_per_1000": 3.15
+        },
+        "traffic_vkm_pc": {
+          "raw_count": 845355,
+          "rate_per_1000": 70142.3
+        },
+        "healthcare_pc": {
+          "raw_count": 0,
+          "rate_per_1000": 0.0
+        },
+        "chronic_disease_pc": {
+          "raw_count": 7047,
+          "rate_per_1000": 584.74
+        },
+        "crash_rate_pc": {
+          "raw_count": 178,
+          "rate_per_1000": 14.77
+        },
+        "disaster_risk_pc": {
+          "raw_count": 2067,
+          "rate_per_1000": 171.54
+        }
+      },
+      "indices": {
+        "safety": 48.73,
+        "opportunity": NaN,
+        "amenities": 48.55,
+        "transportation": 53.86,
+        "affordability": 49.67,
+        "walkability_score": 53.38,
+        "broadband_score": 22.69
+      },
+      "health_score": NaN
+    },
+    {
+      "district_id": 55104,
+      "district_name": "ZIP 55104",
+      "population": 41975,
+      "metrics": {
+        "crime_rate_pc": {
+          "raw_count": 16824,
+          "rate_per_1000": 400.81
+        },
+        "permit_rate_pc": {
+          "raw_count": 13375,
+          "rate_per_1000": 318.64
+        },
+        "unemployment_rate_pc": {
+          "raw_count": 1868,
+          "rate_per_1000": 44.5
+        },
+        "housing_inventory_pc": {
+          "raw_count": 92,
+          "rate_per_1000": 2.19
+        },
+        "trail_km_pc": {
+          "raw_count": 103,
+          "rate_per_1000": 2.47
+        },
+        "transit_stops_pc": {
+          "raw_count": 374,
+          "rate_per_1000": 8.91
+        },
+        "schools_pc": {
+          "raw_count": 42,
+          "rate_per_1000": 1.0
+        },
+        "grocery_pc": {
+          "raw_count": 24,
+          "rate_per_1000": 0.57
+        },
+        "restaurants_pc": {
+          "raw_count": 140,
+          "rate_per_1000": 3.34
+        },
+        "traffic_vkm_pc": {
+          "raw_count": 3634085,
+          "rate_per_1000": 86577.38
+        },
+        "healthcare_pc": {
+          "raw_count": 18,
+          "rate_per_1000": 0.43
+        },
+        "chronic_disease_pc": {
+          "raw_count": 17912,
+          "rate_per_1000": 426.74
+        },
+        "crash_rate_pc": {
+          "raw_count": 534,
+          "rate_per_1000": 12.72
+        },
+        "disaster_risk_pc": {
+          "raw_count": 14093,
+          "rate_per_1000": 335.76
+        }
+      },
+      "indices": {
+        "safety": 53.85,
+        "opportunity": NaN,
+        "amenities": 56.98,
+        "transportation": 39.65,
+        "affordability": 57.95,
+        "walkability_score": 50.88,
+        "broadband_score": 52.45
+      },
+      "health_score": NaN
+    },
+    {
+      "district_id": 55105,
+      "district_name": "ZIP 55105",
+      "population": 26046,
+      "metrics": {
+        "crime_rate_pc": {
+          "raw_count": 5368,
+          "rate_per_1000": 206.1
+        },
+        "permit_rate_pc": {
+          "raw_count": 12496,
+          "rate_per_1000": 479.77
+        },
+        "unemployment_rate_pc": {
+          "raw_count": 585,
+          "rate_per_1000": 22.46
+        },
+        "housing_inventory_pc": {
+          "raw_count": 74,
+          "rate_per_1000": 2.84
+        },
+        "trail_km_pc": {
+          "raw_count": 86,
+          "rate_per_1000": 3.34
+        },
+        "transit_stops_pc": {
+          "raw_count": 220,
+          "rate_per_1000": 8.45
+        },
+        "schools_pc": {
+          "raw_count": 18,
+          "rate_per_1000": 0.69
+        },
+        "grocery_pc": {
+          "raw_count": 8,
+          "rate_per_1000": 0.31
+        },
+        "restaurants_pc": {
+          "raw_count": 140,
+          "rate_per_1000": 5.38
+        },
+        "traffic_vkm_pc": {
+          "raw_count": 865529,
+          "rate_per_1000": 33230.81
+        },
+        "healthcare_pc": {
+          "raw_count": 12,
+          "rate_per_1000": 0.46
+        },
+        "chronic_disease_pc": {
+          "raw_count": 9439,
+          "rate_per_1000": 362.42
+        },
+        "crash_rate_pc": {
+          "raw_count": 138,
+          "rate_per_1000": 5.3
+        },
+        "disaster_risk_pc": {
+          "raw_count": 9594,
+          "rate_per_1000": 368.35
+        }
+      },
+      "indices": {
+        "safety": 63.39,
+        "opportunity": NaN,
+        "amenities": 55.13,
+        "transportation": 47.38,
+        "affordability": 58.74,
+        "walkability_score": 48.62,
+        "broadband_score": 80.56
+      },
+      "health_score": NaN
+    },
+    {
+      "district_id": 55106,
+      "district_name": "ZIP 55106",
+      "population": 62114,
+      "metrics": {
+        "crime_rate_pc": {
+          "raw_count": 10077,
+          "rate_per_1000": 162.23
+        },
+        "permit_rate_pc": {
+          "raw_count": 11389,
+          "rate_per_1000": 183.36
+        },
+        "unemployment_rate_pc": {
+          "raw_count": 1942,
+          "rate_per_1000": 31.27
+        },
+        "housing_inventory_pc": {
+          "raw_count": 154,
+          "rate_per_1000": 2.48
+        },
+        "trail_km_pc": {
+          "raw_count": 215,
+          "rate_per_1000": 3.47
+        },
+        "transit_stops_pc": {
+          "raw_count": 436,
+          "rate_per_1000": 7.02
+        },
+        "schools_pc": {
+          "raw_count": 24,
+          "rate_per_1000": 0.39
+        },
+        "grocery_pc": {
+          "raw_count": 20,
+          "rate_per_1000": 0.32
+        },
+        "restaurants_pc": {
+          "raw_count": 60,
+          "rate_per_1000": 0.97
+        },
+        "traffic_vkm_pc": {
+          "raw_count": 2671756,
+          "rate_per_1000": 43013.76
+        },
+        "healthcare_pc": {
+          "raw_count": 14,
+          "rate_per_1000": 0.23
+        },
+        "chronic_disease_pc": {
+          "raw_count": 29406,
+          "rate_per_1000": 473.43
+        },
+        "crash_rate_pc": {
+          "raw_count": 446,
+          "rate_per_1000": 7.18
+        },
+        "disaster_risk_pc": {
+          "raw_count": 26764,
+          "rate_per_1000": 430.9
+        }
+      },
+      "indices": {
+        "safety": 55.58,
+        "opportunity": NaN,
+        "amenities": 42.03,
+        "transportation": 41.29,
+        "affordability": 57.89,
+        "walkability_score": 35.09,
+        "broadband_score": 63.17
+      },
+      "health_score": NaN
+    },
+    {
+      "district_id": 55107,
+      "district_name": "ZIP 55107",
+      "population": 15728,
+      "metrics": {
+        "crime_rate_pc": {
+          "raw_count": 7847,
+          "rate_per_1000": 498.92
+        },
+        "permit_rate_pc": {
+          "raw_count": 3947,
+          "rate_per_1000": 250.95
+        },
+        "unemployment_rate_pc": {
+          "raw_count": 619,
+          "rate_per_1000": 39.36
+        },
+        "housing_inventory_pc": {
+          "raw_count": 46,
+          "rate_per_1000": 2.92
+        },
+        "trail_km_pc": {
+          "raw_count": 74,
+          "rate_per_1000": 4.75
+        },
+        "transit_stops_pc": {
+          "raw_count": 244,
+          "rate_per_1000": 15.51
+        },
+        "schools_pc": {
+          "raw_count": 8,
+          "rate_per_1000": 0.51
+        },
+        "grocery_pc": {
+          "raw_count": 4,
+          "rate_per_1000": 0.25
+        },
+        "restaurants_pc": {
+          "raw_count": 34,
+          "rate_per_1000": 2.16
+        },
+        "traffic_vkm_pc": {
+          "raw_count": 776123,
+          "rate_per_1000": 49346.63
+        },
+        "healthcare_pc": {
+          "raw_count": 6,
+          "rate_per_1000": 0.38
+        },
+        "chronic_disease_pc": {
+          "raw_count": 7601,
+          "rate_per_1000": 483.32
+        },
+        "crash_rate_pc": {
+          "raw_count": 100,
+          "rate_per_1000": 6.36
+        },
+        "disaster_risk_pc": {
+          "raw_count": 7353,
+          "rate_per_1000": 467.53
+        }
+      },
+      "indices": {
+        "safety": 49.91,
+        "opportunity": NaN,
+        "amenities": 39.93,
+        "transportation": 53.69,
+        "affordability": 54.66,
+        "walkability_score": 38.5,
+        "broadband_score": 31.34
+      },
+      "health_score": NaN
+    },
+    {
+      "district_id": 55114,
+      "district_name": "ZIP 55114",
+      "population": 7574,
+      "metrics": {
+        "crime_rate_pc": {
+          "raw_count": 2820,
+          "rate_per_1000": 372.33
+        },
+        "permit_rate_pc": {
+          "raw_count": 1379,
+          "rate_per_1000": 182.07
+        },
+        "unemployment_rate_pc": {
+          "raw_count": 110,
+          "rate_per_1000": 14.52
+        },
+        "housing_inventory_pc": {
+          "raw_count": 14,
+          "rate_per_1000": 1.85
+        },
+        "trail_km_pc": {
+          "raw_count": 14,
+          "rate_per_1000": 1.95
+        },
+        "transit_stops_pc": {
+          "raw_count": 42,
+          "rate_per_1000": 5.55
+        },
+        "schools_pc": {
+          "raw_count": 12,
+          "rate_per_1000": 1.58
+        },
+        "grocery_pc": {
+          "raw_count": 8,
+          "rate_per_1000": 1.06
+        },
+        "restaurants_pc": {
+          "raw_count": 30,
+          "rate_per_1000": 3.96
+        },
+        "traffic_vkm_pc": {
+          "raw_count": 639260,
+          "rate_per_1000": 84402.0
+        },
+        "healthcare_pc": {
+          "raw_count": 8,
+          "rate_per_1000": 1.06
+        },
+        "chronic_disease_pc": {
+          "raw_count": 2895,
+          "rate_per_1000": 382.35
+        },
+        "crash_rate_pc": {
+          "raw_count": 54,
+          "rate_per_1000": 7.13
+        },
+        "disaster_risk_pc": {
+          "raw_count": 4860,
+          "rate_per_1000": 641.78
+        }
+      },
+      "indices": {
+        "safety": 52.07,
+        "opportunity": NaN,
+        "amenities": 72.63,
+        "transportation": 37.19,
+        "affordability": 43.41,
+        "walkability_score": 55.17,
+        "broadband_score": 52.45
+      },
+      "health_score": NaN
+    },
+    {
+      "district_id": 55116,
+      "district_name": "ZIP 55116",
+      "population": 27325,
+      "metrics": {
+        "crime_rate_pc": {
+          "raw_count": 2378,
+          "rate_per_1000": 87.03
+        },
+        "permit_rate_pc": {
+          "raw_count": 10219,
+          "rate_per_1000": 373.98
+        },
+        "unemployment_rate_pc": {
+          "raw_count": 448,
+          "rate_per_1000": 16.4
+        },
+        "housing_inventory_pc": {
+          "raw_count": 62,
+          "rate_per_1000": 2.27
+        },
+        "trail_km_pc": {
+          "raw_count": 195,
+          "rate_per_1000": 7.15
+        },
+        "transit_stops_pc": {
+          "raw_count": 210,
+          "rate_per_1000": 7.69
+        },
+        "schools_pc": {
+          "raw_count": 24,
+          "rate_per_1000": 0.88
+        },
+        "grocery_pc": {
+          "raw_count": 8,
+          "rate_per_1000": 0.29
+        },
+        "restaurants_pc": {
+          "raw_count": 74,
+          "rate_per_1000": 2.71
+        },
+        "traffic_vkm_pc": {
+          "raw_count": 969779,
+          "rate_per_1000": 35490.55
+        },
+        "healthcare_pc": {
+          "raw_count": 14,
+          "rate_per_1000": 0.51
+        },
+        "chronic_disease_pc": {
+          "raw_count": 11152,
+          "rate_per_1000": 408.14
+        },
+        "crash_rate_pc": {
+          "raw_count": 92,
+          "rate_per_1000": 3.37
+        },
+        "disaster_risk_pc": {
+          "raw_count": 10860,
+          "rate_per_1000": 397.45
+        }
+      },
+      "indices": {
+        "safety": 62.73,
+        "opportunity": NaN,
+        "amenities": 52.08,
+        "transportation": 54.45,
+        "affordability": 55.59,
+        "walkability_score": 41.62,
+        "broadband_score": 63.17
+      },
+      "health_score": NaN
+    },
+    {
+      "district_id": 55130,
+      "district_name": "ZIP 55130",
+      "population": 14659,
+      "metrics": {
+        "crime_rate_pc": {
+          "raw_count": 6525,
+          "rate_per_1000": 445.12
+        },
+        "permit_rate_pc": {
+          "raw_count": 2704,
+          "rate_per_1000": 184.46
+        },
+        "unemployment_rate_pc": {
+          "raw_count": 314,
+          "rate_per_1000": 21.42
+        },
+        "housing_inventory_pc": {
+          "raw_count": 36,
+          "rate_per_1000": 2.46
+        },
+        "trail_km_pc": {
+          "raw_count": 45,
+          "rate_per_1000": 3.13
+        },
+        "transit_stops_pc": {
+          "raw_count": 180,
+          "rate_per_1000": 12.28
+        },
+        "schools_pc": {
+          "raw_count": 2,
+          "rate_per_1000": 0.14
+        },
+        "grocery_pc": {
+          "raw_count": 10,
+          "rate_per_1000": 0.68
+        },
+        "restaurants_pc": {
+          "raw_count": 24,
+          "rate_per_1000": 1.64
+        },
+        "traffic_vkm_pc": {
+          "raw_count": 1607443,
+          "rate_per_1000": 109655.76
+        },
+        "healthcare_pc": {
+          "raw_count": 8,
+          "rate_per_1000": 0.55
+        },
+        "chronic_disease_pc": {
+          "raw_count": 7388,
+          "rate_per_1000": 504.02
+        },
+        "crash_rate_pc": {
+          "raw_count": 138,
+          "rate_per_1000": 9.41
+        },
+        "disaster_risk_pc": {
+          "raw_count": 5997,
+          "rate_per_1000": 409.1
+        }
+      },
+      "indices": {
+        "safety": 49.67,
+        "opportunity": NaN,
+        "amenities": 42.58,
+        "transportation": 40.45,
+        "affordability": 50.75,
+        "walkability_score": 45.72,
+        "broadband_score": 15.88
+      },
+      "health_score": NaN
+    },
+    {
+      "district_id": 55155,
+      "district_name": "ZIP 55155",
+      "population": 2911,
+      "metrics": {
+        "crime_rate_pc": {
+          "raw_count": 11144,
+          "rate_per_1000": 3828.24
+        },
+        "permit_rate_pc": {
+          "raw_count": 252,
+          "rate_per_1000": 86.57
+        },
+        "unemployment_rate_pc": {
+          "raw_count": 46,
+          "rate_per_1000": 15.8
+        },
+        "trail_km_pc": {
+          "raw_count": 15,
+          "rate_per_1000": 5.39
+        },
+        "transit_stops_pc": {
+          "raw_count": 32,
+          "rate_per_1000": 10.99
+        },
+        "schools_pc": {
+          "raw_count": 0,
+          "rate_per_1000": 0.0
+        },
+        "grocery_pc": {
+          "raw_count": 0,
+          "rate_per_1000": 0.0
+        },
+        "restaurants_pc": {
+          "raw_count": 2,
+          "rate_per_1000": 0.69
+        },
+        "traffic_vkm_pc": {
+          "raw_count": 123973,
+          "rate_per_1000": 42588.11
+        },
+        "healthcare_pc": {
+          "raw_count": 0,
+          "rate_per_1000": 0.0
+        },
+        "chronic_disease_pc": {
+          "raw_count": 1485,
+          "rate_per_1000": 510.2
+        },
+        "crash_rate_pc": {
+          "raw_count": 8,
+          "rate_per_1000": 2.75
+        },
+        "disaster_risk_pc": {
+          "raw_count": 1648,
+          "rate_per_1000": 566.16
+        }
+      },
+      "indices": {
+        "safety": 26.79,
+        "opportunity": 42.29,
+        "amenities": 28.17,
+        "transportation": 58.44,
+        "affordability": 48.98,
+        "walkability_score": 60.87,
+        "broadband_score": 52.45
+      },
+      "health_score": 40.93
+    },
+    {
+      "district_id": 55401,
+      "district_name": "ZIP 55401",
+      "population": 7216,
+      "metrics": {
+        "crime_rate_pc": {
+          "raw_count": 7685,
+          "rate_per_1000": 1064.99
+        },
+        "permit_rate_pc": {
+          "raw_count": 5096,
+          "rate_per_1000": 706.21
+        },
+        "unemployment_rate_pc": {
+          "raw_count": 68,
+          "rate_per_1000": 9.42
+        },
+        "housing_inventory_pc": {
+          "raw_count": 148,
+          "rate_per_1000": 20.51
+        },
+        "trail_km_pc": {
+          "raw_count": 50,
+          "rate_per_1000": 7.04
+        },
+        "transit_stops_pc": {
+          "raw_count": 216,
+          "rate_per_1000": 29.93
+        },
+        "schools_pc": {
+          "raw_count": 2,
+          "rate_per_1000": 0.28
+        },
+        "grocery_pc": {
+          "raw_count": 2,
+          "rate_per_1000": 0.28
+        },
+        "restaurants_pc": {
+          "raw_count": 186,
+          "rate_per_1000": 25.78
+        },
+        "traffic_vkm_pc": {
+          "raw_count": 440924,
+          "rate_per_1000": 61103.76
+        },
+        "healthcare_pc": {
+          "raw_count": 6,
+          "rate_per_1000": 0.83
+        },
+        "chronic_disease_pc": {
+          "raw_count": 1892,
+          "rate_per_1000": 262.26
+        },
+        "crash_rate_pc": {
+          "raw_count": 248,
+          "rate_per_1000": 34.37
+        },
+        "disaster_risk_pc": {
+          "raw_count": 3320,
+          "rate_per_1000": 460.21
+        }
+      },
+      "indices": {
+        "safety": 39.44,
+        "opportunity": NaN,
+        "amenities": 60.66,
+        "transportation": 75.52,
+        "affordability": 56.08,
+        "walkability_score": 72.29,
+        "broadband_score": 63.17
+      },
+      "health_score": NaN
+    },
+    {
+      "district_id": 55403,
+      "district_name": "ZIP 55403",
+      "population": 23586,
+      "metrics": {
+        "crime_rate_pc": {
+          "raw_count": 12529,
+          "rate_per_1000": 531.2
+        },
+        "permit_rate_pc": {
+          "raw_count": 11242,
+          "rate_per_1000": 476.64
+        },
+        "unemployment_rate_pc": {
+          "raw_count": 873,
+          "rate_per_1000": 37.01
+        },
+        "housing_inventory_pc": {
+          "raw_count": 107,
+          "rate_per_1000": 4.54
+        },
+        "trail_km_pc": {
+          "raw_count": 91,
+          "rate_per_1000": 3.87
+        },
+        "transit_stops_pc": {
+          "raw_count": 210,
+          "rate_per_1000": 8.9
+        },
+        "schools_pc": {
+          "raw_count": 12,
+          "rate_per_1000": 0.51
+        },
+        "grocery_pc": {
+          "raw_count": 2,
+          "rate_per_1000": 0.08
+        },
+        "restaurants_pc": {
+          "raw_count": 98,
+          "rate_per_1000": 4.16
+        },
+        "traffic_vkm_pc": {
+          "raw_count": 2011173,
+          "rate_per_1000": 85269.81
+        },
+        "healthcare_pc": {
+          "raw_count": 6,
+          "rate_per_1000": 0.25
+        },
+        "chronic_disease_pc": {
+          "raw_count": 8045,
+          "rate_per_1000": 341.13
+        },
+        "crash_rate_pc": {
+          "raw_count": 418,
+          "rate_per_1000": 17.72
+        },
+        "disaster_risk_pc": {
+          "raw_count": 9179,
+          "rate_per_1000": 389.18
+        }
+      },
+      "indices": {
+        "safety": 51.57,
+        "opportunity": NaN,
+        "amenities": 38.93,
+        "transportation": 47.32,
+        "affordability": 48.14,
+        "walkability_score": 63.5,
+        "broadband_score": 41.5
+      },
+      "health_score": NaN
+    },
+    {
+      "district_id": 55404,
+      "district_name": "ZIP 55404",
+      "population": 29010,
+      "metrics": {
+        "crime_rate_pc": {
+          "raw_count": 19479,
+          "rate_per_1000": 671.46
+        },
+        "permit_rate_pc": {
+          "raw_count": 4307,
+          "rate_per_1000": 148.47
+        },
+        "unemployment_rate_pc": {
+          "raw_count": 1534,
+          "rate_per_1000": 52.88
+        },
+        "housing_inventory_pc": {
+          "raw_count": 73,
+          "rate_per_1000": 2.52
+        },
+        "trail_km_pc": {
+          "raw_count": 51,
+          "rate_per_1000": 1.76
+        },
+        "transit_stops_pc": {
+          "raw_count": 308,
+          "rate_per_1000": 10.62
+        },
+        "schools_pc": {
+          "raw_count": 18,
+          "rate_per_1000": 0.62
+        },
+        "grocery_pc": {
+          "raw_count": 10,
+          "rate_per_1000": 0.34
+        },
+        "restaurants_pc": {
+          "raw_count": 92,
+          "rate_per_1000": 3.17
+        },
+        "traffic_vkm_pc": {
+          "raw_count": 2664661,
+          "rate_per_1000": 91853.19
+        },
+        "healthcare_pc": {
+          "raw_count": 30,
+          "rate_per_1000": 1.03
+        },
+        "chronic_disease_pc": {
+          "raw_count": 14478,
+          "rate_per_1000": 499.1
+        },
+        "crash_rate_pc": {
+          "raw_count": 654,
+          "rate_per_1000": 22.54
+        },
+        "disaster_risk_pc": {
+          "raw_count": 14277,
+          "rate_per_1000": 492.17
+        }
+      },
+      "indices": {
+        "safety": 36.47,
+        "opportunity": NaN,
+        "amenities": 48.68,
+        "transportation": 43.8,
+        "affordability": 39.6,
+        "walkability_score": 66.29,
+        "broadband_score": 15.88
+      },
+      "health_score": NaN
+    },
+    {
+      "district_id": 55405,
+      "district_name": "ZIP 55405",
+      "population": 19170,
+      "metrics": {
+        "crime_rate_pc": {
+          "raw_count": 7675,
+          "rate_per_1000": 400.37
+        },
+        "permit_rate_pc": {
+          "raw_count": 7254,
+          "rate_per_1000": 378.4
+        },
+        "unemployment_rate_pc": {
+          "raw_count": 677,
+          "rate_per_1000": 35.32
+        },
+        "housing_inventory_pc": {
+          "raw_count": 61,
+          "rate_per_1000": 3.18
+        },
+        "trail_km_pc": {
+          "raw_count": 156,
+          "rate_per_1000": 8.16
+        },
+        "transit_stops_pc": {
+          "raw_count": 210,
+          "rate_per_1000": 10.95
+        },
+        "schools_pc": {
+          "raw_count": 14,
+          "rate_per_1000": 0.73
+        },
+        "grocery_pc": {
+          "raw_count": 6,
+          "rate_per_1000": 0.31
+        },
+        "restaurants_pc": {
+          "raw_count": 62,
+          "rate_per_1000": 3.23
+        },
+        "traffic_vkm_pc": {
+          "raw_count": 1300695,
+          "rate_per_1000": 67850.56
+        },
+        "healthcare_pc": {
+          "raw_count": 10,
+          "rate_per_1000": 0.52
+        },
+        "chronic_disease_pc": {
+          "raw_count": 6014,
+          "rate_per_1000": 313.74
+        },
+        "crash_rate_pc": {
+          "raw_count": 188,
+          "rate_per_1000": 9.81
+        },
+        "disaster_risk_pc": {
+          "raw_count": 4926,
+          "rate_per_1000": 257.0
+        }
+      },
+      "indices": {
+        "safety": 63.27,
+        "opportunity": NaN,
+        "amenities": 51.35,
+        "transportation": 58.38,
+        "affordability": 52.95,
+        "walkability_score": 51.95,
+        "broadband_score": 63.17
+      },
+      "health_score": NaN
+    },
+    {
+      "district_id": 55406,
+      "district_name": "ZIP 55406",
+      "population": 34248,
+      "metrics": {
+        "crime_rate_pc": {
+          "raw_count": 13493,
+          "rate_per_1000": 393.98
+        },
+        "permit_rate_pc": {
+          "raw_count": 20949,
+          "rate_per_1000": 611.69
+        },
+        "unemployment_rate_pc": {
+          "raw_count": 1246,
+          "rate_per_1000": 36.38
+        },
+        "housing_inventory_pc": {
+          "raw_count": 90,
+          "rate_per_1000": 2.63
+        },
+        "trail_km_pc": {
+          "raw_count": 127,
+          "rate_per_1000": 3.71
+        },
+        "transit_stops_pc": {
+          "raw_count": 532,
+          "rate_per_1000": 15.53
+        },
+        "schools_pc": {
+          "raw_count": 40,
+          "rate_per_1000": 1.17
+        },
+        "grocery_pc": {
+          "raw_count": 14,
+          "rate_per_1000": 0.41
+        },
+        "restaurants_pc": {
+          "raw_count": 106,
+          "rate_per_1000": 3.1
+        },
+        "traffic_vkm_pc": {
+          "raw_count": 1123621,
+          "rate_per_1000": 32808.39
+        },
+        "healthcare_pc": {
+          "raw_count": 12,
+          "rate_per_1000": 0.35
+        },
+        "chronic_disease_pc": {
+          "raw_count": 11837,
+          "rate_per_1000": 345.64
+        },
+        "crash_rate_pc": {
+          "raw_count": 242,
+          "rate_per_1000": 7.07
+        },
+        "disaster_risk_pc": {
+          "raw_count": 9050,
+          "rate_per_1000": 264.28
+        }
+      },
+      "indices": {
+        "safety": 63.45,
+        "opportunity": NaN,
+        "amenities": 54.55,
+        "transportation": 55.77,
+        "affordability": 64.93,
+        "walkability_score": 49.17,
+        "broadband_score": 52.45
+      },
+      "health_score": NaN
+    },
+    {
+      "district_id": 55407,
+      "district_name": "ZIP 55407",
+      "population": 38663,
+      "metrics": {
+        "crime_rate_pc": {
+          "raw_count": 18468,
+          "rate_per_1000": 477.67
+        },
+        "permit_rate_pc": {
+          "raw_count": 13548,
+          "rate_per_1000": 350.41
+        },
+        "unemployment_rate_pc": {
+          "raw_count": 1477,
+          "rate_per_1000": 38.2
+        },
+        "housing_inventory_pc": {
+          "raw_count": 95,
+          "rate_per_1000": 2.46
+        },
+        "trail_km_pc": {
+          "raw_count": 97,
+          "rate_per_1000": 2.52
+        },
+        "transit_stops_pc": {
+          "raw_count": 494,
+          "rate_per_1000": 12.78
+        },
+        "schools_pc": {
+          "raw_count": 30,
+          "rate_per_1000": 0.78
+        },
+        "grocery_pc": {
+          "raw_count": 10,
+          "rate_per_1000": 0.26
+        },
+        "restaurants_pc": {
+          "raw_count": 132,
+          "rate_per_1000": 3.41
+        },
+        "traffic_vkm_pc": {
+          "raw_count": 774915,
+          "rate_per_1000": 20042.83
+        },
+        "healthcare_pc": {
+          "raw_count": 24,
+          "rate_per_1000": 0.62
+        },
+        "chronic_disease_pc": {
+          "raw_count": 15264,
+          "rate_per_1000": 394.82
+        },
+        "crash_rate_pc": {
+          "raw_count": 526,
+          "rate_per_1000": 13.6
+        },
+        "disaster_risk_pc": {
+          "raw_count": 12130,
+          "rate_per_1000": 313.76
+        }
+      },
+      "indices": {
+        "safety": 54.42,
+        "opportunity": NaN,
+        "amenities": 47.43,
+        "transportation": 50.04,
+        "affordability": 57.39,
+        "walkability_score": 45.43,
+        "broadband_score": 31.34
+      },
+      "health_score": NaN
+    },
+    {
+      "district_id": 55408,
+      "district_name": "ZIP 55408",
+      "population": 37113,
+      "metrics": {
+        "crime_rate_pc": {
+          "raw_count": 20811,
+          "rate_per_1000": 560.75
+        },
+        "permit_rate_pc": {
+          "raw_count": 7777,
+          "rate_per_1000": 209.55
+        },
+        "unemployment_rate_pc": {
+          "raw_count": 1685,
+          "rate_per_1000": 45.4
+        },
+        "housing_inventory_pc": {
+          "raw_count": 102,
+          "rate_per_1000": 2.75
+        },
+        "trail_km_pc": {
+          "raw_count": 81,
+          "rate_per_1000": 2.2
+        },
+        "transit_stops_pc": {
+          "raw_count": 282,
+          "rate_per_1000": 7.6
+        },
+        "schools_pc": {
+          "raw_count": 8,
+          "rate_per_1000": 0.22
+        },
+        "grocery_pc": {
+          "raw_count": 18,
+          "rate_per_1000": 0.49
+        },
+        "restaurants_pc": {
+          "raw_count": 264,
+          "rate_per_1000": 7.11
+        },
+        "traffic_vkm_pc": {
+          "raw_count": 1491412,
+          "rate_per_1000": 40185.72
+        },
+        "healthcare_pc": {
+          "raw_count": 28,
+          "rate_per_1000": 0.75
+        },
+        "chronic_disease_pc": {
+          "raw_count": 12611,
+          "rate_per_1000": 339.82
+        },
+        "crash_rate_pc": {
+          "raw_count": 638,
+          "rate_per_1000": 17.19
+        },
+        "disaster_risk_pc": {
+          "raw_count": 10447,
+          "rate_per_1000": 281.51
+        }
+      },
+      "indices": {
+        "safety": 54.5,
+        "opportunity": NaN,
+        "amenities": 56.91,
+        "transportation": 43.63,
+        "affordability": 49.14,
+        "walkability_score": 50.75,
+        "broadband_score": 72.72
+      },
+      "health_score": NaN
+    },
+    {
+      "district_id": 55409,
+      "district_name": "ZIP 55409",
+      "population": 7290,
+      "metrics": {
+        "crime_rate_pc": {
+          "raw_count": 3961,
+          "rate_per_1000": 543.35
+        },
+        "permit_rate_pc": {
+          "raw_count": 5049,
+          "rate_per_1000": 692.59
+        },
+        "unemployment_rate_pc": {
+          "raw_count": 275,
+          "rate_per_1000": 37.72
+        },
+        "housing_inventory_pc": {
+          "raw_count": 33,
+          "rate_per_1000": 4.53
+        },
+        "trail_km_pc": {
+          "raw_count": 29,
+          "rate_per_1000": 3.98
+        },
+        "transit_stops_pc": {
+          "raw_count": 186,
+          "rate_per_1000": 25.51
+        },
+        "schools_pc": {
+          "raw_count": 10,
+          "rate_per_1000": 1.37
+        },
+        "grocery_pc": {
+          "raw_count": 6,
+          "rate_per_1000": 0.82
+        },
+        "restaurants_pc": {
+          "raw_count": 32,
+          "rate_per_1000": 4.39
+        },
+        "traffic_vkm_pc": {
+          "raw_count": 940130,
+          "rate_per_1000": 128961.71
+        },
+        "healthcare_pc": {
+          "raw_count": 8,
+          "rate_per_1000": 1.1
+        },
+        "chronic_disease_pc": {
+          "raw_count": 2830,
+          "rate_per_1000": 388.23
+        },
+        "crash_rate_pc": {
+          "raw_count": 80,
+          "rate_per_1000": 10.97
+        },
+        "disaster_risk_pc": {
+          "raw_count": 94,
+          "rate_per_1000": 12.94
+        }
+      },
+      "indices": {
+        "safety": 61.09,
+        "opportunity": NaN,
+        "amenities": 76.74,
+        "transportation": 50.48,
+        "affordability": 56.4,
+        "walkability_score": 45.59,
+        "broadband_score": 90.92
+      },
+      "health_score": NaN
+    },
+    {
+      "district_id": 55411,
+      "district_name": "ZIP 55411",
+      "population": 28609,
+      "metrics": {
+        "crime_rate_pc": {
+          "raw_count": 23625,
+          "rate_per_1000": 825.79
+        },
+        "permit_rate_pc": {
+          "raw_count": 8099,
+          "rate_per_1000": 283.09
+        },
+        "unemployment_rate_pc": {
+          "raw_count": 1053,
+          "rate_per_1000": 36.81
+        },
+        "housing_inventory_pc": {
+          "raw_count": 86,
+          "rate_per_1000": 3.01
+        },
+        "trail_km_pc": {
+          "raw_count": 103,
+          "rate_per_1000": 3.62
+        },
+        "transit_stops_pc": {
+          "raw_count": 370,
+          "rate_per_1000": 12.93
+        },
+        "schools_pc": {
+          "raw_count": 36,
+          "rate_per_1000": 1.26
+        },
+        "grocery_pc": {
+          "raw_count": 4,
+          "rate_per_1000": 0.14
+        },
+        "restaurants_pc": {
+          "raw_count": 20,
+          "rate_per_1000": 0.7
+        },
+        "traffic_vkm_pc": {
+          "raw_count": 1480751,
+          "rate_per_1000": 51758.22
+        },
+        "healthcare_pc": {
+          "raw_count": 6,
+          "rate_per_1000": 0.21
+        },
+        "chronic_disease_pc": {
+          "raw_count": 15987,
+          "rate_per_1000": 558.82
+        },
+        "crash_rate_pc": {
+          "raw_count": 502,
+          "rate_per_1000": 17.55
+        },
+        "disaster_risk_pc": {
+          "raw_count": 8108,
+          "rate_per_1000": 283.41
+        }
+      },
+      "indices": {
+        "safety": 40.62,
+        "opportunity": NaN,
+        "amenities": 42.78,
+        "transportation": 49.48,
+        "affordability": 48.74,
+        "walkability_score": 45.14,
+        "broadband_score": 31.34
+      },
+      "health_score": NaN
+    },
+    {
+      "district_id": 55412,
+      "district_name": "ZIP 55412",
+      "population": 23270,
+      "metrics": {
+        "crime_rate_pc": {
+          "raw_count": 13440,
+          "rate_per_1000": 577.57
+        },
+        "permit_rate_pc": {
+          "raw_count": 9348,
+          "rate_per_1000": 401.72
+        },
+        "unemployment_rate_pc": {
+          "raw_count": 1063,
+          "rate_per_1000": 45.68
+        },
+        "housing_inventory_pc": {
+          "raw_count": 123,
+          "rate_per_1000": 5.29
+        },
+        "trail_km_pc": {
+          "raw_count": 112,
+          "rate_per_1000": 4.82
+        },
+        "transit_stops_pc": {
+          "raw_count": 210,
+          "rate_per_1000": 9.02
+        },
+        "schools_pc": {
+          "raw_count": 12,
+          "rate_per_1000": 0.52
+        },
+        "grocery_pc": {
+          "raw_count": 4,
+          "rate_per_1000": 0.17
+        },
+        "restaurants_pc": {
+          "raw_count": 8,
+          "rate_per_1000": 0.34
+        },
+        "traffic_vkm_pc": {
+          "raw_count": 1161455,
+          "rate_per_1000": 49912.14
+        },
+        "healthcare_pc": {
+          "raw_count": 2,
+          "rate_per_1000": 0.09
+        },
+        "chronic_disease_pc": {
+          "raw_count": 9458,
+          "rate_per_1000": 406.46
+        },
+        "crash_rate_pc": {
+          "raw_count": 242,
+          "rate_per_1000": 10.4
+        },
+        "disaster_risk_pc": {
+          "raw_count": 9439,
+          "rate_per_1000": 405.64
+        }
+      },
+      "indices": {
+        "safety": 51.86,
+        "opportunity": NaN,
+        "amenities": 32.61,
+        "transportation": 46.67,
+        "affordability": 54.2,
+        "walkability_score": 36.58,
+        "broadband_score": 22.69
+      },
+      "health_score": NaN
+    },
+    {
+      "district_id": 55413,
+      "district_name": "ZIP 55413",
+      "population": 19698,
+      "metrics": {
+        "crime_rate_pc": {
+          "raw_count": 6944,
+          "rate_per_1000": 352.52
+        },
+        "permit_rate_pc": {
+          "raw_count": 4532,
+          "rate_per_1000": 230.07
+        },
+        "unemployment_rate_pc": {
+          "raw_count": 614,
+          "rate_per_1000": 31.17
+        },
+        "housing_inventory_pc": {
+          "raw_count": 43,
+          "rate_per_1000": 2.18
+        },
+        "trail_km_pc": {
+          "raw_count": 92,
+          "rate_per_1000": 4.67
+        },
+        "transit_stops_pc": {
+          "raw_count": 216,
+          "rate_per_1000": 10.97
+        },
+        "schools_pc": {
+          "raw_count": 12,
+          "rate_per_1000": 0.61
+        },
+        "grocery_pc": {
+          "raw_count": 2,
+          "rate_per_1000": 0.1
+        },
+        "restaurants_pc": {
+          "raw_count": 118,
+          "rate_per_1000": 5.99
+        },
+        "traffic_vkm_pc": {
+          "raw_count": 1820293,
+          "rate_per_1000": 92410.07
+        },
+        "healthcare_pc": {
+          "raw_count": 0,
+          "rate_per_1000": 0.0
+        },
+        "chronic_disease_pc": {
+          "raw_count": 5883,
+          "rate_per_1000": 298.66
+        },
+        "crash_rate_pc": {
+          "raw_count": 176,
+          "rate_per_1000": 8.93
+        },
+        "disaster_risk_pc": {
+          "raw_count": 4567,
+          "rate_per_1000": 231.89
+        }
+      },
+      "indices": {
+        "safety": 65.69,
+        "opportunity": NaN,
+        "amenities": 43.57,
+        "transportation": 48.36,
+        "affordability": 51.65,
+        "walkability_score": 55.21,
+        "broadband_score": 63.17
+      },
+      "health_score": NaN
+    },
+    {
+      "district_id": 55414,
+      "district_name": "ZIP 55414",
+      "population": 26902,
+      "metrics": {
+        "crime_rate_pc": {
+          "raw_count": 10648,
+          "rate_per_1000": 395.81
+        },
+        "permit_rate_pc": {
+          "raw_count": 6298,
+          "rate_per_1000": 234.11
+        },
+        "unemployment_rate_pc": {
+          "raw_count": 1233,
+          "rate_per_1000": 45.83
+        },
+        "housing_inventory_pc": {
+          "raw_count": 56,
+          "rate_per_1000": 2.08
+        },
+        "trail_km_pc": {
+          "raw_count": 101,
+          "rate_per_1000": 3.79
+        },
+        "transit_stops_pc": {
+          "raw_count": 286,
+          "rate_per_1000": 10.63
+        },
+        "schools_pc": {
+          "raw_count": 8,
+          "rate_per_1000": 0.3
+        },
+        "grocery_pc": {
+          "raw_count": 4,
+          "rate_per_1000": 0.15
+        },
+        "restaurants_pc": {
+          "raw_count": 244,
+          "rate_per_1000": 9.07
+        },
+        "traffic_vkm_pc": {
+          "raw_count": 1847247,
+          "rate_per_1000": 68665.81
+        },
+        "healthcare_pc": {
+          "raw_count": 22,
+          "rate_per_1000": 0.82
+        },
+        "chronic_disease_pc": {
+          "raw_count": 8491,
+          "rate_per_1000": 315.64
+        },
+        "crash_rate_pc": {
+          "raw_count": 368,
+          "rate_per_1000": 13.68
+        },
+        "disaster_risk_pc": {
+          "raw_count": 14388,
+          "rate_per_1000": 534.83
+        }
+      },
+      "indices": {
+        "safety": 53.07,
+        "opportunity": NaN,
+        "amenities": 52.1,
+        "transportation": 47.28,
+        "affordability": 28.63,
+        "walkability_score": 51.28,
+        "broadband_score": 63.17
+      },
+      "health_score": NaN
+    },
+    {
+      "district_id": 55415,
+      "district_name": "ZIP 55415",
+      "population": 7757,
+      "metrics": {
+        "crime_rate_pc": {
+          "raw_count": 2869,
+          "rate_per_1000": 369.86
+        },
+        "permit_rate_pc": {
+          "raw_count": 1206,
+          "rate_per_1000": 155.47
+        },
+        "unemployment_rate_pc": {
+          "raw_count": 141,
+          "rate_per_1000": 18.18
+        },
+        "housing_inventory_pc": {
+          "raw_count": 82,
+          "rate_per_1000": 10.57
+        },
+        "trail_km_pc": {
+          "raw_count": 48,
+          "rate_per_1000": 6.24
+        },
+        "transit_stops_pc": {
+          "raw_count": 88,
+          "rate_per_1000": 11.34
+        },
+        "schools_pc": {
+          "raw_count": 2,
+          "rate_per_1000": 0.26
+        },
+        "grocery_pc": {
+          "raw_count": 2,
+          "rate_per_1000": 0.26
+        },
+        "restaurants_pc": {
+          "raw_count": 60,
+          "rate_per_1000": 7.73
+        },
+        "traffic_vkm_pc": {
+          "raw_count": 249396,
+          "rate_per_1000": 32151.1
+        },
+        "healthcare_pc": {
+          "raw_count": 6,
+          "rate_per_1000": 0.77
+        },
+        "chronic_disease_pc": {
+          "raw_count": 2156,
+          "rate_per_1000": 277.97
+        },
+        "crash_rate_pc": {
+          "raw_count": 208,
+          "rate_per_1000": 26.81
+        },
+        "disaster_risk_pc": {
+          "raw_count": 6471,
+          "rate_per_1000": 834.32
+        }
+      },
+      "indices": {
+        "safety": 43.41,
+        "opportunity": NaN,
+        "amenities": 54.69,
+        "transportation": 66.31,
+        "affordability": 46.09,
+        "walkability_score": 74.58,
+        "broadband_score": 80.56
+      },
+      "health_score": NaN
+    },
+    {
+      "district_id": 55419,
+      "district_name": "ZIP 55419",
+      "population": 34937,
+      "metrics": {
+        "crime_rate_pc": {
+          "raw_count": 4910,
+          "rate_per_1000": 140.54
+        },
+        "permit_rate_pc": {
+          "raw_count": 13056,
+          "rate_per_1000": 373.7
+        },
+        "unemployment_rate_pc": {
+          "raw_count": 961,
+          "rate_per_1000": 27.51
+        },
+        "housing_inventory_pc": {
+          "raw_count": 89,
+          "rate_per_1000": 2.55
+        },
+        "trail_km_pc": {
+          "raw_count": 31,
+          "rate_per_1000": 0.89
+        },
+        "transit_stops_pc": {
+          "raw_count": 390,
+          "rate_per_1000": 11.16
+        },
+        "schools_pc": {
+          "raw_count": 20,
+          "rate_per_1000": 0.57
+        },
+        "grocery_pc": {
+          "raw_count": 4,
+          "rate_per_1000": 0.11
+        },
+        "restaurants_pc": {
+          "raw_count": 68,
+          "rate_per_1000": 1.95
+        },
+        "traffic_vkm_pc": {
+          "raw_count": 1897242,
+          "rate_per_1000": 54304.67
+        },
+        "healthcare_pc": {
+          "raw_count": 4,
+          "rate_per_1000": 0.11
+        },
+        "chronic_disease_pc": {
+          "raw_count": 11363,
+          "rate_per_1000": 325.26
+        },
+        "crash_rate_pc": {
+          "raw_count": 128,
+          "rate_per_1000": 3.66
+        },
+        "disaster_risk_pc": {
+          "raw_count": 14704,
+          "rate_per_1000": 420.9
+        }
+      },
+      "indices": {
+        "safety": 65.26,
+        "opportunity": NaN,
+        "amenities": 39.86,
+        "transportation": 38.8,
+        "affordability": 62.92,
+        "walkability_score": 36.7,
+        "broadband_score": 63.17
+      },
+      "health_score": NaN
+    },
+    {
+      "district_id": 55454,
+      "district_name": "ZIP 55454",
+      "population": 4958,
+      "metrics": {
+        "crime_rate_pc": {
+          "raw_count": 2644,
+          "rate_per_1000": 533.28
+        },
+        "permit_rate_pc": {
+          "raw_count": 510,
+          "rate_per_1000": 102.86
+        },
+        "unemployment_rate_pc": {
+          "raw_count": 157,
+          "rate_per_1000": 31.67
+        },
+        "housing_inventory_pc": {
+          "raw_count": 11,
+          "rate_per_1000": 2.22
+        },
+        "trail_km_pc": {
+          "raw_count": 45,
+          "rate_per_1000": 9.08
+        },
+        "transit_stops_pc": {
+          "raw_count": 58,
+          "rate_per_1000": 11.7
+        },
+        "schools_pc": {
+          "raw_count": 0,
+          "rate_per_1000": 0.0
+        },
+        "grocery_pc": {
+          "raw_count": 0,
+          "rate_per_1000": 0.0
+        },
+        "restaurants_pc": {
+          "raw_count": 44,
+          "rate_per_1000": 8.87
+        },
+        "traffic_vkm_pc": {
+          "raw_count": 762006,
+          "rate_per_1000": 153692.37
+        },
+        "healthcare_pc": {
+          "raw_count": 12,
+          "rate_per_1000": 2.42
+        },
+        "chronic_disease_pc": {
+          "raw_count": 3157,
+          "rate_per_1000": 636.92
+        },
+        "crash_rate_pc": {
+          "raw_count": 112,
+          "rate_per_1000": 22.59
+        },
+        "disaster_risk_pc": {
+          "raw_count": 1863,
+          "rate_per_1000": 375.92
+        }
+      },
+      "indices": {
+        "safety": 37.91,
+        "opportunity": NaN,
+        "amenities": 47.93,
+        "transportation": 55.5,
+        "affordability": 26.61,
+        "walkability_score": 65.92,
+        "broadband_score": 22.69
+      },
+      "health_score": NaN
+    },
+    {
+      "district_id": 55455,
+      "district_name": "ZIP 55455",
+      "population": 12444,
+      "metrics": {
+        "crime_rate_pc": {
+          "raw_count": 706,
+          "rate_per_1000": 56.73
+        },
+        "permit_rate_pc": {
+          "raw_count": 7,
+          "rate_per_1000": 0.56
+        },
+        "unemployment_rate_pc": {
+          "raw_count": 647,
+          "rate_per_1000": 51.99
+        },
+        "trail_km_pc": {
+          "raw_count": 66,
+          "rate_per_1000": 5.36
+        },
+        "transit_stops_pc": {
+          "raw_count": 74,
+          "rate_per_1000": 5.95
+        },
+        "schools_pc": {
+          "raw_count": 2,
+          "rate_per_1000": 0.16
+        },
+        "grocery_pc": {
+          "raw_count": 0,
+          "rate_per_1000": 0.0
+        },
+        "restaurants_pc": {
+          "raw_count": 28,
+          "rate_per_1000": 2.25
+        },
+        "traffic_vkm_pc": {
+          "raw_count": 87783,
+          "rate_per_1000": 7054.26
+        },
+        "healthcare_pc": {
+          "raw_count": 8,
+          "rate_per_1000": 0.64
+        },
+        "chronic_disease_pc": {
+          "raw_count": 3363,
+          "rate_per_1000": 270.32
+        },
+        "crash_rate_pc": {
+          "raw_count": 44,
+          "rate_per_1000": 3.54
+        },
+        "disaster_risk_pc": {
+          "raw_count": 9895,
+          "rate_per_1000": 795.17
+        }
+      },
+      "indices": {
+        "safety": 60.8,
+        "opportunity": 15.85,
+        "amenities": 40.47,
+        "transportation": 52.92,
+        "affordability": 32.65,
+        "walkability_score": 46.45,
+        "broadband_score": 72.72
+      },
+      "health_score": 40.54
+    }
+  ],
+  "metadata": {
+    "total_districts": 27,
+    "data_generated": "2026-09-13T22:43:58.575433",
+    "note": "Zip-level snapshot: every ZIP in the metro normalized in one pool against every other ZIP, finer-grained than the district-level map"
+  }
+}

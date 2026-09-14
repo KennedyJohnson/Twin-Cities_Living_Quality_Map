@@ -9,10 +9,12 @@ const SCORE_METRIC_KEYS = Object.keys(SCORE_METRIC_LABELS) as ScoreMetricKey[];
 
 interface TopDistrictsRankingProps {
   onSelectDistrict?: (district: Neighborhood) => void;
+  granularity?: 'district' | 'zip';
 }
 
-export default function TopDistrictsRanking({ onSelectDistrict }: TopDistrictsRankingProps) {
+export default function TopDistrictsRanking({ onSelectDistrict, granularity = 'district' }: TopDistrictsRankingProps) {
   const [neighborhoods, setNeighborhoods] = useState<Neighborhood[]>([]);
+  const [zips, setZips] = useState<Neighborhood[]>([]);
 
   useEffect(() => {
     Promise.all([loadNeighborhoodData('stpaul'), loadNeighborhoodData('mpls')])
@@ -20,17 +22,24 @@ export default function TopDistrictsRanking({ onSelectDistrict }: TopDistrictsRa
         setNeighborhoods([...stpaul.neighborhoods, ...mpls.neighborhoods]);
       })
       .catch(() => setNeighborhoods([]));
+
+    loadNeighborhoodData('zip')
+      .then((zip) => setZips(zip.neighborhoods))
+      .catch(() => setZips([]));
   }, []);
 
-  if (neighborhoods.length === 0) return null;
+  const isZip = granularity === 'zip';
+  const pool = isZip ? zips : neighborhoods;
+
+  if (pool.length === 0) return null;
 
   return (
     <div style={{ marginTop: '20px' }}>
       <div style={{ fontSize: '13px', fontWeight: 600, marginBottom: '10px', color: '#666' }}>
-        Top Districts
+        {isZip ? 'Top ZIP Codes' : 'Top Districts'}
       </div>
       {SCORE_METRIC_KEYS.map((metric) => {
-        const top3 = [...neighborhoods]
+        const top3 = [...pool]
           .filter((n) => getScoreValue(n, metric) != null)
           .sort((a, b) => getScoreValue(b, metric) - getScoreValue(a, metric))
           .slice(0, 3);
@@ -55,7 +64,7 @@ export default function TopDistrictsRanking({ onSelectDistrict }: TopDistrictsRa
                   >
                     {n.district_name}
                   </span>{' '}
-                  <span style={{ color: '#999' }}>({getScoreValue(n, metric).toFixed(1)})</span>
+                  <span style={{ color: '#999' }}>({Math.round(getScoreValue(n, metric))})</span>
                 </li>
               ))}
             </ol>

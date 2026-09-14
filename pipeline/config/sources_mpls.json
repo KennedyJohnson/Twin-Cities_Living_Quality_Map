@@ -21,7 +21,7 @@
       "rate_direction": "direct",
       "health_component": "opportunity",
       "weight_in_component": 1.0,
-      "metric_name": "permits_rate_pc",
+      "metric_name": "permit_rate_pc",
       "metric_label": "Building Permits per 1000 residents",
       "metric_unit": "permits per 1000 pop",
       "description": "Approved building permits (Minneapolis CCS_Permits FeatureServer)"
@@ -51,34 +51,8 @@
       "metric_name": "housing_inventory_pc",
       "metric_label": "For-Sale Home Listings per 1000 residents",
       "metric_unit": "listings per 1000 pop",
-      "description": "Zillow Research for-sale home inventory by ZIP; fewer active listings relative to population indicates a tighter, more in-demand housing market, raising Opportunity",
+      "description": "Zillow Research for-sale home inventory by ZIP; fewer active listings relative to population indicates a tighter, more in-demand housing market, raising Opportunity. NOTE: this is a deliberate but debatable modeling choice (the seller's-market reading) — an equally defensible buyer's-market reading would treat fewer listings as LESS opportunity, since there's less available to buy into.",
       "fallback_behavior": "exclude_from_scoring_if_geography_fails"
-    },
-    {
-      "id": "requests",
-      "name": "Service Requests",
-      "loader_module": "clean_requests_mpls",
-      "geo_join_method": "spatial",
-      "rate_direction": "invert",
-      "health_component": "amenities",
-      "weight_in_component": 1.0,
-      "metric_name": "requests_rate_pc",
-      "metric_label": "Service Requests per 1000 residents",
-      "metric_unit": "requests per 1000 pop",
-      "description": "Resident 311 service requests (Minneapolis Public_311_2025 FeatureServer)"
-    },
-    {
-      "id": "housing",
-      "name": "Housing Production",
-      "loader_module": "clean_housing_mpls",
-      "geo_join_method": "crosswalk",
-      "rate_direction": "direct",
-      "health_component": "amenities",
-      "weight_in_component": 1.0,
-      "metric_name": "housing_rate_pc",
-      "metric_label": "Housing Units Produced per 1000 residents",
-      "metric_unit": "units per 1000 pop",
-      "description": "Residential (permitType='Res') building permits as a proxy for housing production (Minneapolis CCS_Permits FeatureServer; no dedicated housing dataset exists for Minneapolis)"
     },
     {
       "id": "walkability",

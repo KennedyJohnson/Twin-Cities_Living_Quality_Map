@@ -3,10 +3,10 @@
 import { useEffect, useRef, useState } from 'react';
 import { MapContainer, TileLayer, GeoJSON, useMap } from 'react-leaflet';
 import L from 'leaflet';
-import { getHealthScoreColor } from '@/lib/ColorScale';
+import { percentileRank, getLetterGrade, gradeColor } from '@/lib/letterGrade';
 import { loadNeighborhoodData, getNeighborhoodMap } from '@/lib/loadNeighborhoodData';
 import { POINT_LAYER_COLORS, POINT_LAYER_LABELS, POINT_LAYER_ICONS, CANVAS_MARKER_THRESHOLD } from '@/lib/pointLayerColors';
-import { getScoreValue, ScoreMetricKey } from '@/lib/scoreMetric';
+import { resolveScore, ScoreMetricKey, MatchWeights } from '@/lib/scoreMetric';
 import { findDistrictForPoint, cityForDistrictId, resolveNeighborhoodForPoint } from '@/lib/geo';
 import {
   computeRadiusNeighborhood,
@@ -15,6 +15,30 @@ import {
   PointEntry,
   TrailEntry,
 } from '@/lib/radiusScore';
+import type { MatchRegion } from '@/lib/matchRegions';
+
+const MATCH_REGION_COLORS = ['#e31a1c', '#ff7f00', '#33a02c', '#1f78b4', '#6a3d9a'];
+
+function makeRegionCenterIcon(rank: number, color: string, active: boolean): L.DivIcon {
+  const size = active ? 34 : 26;
+  return L.divIcon({
+    className: 'match-region-center-icon',
+    html: `<div style="background:${color};color:white;width:${size}px;height:${size}px;border-radius:50%;border:${active ? 3 : 2}px solid white;box-shadow:0 1px 4px rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:${active ? 15 : 13}px;">${rank}</div>`,
+    iconSize: [size, size],
+  });
+}
+
+// Raw shape of web/public/data/apartment_buildings_{city}.json (see
+// pipeline/build.py's build_apartment_buildings()) — only the fields this
+// always-on map layer needs.
+export interface ApartmentBuildingPoint {
+  id: string;
+  name: string;
+  address: string | null;
+  lat: number;
+  lon: number;
+  district_id: number;
+}
 
 function makeMarkerIcon(color: string, emoji: string): L.DivIcon {
   return L.divIcon({
@@ -126,18 +150,30 @@ const POINT_LAYER_FILES: { key: string; url: string }[] = [
 ];
 
 export type MapClickMode = 'district' | 'place';
+export type MapGranularity = 'district' | 'zip';
 
 interface NeighborhoodMapProps {
   onDistrictSelect: (district: Neighborhood | null) => void;
   selectedDistrict: Neighborhood | null;
   flyToLocation?: { lat: number; lon: number } | null;
-  searchMarker?: { lat: number; lon: number; label: string } | null;
+  searchMarker?: { lat: number; lon: number; label: string; address?: string } | null;
   onClearSearchMarker?: () => void;
   onMapClick?: (lat: number, lon: number) => void;
   clickMode?: MapClickMode;
   scoreMetric?: ScoreMetricKey;
   onPlaceScoreComputed?: (neighborhood: Neighborhood) => void;
   hiddenSources?: Set<string>;
+  matchWeights?: MatchWeights | null;
+  excludedDistrictIds?: Set<number> | null;
+  granularity?: MapGranularity;
+  matchRegions?: MatchRegion[] | null;
+  activeRegionId?: string | null;
+  onSelectRegion?: (region: MatchRegion) => void;
+  // Apartment-building dots are an always-available map layer (toggled from
+  // the legend like any other Data Points source), independent of whether
+  // "Find Your Match" is open — see NeighborhoodMap's apartment-layer effect.
+  apartmentBuildingsVisible?: boolean;
+  onSelectApartmentBuilding?: (building: ApartmentBuildingPoint) => void;
 }
 
 function makeSearchMarkerIcon(): L.DivIcon {
@@ -161,15 +197,41 @@ function MapContent({
   scoreMetric = 'health_score',
   onPlaceScoreComputed,
   hiddenSources,
+  matchWeights = null,
+  excludedDistrictIds = null,
+  granularity = 'district',
+  matchRegions = null,
+  activeRegionId = null,
+  onSelectRegion,
+  apartmentBuildingsVisible = false,
+  onSelectApartmentBuilding,
 }: NeighborhoodMapProps) {
   const map = useMap();
   const radiusBaselineRef = useRef<Record<'stpaul' | 'mpls', RadiusBaseline | null>>({ stpaul: null, mpls: null });
   const tractsAffordabilityRef = useRef<Record<'stpaul' | 'mpls', TractAffordabilityRow[]>>({ stpaul: [], mpls: [] });
   const onPlaceScoreComputedRef = useRef(onPlaceScoreComputed);
   onPlaceScoreComputedRef.current = onPlaceScoreComputed;
-  const geoJsonLayersRef = useRef<L.GeoJSON[]>([]);
+  // Two independent normalization pools: "district" (St. Paul + Minneapolis
+  // boundaries, pooled together — see health_score.py's
+  // compute_health_scores_combined) and "zip" (every ZIP in the metro,
+  // pooled separately — compute_health_scores_zip). Each pool gets its own
+  // color-scale min/max, since they're normalized independently on the
+  // backend too. Only one pool's layers are ever attached to the map at a
+  // time, toggled by the granularity prop (see applyGranularityVisibility).
+  const layerPoolsRef = useRef<
+    { kind: MapGranularity; entries: { layer: L.GeoJSON; neighborhoodMap: Map<number, Neighborhood> }[] }[]
+  >([]);
+  const granularityRef = useRef<MapGranularity>(granularity);
   const searchMarkerRef = useRef<L.Marker | null>(null);
   const searchRadiusCircleRef = useRef<L.Circle | null>(null);
+  const regionCircleLayerRef = useRef<L.LayerGroup | null>(null);
+  const onSelectRegionRef = useRef(onSelectRegion);
+  onSelectRegionRef.current = onSelectRegion;
+  const apartmentBuildingsDataRef = useRef<ApartmentBuildingPoint[] | null>(null);
+  const apartmentLayerGroupRef = useRef<L.LayerGroup | null>(null);
+  const apartmentCanvasRendererRef = useRef<L.Canvas | null>(null);
+  const onSelectApartmentBuildingRef = useRef(onSelectApartmentBuilding);
+  onSelectApartmentBuildingRef.current = onSelectApartmentBuilding;
   // All markers per label, keyed by point-layer label (e.g. "Transit
   // Stops"). Never added to the map directly — renderLabel() decides, per
   // zoom level and current filter, which subset gets grouped into cluster
@@ -186,20 +248,23 @@ function MapContent({
   // cheap for canvas layers since there's no DOM icon to rebuild.
   const canvasMarkersShownRef = useRef<Record<string, Set<L.CircleMarker>>>({});
   const canvasRendererRef = useRef<L.Canvas | null>(null);
-  const groceryGroupRef = useRef<L.LayerGroup | null>(null);
   // Trail/path segments: kept separately from point markers since they're
   // polylines (no single lat/lon) and never carry a district_id, so they're
   // filtered purely by "does any vertex fall within the search radius".
   const trailEntriesRef = useRef<{ layer: L.Layer; latlngs: L.LatLng[]; source: string }[]>([]);
   const trailGroupRef = useRef<L.LayerGroup | null>(null);
   const selectedDistrictRef = useRef<Neighborhood | null>(selectedDistrict);
-  const searchMarkerPropRef = useRef<{ lat: number; lon: number; label: string } | null | undefined>(searchMarker);
+  const searchMarkerPropRef = useRef<{ lat: number; lon: number; label: string; address?: string } | null | undefined>(searchMarker);
   const hiddenSourcesRef = useRef<Set<string>>(hiddenSources ?? new Set());
   const clickModeRef = useRef<MapClickMode>(clickMode);
   const onMapClickRef = useRef(onMapClick);
   onMapClickRef.current = onMapClick;
+  const onClearSearchMarkerRef = useRef(onClearSearchMarker);
+  onClearSearchMarkerRef.current = onClearSearchMarker;
   const neighborhoodMapsRef = useRef<Map<number, Neighborhood>[]>([]);
   const scoreMetricRef = useRef<ScoreMetricKey>(scoreMetric);
+  const matchWeightsRef = useRef<MatchWeights | null>(matchWeights);
+  const excludedDistrictIdsRef = useRef<Set<number> | null>(excludedDistrictIds);
   const districtBoundsRef = useRef<Record<number, L.LatLngBounds>>({});
   const [isLoading, setIsLoading] = useState(true);
 
@@ -294,6 +359,14 @@ function MapContent({
   }, [scoreMetric]);
 
   useEffect(() => {
+    matchWeightsRef.current = matchWeights;
+  }, [matchWeights]);
+
+  useEffect(() => {
+    excludedDistrictIdsRef.current = excludedDistrictIds;
+  }, [excludedDistrictIds]);
+
+  useEffect(() => {
     hiddenSourcesRef.current = hiddenSources ?? new Set();
     renderAllLabels();
     renderTrails();
@@ -302,6 +375,26 @@ function MapContent({
   useEffect(() => {
     clickModeRef.current = clickMode;
   }, [clickMode]);
+
+  // Show only the layers for the active granularity (district boundaries vs.
+  // ZIP boundaries) — both pools are built once up front (see the main load
+  // effect below) and kept off the map until selected, so switching back and
+  // forth doesn't refetch anything.
+  const applyGranularityVisibility = () => {
+    for (const pool of layerPoolsRef.current) {
+      const shouldShow = pool.kind === granularityRef.current;
+      for (const { layer } of pool.entries) {
+        const isOnMap = map.hasLayer(layer);
+        if (shouldShow && !isOnMap) layer.addTo(map);
+        else if (!shouldShow && isOnMap) map.removeLayer(layer);
+      }
+    }
+  };
+
+  useEffect(() => {
+    granularityRef.current = granularity;
+    applyGranularityVisibility();
+  }, [granularity]);
 
   useEffect(() => {
     const onZoomEnd = () => renderAllLabels();
@@ -328,11 +421,21 @@ function MapContent({
   useEffect(() => {
     const onClick = (e: L.LeafletMouseEvent) => {
       const mode = clickModeRef.current;
+      // A click that landed on the existing search pin means "deselect" — the
+      // marker's own handler does that. Never treat it as a request to drop a
+      // new pin, even if the event still reaches the map.
+      const target = e.originalEvent?.target as Node | null;
+      const markerEl = searchMarkerRef.current?.getElement();
+      if (target && markerEl && markerEl.contains(target)) return;
       if (mode === 'place') {
         onMapClick?.(e.latlng.lat, e.latlng.lng);
         return;
       }
-      if (mode === 'district') {
+      // Only resolves against district boundaries — a click that misses
+      // every polygon's own handler (e.g. a canvas marker layer stealing the
+      // click) in ZIP granularity just falls through unhandled rather than
+      // incorrectly selecting a district while viewing the ZIP layer.
+      if (mode === 'district' && granularityRef.current === 'district') {
         resolveNeighborhoodForPoint(e.latlng.lat, e.latlng.lng).then((neighborhood) => {
           if (!neighborhood) return;
           const isCurrentlySelected = selectedDistrictRef.current?.district_id === neighborhood.district_id;
@@ -360,25 +463,33 @@ function MapContent({
   useEffect(() => {
     let cancelled = false;
     const layersToClean: L.Layer[] = [];
-    geoJsonLayersRef.current = [];
+    layerPoolsRef.current = [];
 
     const buildDistrictLayer = (
       geojson: any,
       neighborhoodMap: Map<number, Neighborhood>,
-      scoreMin: number,
-      scoreMax: number
+      allScores: number[]
     ) =>
       L.geoJSON(geojson, {
         style: (feature) => {
           const districtId = (feature?.id || feature?.properties?.district_id) as number;
           const neighborhood = neighborhoodMap.get(districtId);
-          const score = neighborhood ? getScoreValue(neighborhood, scoreMetricRef.current) : (scoreMin + scoreMax) / 2;
-          const color = getHealthScoreColor(score, scoreMin, scoreMax);
+          const score = neighborhood
+            ? resolveScore(neighborhood, scoreMetricRef.current, matchWeightsRef.current)
+            : 50;
+          const isOverBudget = excludedDistrictIdsRef.current?.has(districtId) ?? false;
+          // Colored by the same discrete letter-grade band as the badges
+          // (not a continuous gradient) — a continuous scale bunches A and B
+          // districts into near-identical dark shades since both sit at the
+          // high end of the percentile range. Discrete bands guarantee same
+          // grade = same color, different grade = visibly different color.
+          const percentile = percentileRank(score, allScores);
+          const color = isOverBudget ? '#d0d0d0' : gradeColor(getLetterGrade(percentile));
 
           const isSelected = selectedDistrict?.district_id === districtId;
           return {
             fillColor: color,
-            fillOpacity: 0.7,
+            fillOpacity: isOverBudget ? 0.25 : 0.7,
             color: isSelected ? '#ff00ff' : '#333',
             weight: isSelected ? 5 : 2,
             opacity: isSelected ? 1 : 0.5,
@@ -436,17 +547,15 @@ function MapContent({
           ...Array.from(stpaulNeighborhoodMap.values()),
           ...Array.from(mplsNeighborhoodMap.values()),
         ];
-        const allScores = allNeighborhoods.map((n) => getScoreValue(n, scoreMetricRef.current));
-        const scoreMin = allScores.length > 0 ? Math.min(...allScores) : 0;
-        const scoreMax = allScores.length > 0 ? Math.max(...allScores) : 100;
+        const allScores = allNeighborhoods.map((n) => resolveScore(n, scoreMetricRef.current, matchWeightsRef.current));
 
         const stpaulResponse = await fetch('/data/boundaries.geojson');
         const stpaulGeojson = await stpaulResponse.json();
 
         if (cancelled) return;
-        const stpaulLayer = buildDistrictLayer(stpaulGeojson, stpaulNeighborhoodMap, scoreMin, scoreMax);
-        geoJsonLayersRef.current.push(stpaulLayer);
-        stpaulLayer.addTo(map);
+        const districtPoolEntries: { layer: L.GeoJSON; neighborhoodMap: Map<number, Neighborhood> }[] = [];
+        const stpaulLayer = buildDistrictLayer(stpaulGeojson, stpaulNeighborhoodMap, allScores);
+        districtPoolEntries.push({ layer: stpaulLayer, neighborhoodMap: stpaulNeighborhoodMap });
         layersToClean.push(stpaulLayer);
 
         // Minneapolis district boundaries — colored/clickable like St. Paul
@@ -456,9 +565,8 @@ function MapContent({
           if (mplsResponse.ok && !cancelled) {
             const mplsGeojson = await mplsResponse.json();
             if (!cancelled) {
-              const mplsLayer = buildDistrictLayer(mplsGeojson, mplsNeighborhoodMap, scoreMin, scoreMax);
-              geoJsonLayersRef.current.push(mplsLayer);
-              mplsLayer.addTo(map);
+              const mplsLayer = buildDistrictLayer(mplsGeojson, mplsNeighborhoodMap, allScores);
+              districtPoolEntries.push({ layer: mplsLayer, neighborhoodMap: mplsNeighborhoodMap });
               layersToClean.push(mplsLayer);
             }
           }
@@ -467,6 +575,36 @@ function MapContent({
         }
 
         if (cancelled) return;
+        layerPoolsRef.current.push({ kind: 'district', entries: districtPoolEntries });
+
+        // ZIP-level boundaries — a separate, finer-grained normalization
+        // pool (every ZIP in the metro scored against every other ZIP, not
+        // just districts). Optional: older builds may not have generated
+        // these files yet, so a missing/failed fetch just skips ZIP view
+        // rather than failing the whole map.
+        try {
+          const zipNeighborhoodMap = await getNeighborhoodMap('zip');
+          const zipResponse = await fetch('/data/boundaries_zip.geojson');
+          if (zipResponse.ok && !cancelled && zipNeighborhoodMap.size > 0) {
+            const zipGeojson = await zipResponse.json();
+            if (!cancelled) {
+              const zipScores = Array.from(zipNeighborhoodMap.values()).map((n) =>
+                resolveScore(n, scoreMetricRef.current, matchWeightsRef.current)
+              );
+              const zipLayer = buildDistrictLayer(zipGeojson, zipNeighborhoodMap, zipScores);
+              layersToClean.push(zipLayer);
+              layerPoolsRef.current.push({
+                kind: 'zip',
+                entries: [{ layer: zipLayer, neighborhoodMap: zipNeighborhoodMap }],
+              });
+            }
+          }
+        } catch (err) {
+          console.error('Failed to load ZIP boundary data:', err);
+        }
+
+        if (cancelled) return;
+        applyGranularityVisibility();
 
         // Load the small radius-scoring baseline/tract files (used for
         // 1-mile "place" scoring) in the background; not required for the
@@ -491,12 +629,9 @@ function MapContent({
           }
         })();
 
-        // Fit map bounds to Twin Cities metro area
-        const bounds = L.latLngBounds([
-          [44.8, -93.4],   // Southwest corner
-          [45.1, -92.8],   // Northeast corner
-        ]);
-        map.fitBounds(bounds, { padding: [50, 50] });
+        // Default view: zoomed out enough to see all of St. Paul + Minneapolis
+        // at once, centered on the pannable area (TWIN_CITIES_BOUNDS below).
+        map.fitBounds(TWIN_CITIES_BOUNDS, { padding: [10, 10] });
 
         // Load point/line data-source layers (crime, permits, requests,
         // housing, transit, schools, trails) as toggleable overlays.
@@ -609,6 +744,12 @@ function MapContent({
                       }
                       html += '</table>';
                     }
+                    if (['schools', 'groceries', 'healthcare', 'restaurants'].includes(source)) {
+                      const query = encodeURIComponent(
+                        `${String(featLabel)}${details?.Address ? ' ' + details.Address : ''}`
+                      );
+                      html += `<div style="margin-top:6px;"><a href="https://www.google.com/maps/search/?api=1&query=${query}" target="_blank" rel="noopener noreferrer" style="font-size:12px;color:#1a73e8;">Google Reviews ↗</a></div>`;
+                    }
                     layer.bindPopup(html, { maxWidth: 280 });
                   },
                 }
@@ -618,9 +759,6 @@ function MapContent({
                 const group = L.layerGroup().addTo(map);
                 labelGroupsRef.current[label] = group;
                 overlays[label] = group;
-                if (source === 'groceries') {
-                  groceryGroupRef.current = group;
-                }
               }
               const group = labelGroupsRef.current[label];
               for (let i = 0; i < features.length; i++) {
@@ -676,20 +814,22 @@ function MapContent({
   }, [map, onDistrictSelect]);
 
   useEffect(() => {
-    for (const geoJsonLayer of geoJsonLayersRef.current) {
-      geoJsonLayer.eachLayer((layer: L.Layer) => {
-        if (layer instanceof L.Path) {
-          const feature = (layer as any).feature;
-          const districtId = (feature?.id || feature?.properties?.district_id) as number;
-          const isSelected = selectedDistrict?.district_id === districtId;
+    for (const pool of layerPoolsRef.current) {
+      for (const { layer: geoJsonLayer } of pool.entries) {
+        geoJsonLayer.eachLayer((layer: L.Layer) => {
+          if (layer instanceof L.Path) {
+            const feature = (layer as any).feature;
+            const districtId = (feature?.id || feature?.properties?.district_id) as number;
+            const isSelected = selectedDistrict?.district_id === districtId;
 
-          layer.setStyle({
-            color: isSelected ? '#ff00ff' : '#333',
-            weight: isSelected ? 5 : 2,
-            opacity: isSelected ? 1 : 0.5,
-          });
-        }
-      });
+            layer.setStyle({
+              color: isSelected ? '#ff00ff' : '#333',
+              weight: isSelected ? 5 : 2,
+              opacity: isSelected ? 1 : 0.5,
+            });
+          }
+        });
+      }
     }
   }, [selectedDistrict]);
 
@@ -699,30 +839,33 @@ function MapContent({
     }
   }, [flyToLocation, map]);
 
-  // Recolor district fills when the selected score metric changes, without
-  // refetching/rebuilding the whole map.
+  // Recolor district/zip fills when the selected score metric changes,
+  // without refetching/rebuilding the whole map. Each pool (district vs.
+  // zip) gets its own min/max, matching how each is normalized separately
+  // on the backend.
   useEffect(() => {
-    const allNeighborhoods = neighborhoodMapsRef.current.flatMap((m) => Array.from(m.values()));
-    const allScores = allNeighborhoods.map((n) => getScoreValue(n, scoreMetric));
-    const scoreMin = allScores.length > 0 ? Math.min(...allScores) : 0;
-    const scoreMax = allScores.length > 0 ? Math.max(...allScores) : 100;
+    for (const pool of layerPoolsRef.current) {
+      const poolNeighborhoods = pool.entries.flatMap((e) => Array.from(e.neighborhoodMap.values()));
+      const poolScores = poolNeighborhoods.map((n) => resolveScore(n, scoreMetric, matchWeights));
 
-    for (let i = 0; i < geoJsonLayersRef.current.length; i++) {
-      const geoJsonLayer = geoJsonLayersRef.current[i];
-      const neighborhoodMap = neighborhoodMapsRef.current[i];
-      if (!neighborhoodMap) continue;
-
-      geoJsonLayer.eachLayer((layer: L.Layer) => {
-        if (layer instanceof L.Path) {
-          const feature = (layer as any).feature;
-          const districtId = (feature?.id || feature?.properties?.district_id) as number;
-          const neighborhood = neighborhoodMap.get(districtId);
-          const score = neighborhood ? getScoreValue(neighborhood, scoreMetric) : (scoreMin + scoreMax) / 2;
-          layer.setStyle({ fillColor: getHealthScoreColor(score, scoreMin, scoreMax) });
-        }
-      });
+      for (const { layer: geoJsonLayer, neighborhoodMap } of pool.entries) {
+        geoJsonLayer.eachLayer((layer: L.Layer) => {
+          if (layer instanceof L.Path) {
+            const feature = (layer as any).feature;
+            const districtId = (feature?.id || feature?.properties?.district_id) as number;
+            const neighborhood = neighborhoodMap.get(districtId);
+            const score = neighborhood ? resolveScore(neighborhood, scoreMetric, matchWeights) : 50;
+            const isOverBudget = excludedDistrictIds?.has(districtId) ?? false;
+            const percentile = percentileRank(score, poolScores);
+            layer.setStyle({
+              fillColor: isOverBudget ? '#d0d0d0' : gradeColor(getLetterGrade(percentile)),
+              fillOpacity: isOverBudget ? 0.25 : 0.7,
+            });
+          }
+        });
+      }
     }
-  }, [scoreMetric]);
+  }, [scoreMetric, matchWeights, excludedDistrictIds]);
 
   // Drop (or move) a labeled marker at the searched address/place so the
   // user can see exactly what location their search resolved to.
@@ -743,9 +886,12 @@ function MapContent({
         offset: [0, -26],
         className: 'search-marker-label',
       });
-      if (onClearSearchMarker) {
-        marker.on('click', () => onClearSearchMarker());
-      }
+      marker.on('click', (e: L.LeafletMouseEvent) => {
+        // Stop the native event too, so the map's own DOM click listener
+        // (which re-drops a pin in 'place' mode) never sees this click.
+        L.DomEvent.stop(e.originalEvent ?? (e as unknown as Event));
+        onClearSearchMarkerRef.current?.();
+      });
       marker.addTo(map);
       searchMarkerRef.current = marker;
 
@@ -762,22 +908,12 @@ function MapContent({
       circle.addTo(map);
       searchRadiusCircleRef.current = circle;
 
-      // Auto-enable the grocery store and trail layers so results near the
-      // searched location show up immediately, without requiring the user
-      // to dig into the layer-toggle control first.
-      if (groceryGroupRef.current && !map.hasLayer(groceryGroupRef.current)) {
-        map.addLayer(groceryGroupRef.current);
-      }
-      if (trailGroupRef.current && !map.hasLayer(trailGroupRef.current)) {
-        map.addLayer(trailGroupRef.current);
-      }
-
       // Compute a 1-mile-radius score for the sidebar, on a comparable 0-100
       // scale to district scores — see web/lib/radiusScore.ts for the method
       // and its limitations (per-area, not per-capita; only sources with
       // client-side raw geometry are included).
       if (onPlaceScoreComputedRef.current) {
-        const { lat, lon, label } = searchMarker;
+        const { lat, lon, label, address } = searchMarker;
         findDistrictForPoint(lat, lon).then((result) => {
           const city = result ? cityForDistrictId(result.districtId) : 'stpaul';
           const baseline = radiusBaselineRef.current[city];
@@ -796,6 +932,7 @@ function MapContent({
             lat,
             lon,
             label,
+            address,
             baseline,
             points,
             trails,
@@ -806,7 +943,130 @@ function MapContent({
         });
       }
     }
-  }, [searchMarker, map, onClearSearchMarker]);
+    // NOTE: deliberately does NOT depend on onClearSearchMarker (read through
+    // a ref instead). It's an inline arrow in the parent, so a dependency on
+    // it re-ran this effect on every parent render — tearing down and
+    // recreating the marker's DOM element constantly. That both swallowed
+    // clicks on the marker (a native click needs mousedown and mouseup on the
+    // same element) and re-fired the radius-score computation, whose result is
+    // a fresh object passed to setSelectedDistrict, causing another render and
+    // so on in a loop.
+  }, [searchMarker, map]);
+
+  // "Find Your Match" area recommendations: a numbered, colored circle per
+  // recommended district — its 1-mile radius, anchored on that district's
+  // highest-scoring apartment building. The buildings themselves are shown
+  // by the always-on apartment-buildings layer below, not drawn here.
+  useEffect(() => {
+    if (regionCircleLayerRef.current) {
+      map.removeLayer(regionCircleLayerRef.current);
+      regionCircleLayerRef.current = null;
+    }
+    if (!matchRegions || matchRegions.length === 0) return;
+
+    const circleGroup = L.layerGroup();
+    matchRegions.forEach((region, i) => {
+      const color = MATCH_REGION_COLORS[i % MATCH_REGION_COLORS.length];
+      const active = region.id === activeRegionId;
+      L.circle([region.center.lat, region.center.lon], {
+        radius: region.radiusMeters,
+        color,
+        weight: active ? 2.5 : 1.5,
+        fillColor: color,
+        fillOpacity: active ? 0.12 : 0.05,
+        dashArray: active ? undefined : '4 4',
+      }).addTo(circleGroup);
+
+      const marker = L.marker([region.center.lat, region.center.lon], {
+        icon: makeRegionCenterIcon(region.rank, color, active),
+      });
+      marker.bindTooltip(escapeHtml(region.districtName), {
+        direction: 'top',
+        offset: [0, active ? -18 : -14],
+      });
+      marker.on('click', (e: L.LeafletMouseEvent) => {
+        L.DomEvent.stop(e.originalEvent ?? (e as unknown as Event));
+        onSelectRegionRef.current?.(region);
+      });
+      marker.addTo(circleGroup);
+    });
+    circleGroup.addTo(map);
+    regionCircleLayerRef.current = circleGroup;
+  }, [matchRegions, activeRegionId, map]);
+
+  // Always-available "Apartment Buildings" point layer (toggled from the
+  // legend like any other Data Points source, independent of "Find Your
+  // Match"). Loaded once and rendered as canvas dots — same reason every
+  // other high-volume point layer uses canvas instead of DOM markers (see
+  // CANVAS_MARKER_THRESHOLD above): ~3,500 buildings across both cities
+  // would visibly stutter panning as real DOM icons.
+  const [apartmentDataVersion, setApartmentDataVersion] = useState(0);
+
+  useEffect(() => {
+    if (!apartmentBuildingsVisible || apartmentBuildingsDataRef.current) return;
+    let cancelled = false;
+    Promise.all(
+      (['stpaul', 'mpls'] as const).map((city) =>
+        fetch(`/data/apartment_buildings_${city}.json`)
+          .then((r) => (r.ok ? r.json() : []))
+          .catch(() => [])
+      )
+    ).then(([stpaul, mpls]) => {
+      if (cancelled) return;
+      apartmentBuildingsDataRef.current = [...stpaul, ...mpls];
+      // Trigger the render effect below now that data has arrived.
+      setApartmentDataVersion((v) => v + 1);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [apartmentBuildingsVisible]);
+
+  // An active "Find Your Match" region always shows its own buildings (the
+  // recommendation is the area, so picking it should reveal what's in it),
+  // regardless of whether the always-on "Apartment Buildings" layer toggle is
+  // on. Keyed by id so a building in both sets isn't drawn twice.
+  const activeRegion = activeRegionId ? matchRegions?.find((r) => r.id === activeRegionId) : null;
+
+  useEffect(() => {
+    if (apartmentLayerGroupRef.current) {
+      map.removeLayer(apartmentLayerGroupRef.current);
+      apartmentLayerGroupRef.current = null;
+    }
+    const showAll = apartmentBuildingsVisible && apartmentBuildingsDataRef.current;
+    if (!showAll && !activeRegion) return;
+
+    if (!apartmentCanvasRendererRef.current) {
+      apartmentCanvasRendererRef.current = L.canvas({ padding: 0.5, pane: 'markerPane' });
+    }
+    const group = L.layerGroup();
+    const seen = new Set<string>();
+    const addMarker = (b: { id: string; name: string; lat: number; lon: number }) => {
+      if (seen.has(b.id)) return;
+      seen.add(b.id);
+      const marker = L.circleMarker([b.lat, b.lon], {
+        renderer: apartmentCanvasRendererRef.current!,
+        radius: 5,
+        color: '#333',
+        weight: 2,
+        fillColor: '#fff',
+        fillOpacity: 1,
+      });
+      marker.bindTooltip(escapeHtml(b.name), { direction: 'top', offset: [0, -8] });
+      marker.on('click', () => onSelectApartmentBuildingRef.current?.(b as ApartmentBuildingPoint));
+      marker.addTo(group);
+    };
+
+    activeRegion?.buildings.forEach(addMarker);
+    if (showAll) {
+      apartmentBuildingsDataRef.current!.forEach((b) => {
+        if (excludedDistrictIds?.has(b.district_id)) return;
+        addMarker(b);
+      });
+    }
+    group.addTo(map);
+    apartmentLayerGroupRef.current = group;
+  }, [apartmentBuildingsVisible, apartmentDataVersion, map, excludedDistrictIds, activeRegion]);
 
   return (
     <>
@@ -836,8 +1096,8 @@ function MapContent({
 }
 
 const TWIN_CITIES_BOUNDS: L.LatLngBoundsExpression = [
-  [44.75, -93.5],  // Southwest corner
-  [45.15, -92.7],  // Northeast corner
+  [44.85, -93.38],  // Southwest corner
+  [45.07, -92.94],  // Northeast corner
 ];
 
 export default function NeighborhoodMap({
@@ -851,6 +1111,14 @@ export default function NeighborhoodMap({
   scoreMetric,
   onPlaceScoreComputed,
   hiddenSources,
+  matchWeights,
+  excludedDistrictIds,
+  granularity,
+  matchRegions,
+  activeRegionId,
+  onSelectRegion,
+  apartmentBuildingsVisible,
+  onSelectApartmentBuilding,
 }: NeighborhoodMapProps) {
   return (
     <MapContainer
@@ -874,6 +1142,14 @@ export default function NeighborhoodMap({
         scoreMetric={scoreMetric}
         onPlaceScoreComputed={onPlaceScoreComputed}
         hiddenSources={hiddenSources}
+        matchWeights={matchWeights}
+        excludedDistrictIds={excludedDistrictIds}
+        granularity={granularity}
+        matchRegions={matchRegions}
+        activeRegionId={activeRegionId}
+        onSelectRegion={onSelectRegion}
+        apartmentBuildingsVisible={apartmentBuildingsVisible}
+        onSelectApartmentBuilding={onSelectApartmentBuilding}
       />
     </MapContainer>
   );

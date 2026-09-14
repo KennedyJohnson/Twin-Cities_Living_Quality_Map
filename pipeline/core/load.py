@@ -68,7 +68,7 @@ if _env_file.exists():
                     os.environ.setdefault(key.strip(), value.strip())
 
 
-def _fetch_arcgis_paginated(feature_server_url, page_size=2000, timeout=60):
+def _fetch_arcgis_paginated(feature_server_url, page_size=2000, timeout=60, where="1=1", out_fields="*", order_by=None):
     """
     Fetch all features from an ArcGIS FeatureServer with automatic pagination.
 
@@ -76,6 +76,12 @@ def _fetch_arcgis_paginated(feature_server_url, page_size=2000, timeout=60):
         feature_server_url: FeatureServer URL (e.g., https://services.arcgis.com/.../FeatureServer/0)
         page_size: Records per request
         timeout: Request timeout in seconds
+        where: ArcGIS SQL where-clause filter
+        out_fields: comma-separated fields to request, or "*" for all
+        order_by: field(s) to sort by — resultOffset paging without a stable
+            sort can duplicate or drop records across pages if the server
+            re-evaluates ordering per request. Pass None/"" to omit (only
+            safe if the server already guarantees a stable default order).
 
     Returns:
         DataFrame with all features
@@ -89,13 +95,15 @@ def _fetch_arcgis_paginated(feature_server_url, page_size=2000, timeout=60):
 
     while True:
         params = {
-            "where": "1=1",
-            "outFields": "*",
+            "where": where,
+            "outFields": out_fields,
             "outSR": 4326,
             "resultOffset": offset,
             "resultRecordCount": page_size,
             "f": "json",
         }
+        if order_by:
+            params["orderByFields"] = order_by
 
         try:
             response = cached_get(query_url, params=params, timeout=timeout)
@@ -450,6 +458,217 @@ def load_boundaries(city="stpaul"):
             return json.load(f)
 
     raise FileNotFoundError(f"Boundaries not available: ArcGIS API failed and local file not found ({boundaries_file})")
+
+_ZIP_BOUNDARIES_CACHE = {}
+
+
+def load_zip_boundaries():
+    """
+    Load ZIP Code Tabulation Area (ZCTA5) boundaries covering the Twin
+    Cities metro from Census TIGERweb, for finer-than-district geographic
+    comparison (a zip is smaller than a St. Paul district or Minneapolis
+    community). Results are cached for the life of the process — every
+    zip-granularity cleaner call hits this.
+
+    Fetched via a bounding-box spatial query (ZCTAs aren't nested under a
+    county the way tracts are), then filtered to zips that fall (almost)
+    ENTIRELY within St. Paul or Minneapolis's combined district boundaries —
+    not merely touching them. A zip that only clips a corner of a district
+    has most of its area/population outside our data coverage (crime,
+    permits, service data all come from the two cities' own feeds), so
+    every per-capita rate for that zip would be computed against its full
+    population while only counting whatever sliver of incidents happened to
+    fall in the small in-bounds portion — undercounting every rate and
+    skewing normalization for that zip specifically. See ZIP_COVERAGE_THRESHOLD.
+
+    Tags each feature's "district_id" property with the zip code (as an
+    int) rather than adding a new "zip_id" field — every existing
+    district_id-keyed cleaner/aggregator/scorer plugs into this unchanged;
+    only the caller knows whether a given "district_id" is a district
+    number or a zip code.
+    """
+    if "boundaries" in _ZIP_BOUNDARIES_CACHE:
+        return _ZIP_BOUNDARIES_CACHE["boundaries"]
+
+    from shapely.geometry import shape
+    from shapely.ops import unary_union
+    from core.http_cache import cached_get
+
+    print("[INFO] Loading ZIP (ZCTA) boundaries from TIGERweb...")
+
+    url = "https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/tigerWMS_Current/MapServer/2/query"
+    params = {
+        "geometry": "-93.35,44.85,-92.95,45.05",
+        "geometryType": "esriGeometryEnvelope",
+        "spatialRel": "esriSpatialRelIntersects",
+        "inSR": 4326,
+        "outFields": "ZCTA5",
+        "outSR": 4326,
+        "f": "geojson",
+    }
+    response = cached_get(url, params=params, timeout=60)
+    response.raise_for_status()
+    data = response.json()
+
+    stpaul_polys = [shape(f["geometry"]) for f in load_boundaries(city="stpaul")["features"]]
+    mpls_polys = [shape(f["geometry"]) for f in load_boundaries(city="mpls")["features"]]
+    metro_union = unary_union(stpaul_polys + mpls_polys)
+
+    # Real-world administrative boundaries rarely align to the pixel, so
+    # exact polygon containment is too strict (a hairline sliver of a zip
+    # poking past a district edge would fail it even though the zip is
+    # functionally entirely inside) — require the large majority of the
+    # zip's area to fall within the district union instead.
+    ZIP_COVERAGE_THRESHOLD = 0.98
+
+    features = []
+    excluded_partial = []
+    for feature in data.get("features", []):
+        zip_code = feature.get("properties", {}).get("ZCTA5")
+        if not zip_code:
+            continue
+        try:
+            geom = shape(feature["geometry"])
+        except (ValueError, KeyError):
+            continue
+        if geom.area <= 0 or not geom.intersects(metro_union):
+            continue
+        coverage = geom.intersection(metro_union).area / geom.area
+        if coverage < ZIP_COVERAGE_THRESHOLD:
+            excluded_partial.append((zip_code, round(coverage, 2)))
+            continue
+        feature["properties"]["district_id"] = int(zip_code)
+        feature["properties"]["zip_code"] = zip_code
+        feature["id"] = int(zip_code)
+        features.append(feature)
+
+    if excluded_partial:
+        print(f"[INFO] Excluded {len(excluded_partial)} ZIPs only partially within district coverage "
+              f"(<{int(ZIP_COVERAGE_THRESHOLD*100)}% of area inside St. Paul/Minneapolis districts): "
+              f"{excluded_partial}")
+
+    if not features:
+        raise ValueError("No ZCTA boundaries were entirely within the Twin Cities district boundaries")
+
+    boundaries = {"type": "FeatureCollection", "features": features}
+    print(f"[OK] Loaded {len(features)} ZIP boundaries covering the Twin Cities metro")
+    _ZIP_BOUNDARIES_CACHE["boundaries"] = boundaries
+    return boundaries
+
+
+def load_zip_population():
+    """
+    Population per ZIP (ZCTA), pooled across BOTH Ramsey and Hennepin
+    counties into ONE set rather than split per city — a zip-level score
+    compares every zip in the metro against every other zip directly,
+    unlike the district-level score which (before combining) was
+    per-city. Same tract-centroid spatial-join method as load_population().
+
+    Returns:
+        DataFrame with columns: district_id (zip code, int), population,
+        district_name (e.g. "ZIP 55104")
+    """
+    from shapely.geometry import Point, shape
+    from shapely.strtree import STRtree
+    from core.http_cache import cached_get
+
+    census_key = os.getenv("CENSUS_API_KEY")
+    if not census_key:
+        raise FileNotFoundError("CENSUS_API_KEY environment variable not set; population data unavailable")
+
+    state_fips = "27"
+    acs_url = f"https://api.census.gov/data/{get_latest_acs_year(census_key)}/acs/acs5"
+    tigerweb_url = "https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/tigerWMS_Current/MapServer/8/query"
+
+    tract_frames = []
+    for county_fips in ("123", "053"):  # Ramsey, Hennepin
+        params = {
+            "get": "B01003_001E",
+            "for": "tract:*",
+            "in": f"state:{state_fips} county:{county_fips}",
+            "key": census_key,
+        }
+        response = cached_get(acs_url, params=params, timeout=60)
+        response.raise_for_status()
+        data = response.json()
+        if len(data) < 2:
+            continue
+        header, rows = data[0], data[1:]
+        acs_df = pd.DataFrame(rows, columns=header)
+        acs_df["geoid"] = acs_df["state"] + acs_df["county"] + acs_df["tract"]
+        acs_df["population"] = pd.to_numeric(acs_df["B01003_001E"], errors="coerce").fillna(0)
+
+        geo_params = {
+            "where": f"STATE='{state_fips}' AND COUNTY='{county_fips}'",
+            "outFields": "GEOID,CENTLAT,CENTLON",
+            "returnGeometry": "false",
+            "f": "json",
+        }
+        geo_response = cached_get(tigerweb_url, params=geo_params, timeout=60)
+        geo_response.raise_for_status()
+        geo_data = geo_response.json()
+        centroid_rows = [
+            {"geoid": f["attributes"]["GEOID"], "lat": float(f["attributes"]["CENTLAT"]), "lon": float(f["attributes"]["CENTLON"])}
+            for f in geo_data.get("features", [])
+        ]
+        centroids_df = pd.DataFrame(centroid_rows)
+        if centroids_df.empty:
+            continue
+
+        tract_frames.append(acs_df.merge(centroids_df, on="geoid", how="inner"))
+
+    if not tract_frames:
+        raise FileNotFoundError("Census API returned no tract population data for zip aggregation")
+    tracts = pd.concat(tract_frames, ignore_index=True)
+
+    boundaries = load_zip_boundaries()
+    boundary_map = {f["properties"]["district_id"]: shape(f["geometry"]) for f in boundaries["features"]}
+    zip_ids = list(boundary_map.keys())
+    polygons = list(boundary_map.values())
+    tree = STRtree(polygons)
+
+    def find_zip(row):
+        point = Point(row["lon"], row["lat"])
+        for idx in tree.query(point):
+            if polygons[idx].contains(point):
+                return zip_ids[idx]
+        return None
+
+    tracts["district_id"] = tracts.apply(find_zip, axis=1)
+    tracts = tracts.dropna(subset=["district_id"])
+    tracts["district_id"] = tracts["district_id"].astype(int)
+
+    result = tracts.groupby("district_id")["population"].sum().reset_index()
+    result["population"] = result["population"].astype(int)
+
+    # A handful of ZCTAs (e.g. 55450, the MSP airport) have zero residential
+    # population — leaving them in would divide-by-zero into inf/NaN
+    # per-capita rates in aggregate_by_source, which poisons the z-score
+    # normalization for EVERY zip in that metric (mean/std of a list
+    # containing inf/NaN is itself NaN), not just the offending zip. Drop
+    # them, same as a zip that's simply missing from the population set.
+    zero_pop = result[result["population"] <= 0]["district_id"].tolist()
+    if zero_pop:
+        print(f"[WARNING] Excluding zero-population zips (no residential rate possible): {zero_pop}")
+        result = result[result["population"] > 0]
+
+    result["district_name"] = result["district_id"].map(lambda z: f"ZIP {z}")
+
+    print(f"[OK] Loaded {len(result)} ZIPs with population from Census API")
+    return result
+
+
+def resolve_boundaries(city="stpaul", granularity="district"):
+    """
+    Return the boundary GeoJSON to spatially join against: district
+    boundaries (default), or metro-wide ZIP boundaries when
+    granularity="zip" — the `city` argument is ignored in zip mode since
+    ZCTAs don't respect district/city lines.
+    """
+    if granularity == "zip":
+        return load_zip_boundaries()
+    return load_boundaries(city=city)
+
 
 def load_crosswalk(crosswalk_file):
     """

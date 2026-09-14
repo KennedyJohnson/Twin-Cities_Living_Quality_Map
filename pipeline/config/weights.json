@@ -1,10 +1,10 @@
 {
   "health_score": {
     "components": {
-      "safety": 0.35,
-      "opportunity": 0.25,
-      "amenities": 0.10,
-      "transportation": 0.10,
+      "safety": 0.20,
+      "opportunity": 0.20,
+      "amenities": 0.20,
+      "transportation": 0.20,
       "affordability": 0.20
     }
   },
@@ -17,12 +17,12 @@
     "opportunity": {
       "sources": ["permits", "employment", "housing_market"],
       "formula": "average(normalize(permit_rate_pc), 100 - normalize(unemployment_rate_pc), 100 - normalize(housing_inventory_pc))",
-      "description": "Blend of permit rate (more development = higher opportunity), unemployment rate (more unemployment = lower opportunity), and Zillow for-sale housing inventory per capita (fewer listings = tighter/more in-demand market = higher opportunity)"
+      "description": "Blend of permit rate (more development = higher opportunity), unemployment rate (more unemployment = lower opportunity), and Zillow for-sale housing inventory per capita. NOTE: housing_market's direction is a deliberate but debatable modeling choice — fewer listings is treated as a 'tighter, more in-demand market' (higher Opportunity), the seller's-market reading. An equally defensible buyer's-market reading would treat fewer listings as LESS opportunity (harder to find a home to buy into). Revisit if this doesn't match the intended meaning of Opportunity."
     },
     "amenities": {
-      "sources": ["requests", "housing", "schools", "groceries", "restaurants", "healthcare"],
-      "formula": "100 - normalize(request_rate_pc) + normalize(housing_rate_pc + schools_pc + grocery_pc + restaurants_pc + healthcare_pc)",
-      "description": "Amenities & Services: inverse of service requests, plus housing production per capita, each weighted equally to a blended OpenStreetMap amenity-access sub-score (schools/groceries/restaurants/healthcare, each 0.25 so the group totals the same weight as one administrative source). Trails, transit, and traffic moved to the Transportation component; chronic disease burden moved to Safety."
+      "sources": ["schools", "groceries", "restaurants", "healthcare", "broadband"],
+      "formula": "0.85 * normalize(schools_pc + grocery_pc + restaurants_pc + healthcare_pc) + 0.15 * normalize(broadband_rate)",
+      "description": "Amenities & Services: a blended OpenStreetMap amenity-access sub-score (schools/groceries/restaurants/healthcare, each 0.25), blended 85/15 with a Census ACS broadband/internet-access rate (share of households with an internet subscription; core/health_score.py's compute_broadband_index_combined). Trails, transit, and traffic moved to the Transportation component; chronic disease burden moved to Safety. Housing production and Service Requests were both removed: Housing production (see clean_housing_mpls.py/clean_housing.py docstrings) had no dedicated Minneapolis dataset — it was proxied from all residential permits (CCS_Permits, permitType='Res'), most of which are remodels/repairs with zero new dwelling units, undercounting Minneapolis (361 units) by ~5x versus St. Paul's dedicated new-construction dataset (1,834 units). Service Requests (request_rate_pc, see clean_requests_mpls.py) had a similar problem one level deeper: St. Paul's Resident Service Requests dataset is scoped narrowly to livability/code-enforcement complaints, while Minneapolis's 311 feed is a much broader all-purpose contact-center system covering categories St. Paul doesn't track (licensing/permitting, utility billing, animal complaints, police-adjacent reports) and logs the same complaint under separate categories per intake channel (call center vs. Open311 app/API). After excluding non-comparable categories and deduping likely same-incident channel duplicates, Minneapolis's per-capita rate was still ~3x St. Paul's with more taxonomy mismatches likely remaining — the two cities' complaint-tracking systems are too structurally different to make comparable without exhaustive, ongoing reconciliation."
     },
     "transportation": {
       "sources": ["walkability", "transit", "traffic"],
@@ -36,7 +36,7 @@
     }
   },
   "normalization": {
-    "method": "min_max_0_100",
-    "description": "Min-max scaling to 0-100 range within each component"
+    "method": "zscore_logistic_0_100",
+    "description": "Each metric (e.g. crime_rate_pc, crash_rate_pc) is z-scored and squashed through a logistic curve to (0, 100) INDEPENDENTLY — not min-max scaled, and not pooled with other metrics in the same component before normalizing — then the normalized values are weight-averaged per the formulas above. Normalization is pooled across ALL districts in BOTH St. Paul and Minneapolis (28 districts), not per-city, so scores are directly comparable across cities. See core/health_score.py's min_max_normalize() (name kept for historical reasons; it is not min-max scaling) and compute_component_index()."
   }
 }

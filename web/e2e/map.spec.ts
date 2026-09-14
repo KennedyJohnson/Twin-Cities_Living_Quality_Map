@@ -31,7 +31,7 @@ test('changing the score selector updates the legend title', async ({ page }) =>
   const select = page.getByLabel('Color districts by');
   await expect(select).toBeVisible();
 
-  await expect(page.getByText('Overall Health Score')).toBeVisible();
+  await expect(page.getByText('Overall Living Quality Score')).toBeVisible();
 
   await select.selectOption('safety');
   await expect(page.getByText('Safety', { exact: true })).toBeVisible();

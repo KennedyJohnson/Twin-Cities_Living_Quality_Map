@@ -8,16 +8,23 @@ sys.path.insert(0, str(_BootstrapPath(__file__).resolve().parent.parent))
 
 
 import pandas as pd
-from core.load import load_permits
+from core.load import load_permits, resolve_boundaries
+from core.date_window import filter_recent_years
+from shapely.geometry import Point, shape
 
-def clean_permits():
+def clean_permits(granularity="district"):
     """
-    Clean permits data. Use existing 'District Council' column if valid.
+    Clean permits data. Use existing 'District Council' column if valid
+    (district granularity), or spatially join Latitude/Longtitude against
+    zip boundaries (zip granularity, since permits carry no zip column).
 
     Returns:
         DataFrame with columns: permit_id (or index), district_id, date, Latitude, Longtitude
     """
     permits = load_permits()
+    # Restricted to a shared recent-years window so this compares fairly
+    # against Minneapolis's shorter permit history — see core/date_window.py.
+    permits = filter_recent_years(permits, "ISSUEDATE", epoch_ms=True)
 
     # Ensure required columns exist
     required_cols = ["District Council", "Latitude", "Longtitude"]
@@ -25,14 +32,28 @@ def clean_permits():
     if missing:
         raise ValueError(f"Permits data missing columns: {missing}")
 
-    # Use District Council column directly (already 1-17)
-    permits["district_id"] = permits["District Council"]
-
     # Filter for valid lat/long
     permits = permits.dropna(subset=["Latitude", "Longtitude"])
 
-    # Filter for valid district_id (1-17)
-    permits = permits[(permits["district_id"] >= 1) & (permits["district_id"] <= 17)]
+    if granularity == "zip":
+        boundaries = resolve_boundaries(city="stpaul", granularity="zip")
+        boundary_map = {f["properties"]["district_id"]: shape(f["geometry"]) for f in boundaries["features"]}
+
+        def find_zone(row):
+            point = Point(row["Longtitude"], row["Latitude"])
+            for zone_id, polygon in boundary_map.items():
+                if polygon.contains(point):
+                    return zone_id
+            return None
+
+        permits["district_id"] = permits.apply(find_zone, axis=1)
+        permits = permits.dropna(subset=["district_id"])
+        permits["district_id"] = permits["district_id"].astype(int)
+    else:
+        # Use District Council column directly (already 1-17)
+        permits["district_id"] = permits["District Council"]
+        # Filter for valid district_id (1-17)
+        permits = permits[(permits["district_id"] >= 1) & (permits["district_id"] <= 17)]
 
     return permits
 

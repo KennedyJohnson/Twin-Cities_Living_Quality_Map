@@ -153,13 +153,14 @@ export function computeRadiusNeighborhood(params: {
   lat: number;
   lon: number;
   label: string;
+  address?: string;
   baseline: RadiusBaseline;
   points: PointEntry[];
   trails: TrailEntry[];
   tracts: TractAffordabilityRow[];
   containingDistrictId?: number | null;
 }): Neighborhood {
-  const { lat, lon, label, baseline, points, trails, tracts, containingDistrictId } = params;
+  const { lat, lon, label, address, baseline, points, trails, tracts, containingDistrictId } = params;
   const center = L.latLng(lat, lon);
 
   const allMetrics: Record<string, Metric> = {};
@@ -217,5 +218,6 @@ export function computeRadiusNeighborhood(params: {
     health_score: Math.round(healthScore * 100) / 100,
     is_radius: true,
     containing_district_id: containingDistrictId ?? undefined,
+    address,
   };
 }

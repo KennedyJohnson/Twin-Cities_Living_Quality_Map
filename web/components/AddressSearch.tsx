@@ -12,14 +12,21 @@ interface SearchResult {
 }
 
 interface AddressSearchProps {
-  onAddressSelect?: (address: string, lat: number, lon: number, district: Neighborhood | null, label: string) => void;
+  onAddressSelect?: (
+    address: string,
+    lat: number,
+    lon: number,
+    district: Neighborhood | null,
+    label: string,
+    isNamedPlace: boolean
+  ) => void;
 }
 
-function shortLabel(result: SearchResult): string {
+function shortLabel(result: SearchResult): { label: string; isNamedPlace: boolean } {
   if (result.name && result.name.trim().length > 0) {
-    return result.name.trim();
+    return { label: result.name.trim(), isNamedPlace: true };
   }
-  return result.display_name.split(',')[0].trim();
+  return { label: result.display_name.split(',')[0].trim(), isNamedPlace: false };
 }
 
 export default function AddressSearch({ onAddressSelect }: AddressSearchProps) {
@@ -77,11 +84,11 @@ export default function AddressSearch({ onAddressSelect }: AddressSearchProps) {
     setSelectedAddress(result.display_name);
     setSuggestions([]);
 
-    const label = shortLabel(result);
+    const { label, isNamedPlace } = shortLabel(result);
     const neighborhood = await resolveNeighborhoodForPoint(result.lat, result.lon);
 
     if (onAddressSelect) {
-      onAddressSelect(result.display_name, result.lat, result.lon, neighborhood, label);
+      onAddressSelect(result.display_name, result.lat, result.lon, neighborhood, label, isNamedPlace);
     }
   };
 

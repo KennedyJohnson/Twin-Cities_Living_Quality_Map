@@ -9,8 +9,14 @@ interface IndexComparisonChartProps {
   district: Neighborhood;
 }
 
-function cityForDistrict(districtId: number): 'stpaul' | 'mpls' {
-  return districtId >= 100 ? 'mpls' : 'stpaul';
+// 'zip' pools all 43 metro ZIPs into one normalization (see
+// compute_health_scores_zip), so a ZIP selection compares against every
+// other ZIP rather than one city's districts. ZIP codes are 5-digit numbers
+// which also satisfy the >= 100 check a Minneapolis district id uses, so
+// is_zip (stamped in loadNeighborhoodData.ts) has to be checked first.
+function cityForDistrict(district: Neighborhood): 'stpaul' | 'mpls' | 'zip' {
+  if (district.is_zip) return 'zip';
+  return district.district_id >= 100 ? 'mpls' : 'stpaul';
 }
 
 type Averages = {
@@ -30,12 +36,12 @@ export default function IndexComparisonChart({ district }: IndexComparisonChartP
   const [chartData, setChartData] = useState<{ name: string; thisDistrict: number; average: number }[] | null>(null);
 
   useEffect(() => {
-    const city = cityForDistrict(district.district_id);
+    const city = cityForDistrict(district);
     const cacheKey = `${city}:${district.district_id}`;
 
     const buildRows = (averages: Averages) => {
       const rows: { name: string; thisDistrict: number; average: number }[] = [
-        { name: 'Health Score', thisDistrict: district.health_score, average: averages.health_score },
+        { name: 'Living Quality Score', thisDistrict: district.health_score, average: averages.health_score },
       ];
       if (district.indices.safety != null) {
         rows.push({ name: 'Safety', thisDistrict: district.indices.safety, average: averages.safety });
@@ -86,7 +92,11 @@ export default function IndexComparisonChart({ district }: IndexComparisonChartP
   return (
     <div style={{ marginBottom: '20px' }}>
       <div style={{ fontSize: '13px', fontWeight: '600', marginBottom: '10px', color: '#666' }}>
-        {district.is_radius ? 'This Location vs. District Average' : 'This District vs. Other Districts'}
+        {district.is_radius
+          ? 'This Location vs. District Average'
+          : district.is_zip
+          ? 'This ZIP vs. Other ZIPs'
+          : 'This District vs. Other Districts'}
       </div>
       <ResponsiveContainer width="100%" height={220}>
         <BarChart data={chartData} layout="vertical" margin={{ top: 4, right: 16, left: 8, bottom: 4 }}>
@@ -94,8 +104,14 @@ export default function IndexComparisonChart({ district }: IndexComparisonChartP
           <YAxis type="category" dataKey="name" tick={{ fontSize: 11 }} width={90} />
           <Tooltip contentStyle={{ fontSize: '11px' }} />
           <RechartsLegend wrapperStyle={{ fontSize: '10px' }} />
-          <Bar dataKey="thisDistrict" name={district.is_radius ? 'This location' : 'This district'} fill="#756bb1" radius={[0, 3, 3, 0]} />
-          <Bar dataKey="average" name="Average of others" fill="#ccc" radius={[0, 3, 3, 0]} />
+          <Bar
+            dataKey="thisDistrict"
+            name={district.is_radius ? 'This location' : district.is_zip ? 'This ZIP' : 'This district'}
+            fill="#756bb1"
+            radius={[0, 3, 3, 0]}
+            isAnimationActive={false}
+          />
+          <Bar dataKey="average" name="Average of others" fill="#ccc" radius={[0, 3, 3, 0]} isAnimationActive={false} />
         </BarChart>
       </ResponsiveContainer>
     </div>
