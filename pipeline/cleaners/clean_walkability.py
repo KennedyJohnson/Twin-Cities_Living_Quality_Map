@@ -15,36 +15,37 @@ sys.path.insert(0, str(_BootstrapPath(__file__).resolve().parent.parent))
 
 
 import json
-import time
-import requests
-from core.http_cache import cached_post, LONG_TTL_SECONDS
+from core.osm_extract import query_osm, DEFAULT_BBOX
 import pandas as pd
 from pathlib import Path
 from core.load import resolve_boundaries
 from shapely.geometry import LineString, shape
 
 PIPELINE_DIR = Path(__file__).resolve().parent.parent
-OVERPASS_URL = "https://overpass-api.de/api/interpreter"
 
 # Twin Cities bounding box (south, west, north, east) - covers both St. Paul
 # and Minneapolis so this loader works for either city's districts, plus
 # enough margin for the 1-mile radius click feature and for regional trails
 # (Gateway State Trail, Luce Line, Mississippi River Trail) that extend past
 # the two cities' limits. Minneapolis' northern edge alone reaches ~45.0512,
-# so the old 45.05 cap was clipping the city itself.
-BBOX = "44.78, -93.50, 45.15, -92.80"
+# so the old 45.05 cap was clipping the city itself. Matches
+# core/osm_extract.py's DEFAULT_BBOX.
+BBOX = DEFAULT_BBOX
 
-OVERPASS_QUERY = f"""
-[out:json][timeout:180];
-(
-  way["highway"~"^(path|footway|cycleway|pedestrian|track|bridleway|steps)$"]({BBOX});
-  way["highway"]["bicycle"="designated"]({BBOX});
-  way["highway"]["foot"="designated"]({BBOX});
-  way["leisure"="track"]["area"!="yes"]({BBOX});
-  way["leisure"="park"]({BBOX});
-);
-out geom;
-"""
+_TRAIL_HIGHWAY_TAGS = {"path", "footway", "cycleway", "pedestrian", "track", "bridleway", "steps"}
+
+
+def _is_trail_way(tags):
+    highway = tags.get("highway")
+    if highway in _TRAIL_HIGHWAY_TAGS:
+        return True
+    if highway and (tags.get("bicycle") == "designated" or tags.get("foot") == "designated"):
+        return True
+    if tags.get("leisure") == "track" and tags.get("area") != "yes":
+        return True
+    if tags.get("leisure") == "park":
+        return True
+    return False
 
 # Sidewalks/crossings are tagged highway=footway too, but they aren't
 # recreational trails — they're the pedestrian shoulder of a regular street.
@@ -75,28 +76,12 @@ def _is_real_trail(element):
     return True
 
 
-def _fetch_ways(max_retries=3):
-    """Query Overpass API for trail/path ways. Returns list of dicts with geometry.
-
-    Overpass's public instance occasionally returns 504/429 under load; retry
-    with backoff before giving up.
-    """
-    headers = {
-        "User-Agent": "StPaulNeighborhoodHealth/1.0 (data pipeline)",
-        "Accept": "*/*"
-    }
-    last_error = None
-    for attempt in range(max_retries):
-        try:
-            response = cached_post(OVERPASS_URL, data={"data": OVERPASS_QUERY}, headers=headers, timeout=120, ttl_seconds=LONG_TTL_SECONDS)
-            response.raise_for_status()
-            elements = response.json()["elements"]
-            return [e for e in elements if _is_real_trail(e)]
-        except Exception as e:
-            last_error = e
-            if attempt < max_retries - 1:
-                time.sleep(15 * (attempt + 1))
-    raise last_error
+def _fetch_ways():
+    """Fetch trail/path ways (with full geometry) from the local OSM
+    extract (see core/osm_extract.py) — replaces the live Overpass query
+    this used to make, which was slow/flaky on the public instance."""
+    elements = query_osm(way_matcher=_is_trail_way, want_way_geometry=True, bbox=BBOX, cache_key="trails")
+    return [e for e in elements if _is_real_trail(e)]
 
 def clean_walkability(fallback_behavior="exclude_from_scoring_if_geography_fails", city="stpaul", granularity="district"):
     """

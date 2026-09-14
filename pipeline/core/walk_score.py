@@ -15,11 +15,10 @@ from pathlib import Path as _BootstrapPath
 sys.path.insert(0, str(_BootstrapPath(__file__).resolve().parent.parent))
 
 
-import time
 import numpy as np
 from shapely.geometry import Point, shape
 from core.load import load_boundaries, load_population, load_zip_boundaries, load_zip_population
-from core.http_cache import cached_post
+from core.osm_extract import query_osm
 from cleaners.clean_transit import _fetch_nodes as _fetch_transit_nodes
 from cleaners.clean_schools import _fetch_nodes as _fetch_school_nodes
 from cleaners.clean_groceries import _fetch_nodes as _fetch_grocery_nodes
@@ -27,17 +26,18 @@ from cleaners.clean_healthcare import _fetch_nodes as _fetch_healthcare_nodes
 from cleaners.clean_restaurants import _fetch_nodes as _fetch_restaurant_nodes
 from cleaners.clean_walkability import clean_walkability
 
-OVERPASS_URL = "https://overpass-api.de/api/interpreter"
-
 # Twin Cities bounding box (south, west, north, east) - matches the other
 # OSM-based cleaners so results line up across sources.
 BBOX = "44.85, -93.35, 45.05, -92.95"
 
-STREET_QUERY = f"""
-[out:json][timeout:90];
-way["highway"~"^(motorway|trunk|primary|secondary|tertiary|unclassified|residential|living_street|service)$"]({BBOX});
-out geom;
-"""
+_STREET_HIGHWAY_TAGS = {
+    "motorway", "trunk", "primary", "secondary", "tertiary",
+    "unclassified", "residential", "living_street", "service",
+}
+
+
+def _is_street_way(tags):
+    return tags.get("highway") in _STREET_HIGHWAY_TAGS
 
 # category -> weight, mirroring Walk Score's emphasis on groceries/dining
 # over single-purpose destinations like schools or healthcare.
@@ -58,24 +58,11 @@ INTERSECTION_WEIGHT = 0.30
 TRAIL_WEIGHT = 0.15
 
 
-def _fetch_street_ways(max_retries=3):
-    """Query Overpass for real street ways (not trails/paths) so we can
-    derive intersection density. Same retry pattern as the other cleaners."""
-    headers = {
-        "User-Agent": "StPaulNeighborhoodHealth/1.0 (data pipeline)",
-        "Accept": "*/*"
-    }
-    last_error = None
-    for attempt in range(max_retries):
-        try:
-            response = cached_post(OVERPASS_URL, data={"data": STREET_QUERY}, headers=headers, timeout=150)
-            response.raise_for_status()
-            return response.json()["elements"]
-        except Exception as e:
-            last_error = e
-            if attempt < max_retries - 1:
-                time.sleep(15 * (attempt + 1))
-    raise last_error
+def _fetch_street_ways():
+    """Fetch real street ways (not trails/paths) from the local OSM extract
+    (see core/osm_extract.py) so we can derive intersection density —
+    replaces the live Overpass query this used to make."""
+    return query_osm(way_matcher=_is_street_way, want_way_geometry=True, cache_key="streets")
 
 
 def _extract_points(elements):

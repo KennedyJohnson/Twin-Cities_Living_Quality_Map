@@ -31,12 +31,12 @@ export default function TrendsPage() {
       </p>
 
       <section style={{ marginBottom: '24px' }}>
-        <SectionTitle subtitle="Crime incidents per 1,000 residents, per year">Safety</SectionTitle>
+        <SectionTitle subtitle="Per 1,000 residents, per year">Crime Incidents</SectionTitle>
         <TimeSeriesComparisonChart metric="crime" />
       </section>
 
       <section style={{ marginBottom: '24px' }}>
-        <SectionTitle subtitle="Building permits per 1,000 residents, per year">Opportunity</SectionTitle>
+        <SectionTitle subtitle="Per 1,000 residents, per year">Building Permits</SectionTitle>
         <TimeSeriesComparisonChart metric="permits" />
       </section>
 

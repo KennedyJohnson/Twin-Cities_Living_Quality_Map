@@ -1,12 +1,13 @@
 import type { Neighborhood } from '@/types/neighborhood';
 
-export type ScoreMetricKey = 'health_score' | 'safety' | 'opportunity' | 'amenities' | 'affordability';
+export type ScoreMetricKey = 'health_score' | 'safety' | 'opportunity' | 'amenities' | 'transportation' | 'affordability';
 
 export const SCORE_METRIC_LABELS: Record<ScoreMetricKey, string> = {
   health_score: 'Overall Living Quality Score',
-  safety: 'Safety',
+  safety: 'Safety & Health',
   opportunity: 'Opportunity',
   amenities: 'Amenities & Services',
+  transportation: 'Transportation',
   affordability: 'Affordability',
 };
 

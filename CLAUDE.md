@@ -20,7 +20,7 @@ All data is fetched automatically from official APIs with no manual downloads:
 - **Living Quality Score** - Composite metric (0-100) combining five equally-weighted (20% each) components:
   - Safety: crime rate, pedestrian/cyclist crash rate, natural hazard risk, chronic disease burden (all inverted)
   - Opportunity: permit rate, unemployment rate (inverted), Zillow housing-market tightness
-  - Amenities & Services: schools, groceries, restaurants, healthcare access, blended 85/15 with a Census broadband/internet-access rate
+  - Amenities & Services: schools, groceries, restaurants, healthcare access, entertainment venues (movie theaters, performing-arts venues, museums/galleries, nightlife, bowling/arcades — OpenStreetMap), blended 85/15 with a Census broadband/internet-access rate
   - Transportation: trail/transit rate minus traffic volume, blended 70/30 with a Zillow-style Walk/Bike Score
   - Affordability: home value, rent, poverty rate, housing cost burden (inverted), plus household income and homeownership rate
 - Each metric is z-score-normalized (then logistic-squashed to 0-100) INDEPENDENTLY before being weight-blended into its component — not pooled with other metrics first. Normalization is pooled across ALL 28 districts of BOTH cities together, not per-city, so St. Paul and Minneapolis scores are directly comparable (see `pipeline/core/health_score.py`'s `compute_health_scores_combined`).

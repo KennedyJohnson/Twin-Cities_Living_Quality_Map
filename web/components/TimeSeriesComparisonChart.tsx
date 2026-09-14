@@ -78,35 +78,84 @@ export default function TimeSeriesComparisonChart({ metric }: TimeSeriesComparis
     return <div style={{ color: '#999', fontSize: '13px' }}>Loading trends…</div>;
   }
 
-  return (
-    <ResponsiveContainer width="100%" height={220}>
-      <LineChart data={chartData} margin={{ top: 8, right: 8, left: 8, bottom: 8 }}>
-        <CartesianGrid strokeDasharray="3 3" stroke="#e5e5e5" />
-        <XAxis dataKey="year" tick={{ fontSize: 12 }} />
-        <YAxis
-          tick={{ fontSize: 12 }}
-          width={60}
-          label={{ value: 'per 1,000 residents', angle: -90, position: 'insideLeft', fontSize: 11, fill: '#999' }}
-        />
-        <Tooltip formatter={(value) => Number(value).toFixed(2)} itemSorter={(item) => -(item.value as number)} />
-        <Legend wrapperStyle={{ fontSize: '12px' }} />
-        <Line
-          type="monotone"
-          dataKey={CITY_LABELS.stpaul}
-          stroke={CITY_COLORS.stpaul}
-          strokeWidth={2}
-          dot={false}
-          connectNulls
-        />
-        <Line
-          type="monotone"
-          dataKey={CITY_LABELS.mpls}
-          stroke={CITY_COLORS.mpls}
-          strokeWidth={2}
-          dot={false}
-          connectNulls
-        />
-      </LineChart>
-    </ResponsiveContainer>
+  const caption = describeTrend(chartData, metric);
+
+  const allValues = chartData.flatMap((row) =>
+    (['stpaul', 'mpls'] as const).map((c) => row[CITY_LABELS[c]]).filter((v): v is number => v != null)
   );
+  const rawMin = allValues.length ? Math.min(...allValues) : 0;
+  const rawMax = allValues.length ? Math.max(...allValues) : 1;
+  const padding = Math.max((rawMax - rawMin) * 0.1, 0.1);
+  const domainMin = rawMin - padding;
+  const domainMax = rawMax + padding;
+  const TICK_COUNT = 5;
+  const rawTickStep = (domainMax - domainMin) / (TICK_COUNT - 1);
+  const magnitude = Math.pow(10, Math.floor(Math.log10(rawTickStep)));
+  const niceSteps = [1, 2, 2.5, 5, 10];
+  const tickStep = niceSteps.find((s) => s * magnitude >= rawTickStep)! * magnitude;
+  const domainMinRounded = Math.floor(domainMin / tickStep) * tickStep;
+  const yTicks = Array.from({ length: TICK_COUNT }, (_, i) => Number((domainMinRounded + i * tickStep).toFixed(2)));
+  const yDomain: [number, number] = [domainMinRounded, Number((domainMinRounded + tickStep * (TICK_COUNT - 1)).toFixed(2))];
+
+  return (
+    <>
+      <ResponsiveContainer width="100%" height={220}>
+        <LineChart data={chartData} margin={{ top: 8, right: 8, left: 8, bottom: 8 }}>
+          <CartesianGrid strokeDasharray="3 3" stroke="#e5e5e5" />
+          <XAxis dataKey="year" tick={{ fontSize: 12 }} />
+          <YAxis
+            tick={{ fontSize: 12 }}
+            width={60}
+            tickFormatter={(v) => Number(v).toFixed(1)}
+            domain={yDomain}
+            ticks={yTicks}
+            label={{ value: 'per 1,000 residents', angle: -90, position: 'insideLeft', fontSize: 11, fill: '#999' }}
+          />
+          <Tooltip formatter={(value) => Number(value).toFixed(2)} itemSorter={(item) => -(item.value as number)} />
+          <Legend wrapperStyle={{ fontSize: '12px' }} />
+          <Line
+            type="monotone"
+            dataKey={CITY_LABELS.stpaul}
+            stroke={CITY_COLORS.stpaul}
+            strokeWidth={2}
+            dot={false}
+            connectNulls
+          />
+          <Line
+            type="monotone"
+            dataKey={CITY_LABELS.mpls}
+            stroke={CITY_COLORS.mpls}
+            strokeWidth={2}
+            dot={false}
+            connectNulls
+          />
+        </LineChart>
+      </ResponsiveContainer>
+      {caption && <div style={{ fontSize: '12px', color: '#666', marginTop: '-4px' }}>{caption}</div>}
+    </>
+  );
+}
+
+// Summarizes % change from the first to the last non-null data point per
+// city, so the chart answers "did this go up or down" at a glance instead of
+// making the reader eyeball two lines.
+function describeTrend(chartData: Record<string, number | null>[], metric: string): string | null {
+  const noun = METRIC_LABELS[metric]?.toLowerCase() ?? metric;
+  const sentences: string[] = [];
+  for (const city of ['stpaul', 'mpls'] as const) {
+    const label = CITY_LABELS[city];
+    const values = chartData
+      .map((row) => ({ year: row.year as unknown as number, value: row[label] }))
+      .filter((row): row is { year: number; value: number } => row.value != null);
+    if (values.length < 2) continue;
+    const first = values[0];
+    const last = values[values.length - 1];
+    if (first.value === 0) continue;
+    const pctChange = ((last.value - first.value) / first.value) * 100;
+    if (Math.abs(pctChange) < 1) continue;
+    sentences.push(
+      `${label} ${noun} ${pctChange >= 0 ? 'rose' : 'declined'} ${Math.abs(pctChange).toFixed(0)}% since ${first.year}`
+    );
+  }
+  return sentences.length > 0 ? sentences.join('; ') + '.' : null;
 }

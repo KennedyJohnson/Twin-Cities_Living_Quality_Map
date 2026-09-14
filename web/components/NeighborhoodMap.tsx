@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { MapContainer, TileLayer, GeoJSON, useMap } from 'react-leaflet';
 import L from 'leaflet';
-import { percentileRank, getLetterGrade, gradeColor } from '@/lib/letterGrade';
+import { percentileRank, getLetterGrade, gradeColor, LetterGrade } from '@/lib/letterGrade';
 import { loadNeighborhoodData, getNeighborhoodMap } from '@/lib/loadNeighborhoodData';
 import { POINT_LAYER_COLORS, POINT_LAYER_LABELS, POINT_LAYER_ICONS, CANVAS_MARKER_THRESHOLD } from '@/lib/pointLayerColors';
 import { resolveScore, ScoreMetricKey, MatchWeights } from '@/lib/scoreMetric';
@@ -174,6 +174,9 @@ interface NeighborhoodMapProps {
   // "Find Your Match" is open — see NeighborhoodMap's apartment-layer effect.
   apartmentBuildingsVisible?: boolean;
   onSelectApartmentBuilding?: (building: ApartmentBuildingPoint) => void;
+  // Set while the user hovers a letter grade in the legend's scale strip —
+  // districts matching that grade get emphasized and all others dimmed.
+  highlightedGrade?: LetterGrade | null;
 }
 
 function makeSearchMarkerIcon(): L.DivIcon {
@@ -205,6 +208,7 @@ function MapContent({
   onSelectRegion,
   apartmentBuildingsVisible = false,
   onSelectApartmentBuilding,
+  highlightedGrade = null,
 }: NeighborhoodMapProps) {
   const map = useMap();
   const radiusBaselineRef = useRef<Record<'stpaul' | 'mpls', RadiusBaseline | null>>({ stpaul: null, mpls: null });
@@ -229,7 +233,6 @@ function MapContent({
   onSelectRegionRef.current = onSelectRegion;
   const apartmentBuildingsDataRef = useRef<ApartmentBuildingPoint[] | null>(null);
   const apartmentLayerGroupRef = useRef<L.LayerGroup | null>(null);
-  const apartmentCanvasRendererRef = useRef<L.Canvas | null>(null);
   const onSelectApartmentBuildingRef = useRef(onSelectApartmentBuilding);
   onSelectApartmentBuildingRef.current = onSelectApartmentBuilding;
   // All markers per label, keyed by point-layer label (e.g. "Transit
@@ -449,6 +452,26 @@ function MapContent({
     };
   }, [map, onMapClick, onDistrictSelect]);
 
+  // District name labels are permanent tooltips. At the map's fully-zoomed-
+  // out view (minZoom, 11) all 28 districts' labels — several multi-word —
+  // are visible at once, so they're shrunk down there instead of hidden,
+  // then step up in size at the next two zoom levels (12, 13) before
+  // reaching full size once zoomed in enough that labels have their own room.
+  useEffect(() => {
+    const updateLabelVisibility = () => {
+      const zoom = map.getZoom();
+      const container = map.getContainer();
+      container.classList.toggle('zoom-labels-1', zoom <= 11);
+      container.classList.toggle('zoom-labels-2', zoom === 12);
+      container.classList.toggle('zoom-labels-3', zoom === 13);
+    };
+    updateLabelVisibility();
+    map.on('zoomend', updateLabelVisibility);
+    return () => {
+      map.off('zoomend', updateLabelVisibility);
+    };
+  }, [map]);
+
   // Zoom control defaults to top-left, which the address search box and
   // score selector already occupy — move it to top-right instead, where it
   // stacks neatly above the data-layer toggle control.
@@ -508,6 +531,13 @@ function MapContent({
 
           if (neighborhood) {
             districtBoundsRef.current[districtId] = (layer as L.Polygon).getBounds();
+
+            layer.bindTooltip(escapeHtml(neighborhood.district_name), {
+              permanent: true,
+              direction: 'center',
+              className: 'district-name-label',
+              interactive: false,
+            });
 
             layer.on('click', (e: L.LeafletMouseEvent) => {
               if (clickModeRef.current === 'place') {
@@ -605,6 +635,47 @@ function MapContent({
 
         if (cancelled) return;
         applyGranularityVisibility();
+
+        // Light outer border around each city as a whole (dissolved from its
+        // districts at build time — see pipeline/exports/export_city_outline.py),
+        // separate from the individual district lines so the two cities read
+        // as distinct areas at a glance. Added last + brought to front so it
+        // renders on top of the district fill/stroke instead of getting
+        // hidden underneath it.
+        try {
+          const outlineUrls = ['/data/city_outline_stpaul.geojson', '/data/city_outline_mpls.geojson'];
+          for (const url of outlineUrls) {
+            const response = await fetch(url);
+            if (!response.ok || cancelled) continue;
+            const geojson = await response.json();
+            if (cancelled) break;
+            const outlineLayer = L.geoJSON(geojson, {
+              style: { color: '#555', weight: 3, opacity: 0.85, fill: false, interactive: false },
+            }).addTo(map);
+            outlineLayer.bringToFront();
+            layersToClean.push(outlineLayer);
+          }
+
+          // The St. Paul/Minneapolis shared border specifically — a thin
+          // filled strip (see export_city_outline.py; it's a ~40m-wide
+          // polygon, not a single line, since the two cities' independently-
+          // digitized boundaries don't share exact vertices) drawn on top of
+          // both cities' outlines in a distinct color so it reads as "this
+          // is the city line" rather than blending into either perimeter.
+          const dividerResponse = await fetch('/data/city_divider.geojson');
+          if (dividerResponse.ok && !cancelled) {
+            const dividerGeojson = await dividerResponse.json();
+            if (!cancelled && dividerGeojson.features?.length > 0) {
+              const dividerLayer = L.geoJSON(dividerGeojson, {
+                style: { color: '#e6550d', weight: 1, opacity: 0.9, fillColor: '#e6550d', fillOpacity: 0.7, interactive: false },
+              }).addTo(map);
+              dividerLayer.bringToFront();
+              layersToClean.push(dividerLayer);
+            }
+          }
+        } catch (err) {
+          console.error('Failed to load city outline data:', err);
+        }
 
         // Load the small radius-scoring baseline/tract files (used for
         // 1-mile "place" scoring) in the background; not required for the
@@ -744,7 +815,7 @@ function MapContent({
                       }
                       html += '</table>';
                     }
-                    if (['schools', 'groceries', 'healthcare', 'restaurants'].includes(source)) {
+                    if (['schools', 'groceries', 'healthcare', 'restaurants', 'entertainment'].includes(source)) {
                       const query = encodeURIComponent(
                         `${String(featLabel)}${details?.Address ? ' ' + details.Address : ''}`
                       );
@@ -866,6 +937,44 @@ function MapContent({
       }
     }
   }, [scoreMetric, matchWeights, excludedDistrictIds]);
+
+  // Emphasize districts matching the letter grade the user is hovering in
+  // the legend's scale strip (Legend.tsx), and dim everything else. Clearing
+  // the hover (highlightedGrade === null) restores normal styling.
+  useEffect(() => {
+    for (const pool of layerPoolsRef.current) {
+      const poolNeighborhoods = pool.entries.flatMap((e) => Array.from(e.neighborhoodMap.values()));
+      const poolScores = poolNeighborhoods.map((n) => resolveScore(n, scoreMetric, matchWeights));
+
+      for (const { layer: geoJsonLayer, neighborhoodMap } of pool.entries) {
+        geoJsonLayer.eachLayer((layer: L.Layer) => {
+          if (!(layer instanceof L.Path)) return;
+          const feature = (layer as any).feature;
+          const districtId = (feature?.id || feature?.properties?.district_id) as number;
+          const neighborhood = neighborhoodMap.get(districtId);
+          const isOverBudget = excludedDistrictIds?.has(districtId) ?? false;
+          const isSelected = selectedDistrict?.district_id === districtId;
+
+          if (!highlightedGrade) {
+            layer.setStyle({
+              fillOpacity: isOverBudget ? 0.25 : 0.7,
+              weight: isSelected ? 5 : 2,
+            });
+            return;
+          }
+
+          const score = neighborhood ? resolveScore(neighborhood, scoreMetric, matchWeights) : 50;
+          const percentile = percentileRank(score, poolScores);
+          const matches = !isOverBudget && getLetterGrade(percentile) === highlightedGrade;
+
+          layer.setStyle({
+            fillOpacity: matches ? 0.9 : 0.1,
+            weight: matches ? (isSelected ? 6 : 4) : (isSelected ? 5 : 2),
+          });
+        });
+      }
+    }
+  }, [highlightedGrade, scoreMetric, matchWeights, excludedDistrictIds, selectedDistrict]);
 
   // Drop (or move) a labeled marker at the searched address/place so the
   // user can see exactly what location their search resolved to.
@@ -1036,8 +1145,16 @@ function MapContent({
     const showAll = apartmentBuildingsVisible && apartmentBuildingsDataRef.current;
     if (!showAll && !activeRegion) return;
 
-    if (!apartmentCanvasRendererRef.current) {
-      apartmentCanvasRendererRef.current = L.canvas({ padding: 0.5, pane: 'markerPane' });
+    // Reuse the single shared canvas renderer (canvasRendererRef) that every
+    // other high-volume point layer draws into. Two separate L.Canvas
+    // instances in the same pane each create their own full-map <canvas>
+    // element and bind click handling directly to it — whichever one ends
+    // up on top in the DOM silently swallows every click across the whole
+    // map for hit-testing, including clicks over the other canvas's
+    // markers, which never fire at all. A single shared renderer avoids
+    // that stacking race entirely.
+    if (!canvasRendererRef.current) {
+      canvasRendererRef.current = L.canvas({ padding: 0.5, pane: 'markerPane' });
     }
     const group = L.layerGroup();
     const seen = new Set<string>();
@@ -1045,7 +1162,7 @@ function MapContent({
       if (seen.has(b.id)) return;
       seen.add(b.id);
       const marker = L.circleMarker([b.lat, b.lon], {
-        renderer: apartmentCanvasRendererRef.current!,
+        renderer: canvasRendererRef.current!,
         radius: 5,
         color: '#333',
         weight: 2,
@@ -1053,7 +1170,13 @@ function MapContent({
         fillOpacity: 1,
       });
       marker.bindTooltip(escapeHtml(b.name), { direction: 'top', offset: [0, -8] });
-      marker.on('click', () => onSelectApartmentBuildingRef.current?.(b as ApartmentBuildingPoint));
+      marker.on('click', (e) => {
+        // Path layers bubble click events to the map by default; without
+        // stopping it, the map's own click handler below fires right after
+        // and overwrites this selection with its own district/place logic.
+        L.DomEvent.stopPropagation(e);
+        onSelectApartmentBuildingRef.current?.(b as ApartmentBuildingPoint);
+      });
       marker.addTo(group);
     };
 
@@ -1071,7 +1194,7 @@ function MapContent({
   return (
     <>
       <TileLayer
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
       />
       {isLoading && (
@@ -1119,6 +1242,7 @@ export default function NeighborhoodMap({
   onSelectRegion,
   apartmentBuildingsVisible,
   onSelectApartmentBuilding,
+  highlightedGrade,
 }: NeighborhoodMapProps) {
   return (
     <MapContainer
@@ -1150,6 +1274,7 @@ export default function NeighborhoodMap({
         onSelectRegion={onSelectRegion}
         apartmentBuildingsVisible={apartmentBuildingsVisible}
         onSelectApartmentBuilding={onSelectApartmentBuilding}
+        highlightedGrade={highlightedGrade}
       />
     </MapContainer>
   );

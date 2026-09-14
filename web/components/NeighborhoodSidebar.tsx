@@ -16,16 +16,36 @@ import AffordabilityTrendChart from './AffordabilityTrendChart';
 import IndexComparisonChart from './IndexComparisonChart';
 import TopDistrictsRanking from './TopDistrictsRanking';
 import GradeBadge from './GradeBadge';
-import { percentileRank } from '@/lib/letterGrade';
+import { percentileRank, getLetterGrade } from '@/lib/letterGrade';
 import { loadNeighborhoodData } from '@/lib/loadNeighborhoodData';
+import { cityForDistrictId } from '@/lib/geo';
 import type { Neighborhood } from '@/types/neighborhood';
+
+// Below this magnitude a vs-average difference reads as noise rather than a
+// meaningful strength/weakness, so it stays neutral gray instead of
+// green/red — a +3% and a +45% shouldn't look equally "good."
+const DIFF_PCT_NEUTRAL_THRESHOLD = 10;
+
+function diffColor(diffPct: number | null, isGood: boolean): string {
+  if (diffPct == null || Math.abs(diffPct) < DIFF_PCT_NEUTRAL_THRESHOLD) return '#666';
+  return isGood ? '#2a9d5c' : '#c0392b';
+}
 
 interface NeighborhoodSidebarProps {
   district: Neighborhood | null;
   onSelectDistrict?: (district: Neighborhood) => void;
   granularity?: 'district' | 'zip';
   reviewsUrl?: string | null;
+  reviewsLinkIsNamedPlace?: boolean;
 }
+
+const COMPONENT_WEIGHTS: { key: 'safety' | 'opportunity' | 'amenities' | 'transportation' | 'affordability'; weight: number }[] = [
+  { key: 'safety', weight: 20 },
+  { key: 'opportunity', weight: 20 },
+  { key: 'amenities', weight: 20 },
+  { key: 'transportation', weight: 20 },
+  { key: 'affordability', weight: 20 },
+];
 
 interface Affordability {
   median_home_value: number | null;
@@ -41,7 +61,7 @@ interface AffordabilityFile {
   districts: Record<string, Affordability>;
 }
 
-export default function NeighborhoodSidebar({ district, onSelectDistrict, granularity = 'district', reviewsUrl }: NeighborhoodSidebarProps) {
+export default function NeighborhoodSidebar({ district, onSelectDistrict, granularity = 'district', reviewsUrl, reviewsLinkIsNamedPlace = false }: NeighborhoodSidebarProps) {
   const [affordability, setAffordability] = useState<Record<string, Affordability>>({});
   const [acsYear, setAcsYear] = useState<number | null>(null);
   const [expandedIndex, setExpandedIndex] = useState<string | null>(null);
@@ -94,6 +114,29 @@ export default function NeighborhoodSidebar({ district, onSelectDistrict, granul
     return percentileRank(value, values);
   };
 
+  // Same-city (or same-pool, for a ZIP selection) average for a raw
+  // affordability field, so the panel can show a vs-average diff the same
+  // way every other metric already does. Zip codes and district ids never
+  // collide numerically, but zips are 5 digits (>= 10000) vs. districts'
+  // 1-17/100-111, so that's used to split the combined `affordability`
+  // lookup back into the right comparison pool.
+  const districtAverageAffordability = (field: keyof Affordability): number | null => {
+    if (trendDistrictId == null) return null;
+    const isZipPool = district?.is_zip ?? false;
+    const sameCity = isZipPool ? null : cityForDistrictId(trendDistrictId);
+    const values: number[] = [];
+    for (const [key, entry] of Object.entries(affordability)) {
+      const id = Number(key);
+      const keyIsZip = id >= 10000;
+      if (isZipPool !== keyIsZip) continue;
+      if (!isZipPool && cityForDistrictId(id) !== sameCity) continue;
+      const value = entry[field];
+      if (value != null) values.push(value);
+    }
+    if (values.length === 0) return null;
+    return values.reduce((sum, v) => sum + v, 0) / values.length;
+  };
+
   // For metrics with no time-series history, show the average across all
   // (non-radius) districts/zips as a rough point of comparison instead.
   const districtAverageRate = (metricKey: string): number | null => {
@@ -142,7 +185,7 @@ export default function NeighborhoodSidebar({ district, onSelectDistrict, granul
             rel="noopener noreferrer"
             className="district-title-reviews-link"
           >
-            View reviews on Google ↗
+            {reviewsLinkIsNamedPlace ? 'View reviews on Google Maps ↗' : 'Open in Google Maps ↗'}
           </a>
         )}
       </div>
@@ -157,19 +200,25 @@ export default function NeighborhoodSidebar({ district, onSelectDistrict, granul
           : `Population: ${district.population.toLocaleString()}`}
       </div>
 
+      <div style={{ fontSize: '13px', fontWeight: 600, color: '#666', marginBottom: '2px' }}>
+        Overall Living Quality Score
+      </div>
       <div className="health-score-display">
         {Math.round(district.health_score)}
         <GradeBadge percentile={healthScoreGrade} size="large" />
       </div>
 
-      <IndexComparisonChart district={district} />
+      <IndexComparisonChart
+        district={district}
+        onSelectIndex={(key) => setExpandedIndex(expandedIndex === key ? null : key)}
+      />
 
       <div style={{ marginBottom: '20px' }}>
         <div style={{ fontSize: '13px', fontWeight: '600', marginBottom: '10px', color: '#666' }}>
           Component Scores <span style={{ fontWeight: 400, color: '#999' }}>(click to see what's included)</span>
         </div>
         <div className="index-grid">
-          {(['safety', 'opportunity', 'amenities', 'transportation', 'affordability', 'walkability_score', 'broadband_score'] as const)
+          {(['safety', 'opportunity', 'amenities', 'transportation', 'affordability'] as const)
             .filter((key) => district.indices[key] != null)
             .map((key) => (
               <div
@@ -200,21 +249,34 @@ export default function NeighborhoodSidebar({ district, onSelectDistrict, granul
               ) : districtAffordability ? (
                 <div>
                   {([
-                    ['median_home_value', 'Median Home Value', (v: number) => `$${v.toLocaleString()}`],
-                    ['median_gross_rent', 'Median Gross Rent', (v: number) => `$${v.toLocaleString()}/mo`],
-                    ['median_household_income', 'Median Household Income', (v: number) => `$${v.toLocaleString()}`],
-                    ['poverty_rate', 'Poverty Rate', (v: number) => `${v}%`],
-                    ['housing_cost_burden_rate', 'Housing Cost Burden (renters)', (v: number) => `${v}%`],
-                    ['homeownership_rate', 'Homeownership Rate', (v: number) => `${v}%`],
-                  ] as const).map(([field, fieldLabel, format]) => {
+                    ['median_home_value', 'Median Home Value', (v: number) => `$${v.toLocaleString()}`, true],
+                    ['median_gross_rent', 'Median Gross Rent', (v: number) => `$${v.toLocaleString()}/mo`, true],
+                    ['median_household_income', 'Median Household Income', (v: number) => `$${v.toLocaleString()}`, false],
+                    ['poverty_rate', 'Poverty Rate', (v: number) => `${v}%`, true],
+                    ['housing_cost_burden_rate', 'Housing Cost Burden (renters)', (v: number) => `${v}%`, true],
+                    ['homeownership_rate', 'Homeownership Rate', (v: number) => `${v}%`, false],
+                  ] as const).map(([field, fieldLabel, format, inverted]) => {
                     const value = districtAffordability[field];
                     if (value == null) return null;
+                    const avg = district.is_radius ? null : districtAverageAffordability(field);
+                    const diffPct = avg != null && avg !== 0 ? ((value - avg) / avg) * 100 : null;
+                    const isGood = diffPct != null && (inverted ? diffPct < 0 : diffPct >= 0);
                     return (
                       <div key={field} style={{ marginBottom: '10px' }}>
                         <div className="metric-row">
                           <span style={{ fontSize: '12px', color: '#999' }}>{fieldLabel}</span>
                           <span className="metric-value">{format(value)}</span>
                         </div>
+                        {avg != null && (
+                          <div style={{ fontSize: '11px', color: '#999', marginTop: '2px' }}>
+                            {district.is_zip ? 'All-zip' : 'Citywide'} avg: {format(Math.round(avg))}
+                            {diffPct != null && (
+                              <span style={{ color: diffColor(diffPct, isGood) }}>
+                                {' '}({diffPct >= 0 ? '+' : ''}{diffPct.toFixed(0)}%)
+                              </span>
+                            )}
+                          </div>
+                        )}
                         <AffordabilityTrendChart districtId={trendDistrictId!} field={field} label={fieldLabel} />
                       </div>
                     );
@@ -227,33 +289,41 @@ export default function NeighborhoodSidebar({ district, onSelectDistrict, granul
               ) : (
                 <div style={{ fontSize: '12px', color: '#999' }}>No affordability data available for this district.</div>
               )
-            ) : expandedIndex === 'walkability_score' || expandedIndex === 'broadband_score' ? (
-              (() => {
-                const value = district.indices[expandedIndex];
-                if (value == null) return null;
-                const avg = district.is_radius ? null : districtAverageIndex(expandedIndex);
-                const diffPct = avg != null && avg !== 0 ? ((value - avg) / avg) * 100 : null;
-                return (
-                  <div>
-                    <div className="metric-row">
-                      <span style={{ fontSize: '12px', color: '#999' }}>Score</span>
-                      <span className="metric-value">{value.toFixed(1)}</span>
-                    </div>
-                    {avg != null && (
-                      <div style={{ fontSize: '11px', color: '#999', marginTop: '2px' }}>
-                        All-district avg score: {avg.toFixed(1)}
-                        {diffPct != null && (
-                          <span style={{ color: diffPct >= 0 ? '#2a9d5c' : '#c0392b' }}>
-                            {' '}({diffPct >= 0 ? '+' : ''}{diffPct.toFixed(0)}%)
-                          </span>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                );
-              })()
             ) : (
-              getMetricsForComponent(expandedIndex)
+              (() => {
+                // broadband_score and walkability_score aren't top-level components — they're
+                // sub-scores folded into amenities (85/15) and transportation (70/30)
+                // respectively, so they're shown nested under those two instead of getting
+                // their own top-level card.
+                const renderSubScore = (key: 'walkability_score' | 'broadband_score') => {
+                  const value = district.indices[key];
+                  if (value == null) return null;
+                  const avg = district.is_radius ? null : districtAverageIndex(key);
+                  const diffPct = avg != null && avg !== 0 ? ((value - avg) / avg) * 100 : null;
+                  return (
+                    <div key={key} style={{ marginBottom: '10px' }}>
+                      <div className="metric-label">{indexLabels[key]}</div>
+                      <div className="metric-row">
+                        <span style={{ fontSize: '12px', color: '#999' }}>Score</span>
+                        <span className="metric-value">{value.toFixed(1)}</span>
+                      </div>
+                      {avg != null && (
+                        <div style={{ fontSize: '11px', color: '#999', marginTop: '2px' }}>
+                          All-district avg score: {avg.toFixed(1)}
+                          {diffPct != null && (
+                            <span style={{ color: diffColor(diffPct, diffPct >= 0) }}>
+                              {' '}({diffPct >= 0 ? '+' : ''}{diffPct.toFixed(0)}%)
+                            </span>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  );
+                };
+
+                return (
+                  <>
+                    {getMetricsForComponent(expandedIndex)
                 .filter((metricKey) => district.metrics[metricKey])
                 .map((metricKey) => {
                   const metric = district.metrics[metricKey];
@@ -277,7 +347,25 @@ export default function NeighborhoodSidebar({ district, onSelectDistrict, granul
                       <div style={{ fontSize: '11px', color: '#ccc', fontStyle: 'italic' }}>
                         Source: {getMetricSource(metricKey)}
                       </div>
-                      {trendKey && trendDistrictId != null ? (
+                      {!district.is_radius &&
+                        (() => {
+                          // radius rates use a different unit (per sq. mi.), not comparable to district avg
+                          const avg = districtAverageRate(metricKey);
+                          if (avg == null) return null;
+                          const diffPct = avg !== 0 ? ((metric.rate_per_1000 - avg) / avg) * 100 : null;
+                          const isGood = diffPct != null && (isMetricInverted(metricKey) ? diffPct < 0 : diffPct >= 0);
+                          return (
+                            <div style={{ fontSize: '11px', color: '#999', marginTop: '2px' }}>
+                              All-district avg rate: {avg.toFixed(1)}
+                              {diffPct != null && (
+                                <span style={{ color: diffColor(diffPct, isGood) }}>
+                                  {' '}({diffPct >= 0 ? '+' : ''}{diffPct.toFixed(0)}%)
+                                </span>
+                              )}
+                            </div>
+                          );
+                        })()}
+                      {trendKey && trendDistrictId != null && (
                         <>
                           <MetricTrendChart
                             districtId={trendDistrictId}
@@ -290,32 +378,96 @@ export default function NeighborhoodSidebar({ district, onSelectDistrict, granul
                             </div>
                           )}
                         </>
-                      ) : (
-                        (() => {
-                          if (district.is_radius) return null; // radius rates use a different unit (per sq. mi.), not comparable to district avg
-                          const avg = districtAverageRate(metricKey);
-                          if (avg == null) return null;
-                          const diffPct = avg !== 0 ? ((metric.rate_per_1000 - avg) / avg) * 100 : null;
-                          const isGood = diffPct != null && (isMetricInverted(metricKey) ? diffPct < 0 : diffPct >= 0);
-                          return (
-                            <div style={{ fontSize: '11px', color: '#999', marginTop: '2px' }}>
-                              All-district avg rate: {avg.toFixed(1)}
-                              {diffPct != null && (
-                                <span style={{ color: isGood ? '#2a9d5c' : '#c0392b' }}>
-                                  {' '}({diffPct >= 0 ? '+' : ''}{diffPct.toFixed(0)}%)
-                                </span>
-                              )}
-                            </div>
-                          );
-                        })()
                       )}
                     </div>
                   );
-                })
+                })}
+                    {expandedIndex === 'amenities' && renderSubScore('broadband_score')}
+                    {expandedIndex === 'transportation' && renderSubScore('walkability_score')}
+                  </>
+                );
+              })()
             )}
           </div>
         )}
       </div>
+
+      {(() => {
+        const componentPercentiles = COMPONENT_WEIGHTS
+          .filter(({ key }) => district.indices[key] != null)
+          .map(({ key }) => ({
+            key,
+            label: indexLabels[key],
+            score: district.indices[key]!,
+            percentile: indexGrade(key, district.indices[key]!),
+          }))
+          .filter((c): c is typeof c & { percentile: number } => c.percentile != null);
+
+        if (componentPercentiles.length === 0) return null;
+
+        const strengths = componentPercentiles
+          .filter((c) => c.percentile >= 65)
+          .sort((a, b) => b.percentile - a.percentile)
+          .slice(0, 3);
+        const weaknesses = componentPercentiles
+          .filter((c) => c.percentile <= 35)
+          .sort((a, b) => a.percentile - b.percentile)
+          .slice(0, 3);
+
+        const summarize = () => {
+          if (strengths.length === 0 && weaknesses.length === 0) {
+            return "Scores close to average across the board relative to other districts.";
+          }
+          const parts: string[] = [];
+          if (strengths.length > 0) {
+            parts.push(`Strong ${strengths.map((s) => s.label.toLowerCase()).join(' and ')}`);
+          }
+          if (weaknesses.length > 0) {
+            parts.push(`${weaknesses.length > 1 ? 'weaker' : 'lower'} ${weaknesses.map((w) => w.label.toLowerCase()).join(' and ')}`);
+          }
+          const sentence = parts.join(', but ') + ' relative to other districts.';
+          return sentence.charAt(0).toUpperCase() + sentence.slice(1);
+        };
+
+        return (
+          <>
+            <div style={{ marginBottom: '20px' }}>
+              <div style={{ fontSize: '13px', fontWeight: '600', marginBottom: '8px', color: '#666', display: 'flex', alignItems: 'center' }}>
+                <span>Why a</span>
+                {healthScoreGrade != null && <GradeBadge percentile={healthScoreGrade} />}
+                <span style={{ marginLeft: '6px' }}>for {district.district_name}?</span>
+              </div>
+              <div style={{ fontSize: '13px', color: '#444', lineHeight: 1.5, marginBottom: '10px' }}>
+                {summarize()}
+              </div>
+              {strengths.length > 0 && (
+                <div style={{ marginBottom: '8px' }}>
+                  <div style={{ fontSize: '11px', fontWeight: 600, color: '#2a9d5c', marginBottom: '4px' }}>
+                    Top strengths
+                  </div>
+                  <ul style={{ paddingLeft: '18px', fontSize: '12px', color: '#555' }}>
+                    {strengths.map((s) => (
+                      <li key={s.key}>{s.label} — top {Math.max(1, Math.round(100 - s.percentile))}% of districts</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {weaknesses.length > 0 && (
+                <div>
+                  <div style={{ fontSize: '11px', fontWeight: 600, color: '#c0392b', marginBottom: '4px' }}>
+                    Weaknesses
+                  </div>
+                  <ul style={{ paddingLeft: '18px', fontSize: '12px', color: '#555' }}>
+                    {weaknesses.map((w) => (
+                      <li key={w.key}>{w.label} — bottom {Math.max(1, Math.round(w.percentile))}% of districts</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          </>
+        );
+      })()}
 
     </div>
   );

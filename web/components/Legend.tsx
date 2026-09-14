@@ -12,6 +12,9 @@ interface LegendProps {
   onDeselectAll?: (allKeys: string[]) => void;
   apartmentBuildingsVisible?: boolean;
   onToggleApartmentBuildings?: () => void;
+  onHoverGrade?: (grade: LetterGrade | null) => void;
+  pinnedGrade?: LetterGrade | null;
+  onClickGrade?: (grade: LetterGrade) => void;
 }
 
 const POINT_LAYER_FILES = ['/data/points_stpaul.json', '/data/points_mpls.json'];
@@ -23,6 +26,9 @@ export default function Legend({
   onDeselectAll,
   apartmentBuildingsVisible = false,
   onToggleApartmentBuildings,
+  onHoverGrade,
+  pinnedGrade = null,
+  onClickGrade,
 }: LegendProps) {
   // Source -> feature count, so the swatch below can match how NeighborhoodMap
   // actually renders each source: a plain dot for a high-volume layer
@@ -53,24 +59,34 @@ export default function Legend({
     <div className="legend">
       <div className="legend-title">{SCORE_METRIC_LABELS[scoreMetric]}</div>
       <div className="legend-scale">
-        {grades.map((grade) => (
-          <div
-            key={grade}
-            className="legend-color"
-            style={{
-              backgroundColor: gradeColor(grade),
-              color: gradeTextColor(grade),
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '10px',
-              fontWeight: 600,
-            }}
-            title={grade}
-          >
-            {grade}
-          </div>
-        ))}
+        {grades.map((grade) => {
+          const isPinned = pinnedGrade === grade;
+          return (
+            <div
+              key={grade}
+              className="legend-color"
+              style={{
+                backgroundColor: gradeColor(grade),
+                color: gradeTextColor(grade),
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '10px',
+                fontWeight: 600,
+                cursor: onHoverGrade || onClickGrade ? 'pointer' : undefined,
+                boxShadow: isPinned ? '0 0 0 2px #333' : undefined,
+                transform: isPinned ? 'scale(1.15)' : undefined,
+                transition: 'transform 0.1s ease',
+              }}
+              title={`${grade} districts${onClickGrade ? ' (click to keep highlighted)' : ''}`}
+              onMouseEnter={() => onHoverGrade?.(grade)}
+              onMouseLeave={() => onHoverGrade?.(null)}
+              onClick={() => onClickGrade?.(grade)}
+            >
+              {grade}
+            </div>
+          );
+        })}
       </div>
       <div className="legend-labels">
         <span>Poor</span>

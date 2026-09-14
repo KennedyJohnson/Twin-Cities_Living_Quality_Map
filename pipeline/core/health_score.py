@@ -3,7 +3,7 @@ Compute health scores based on aggregated metrics and config/weights.json.
 Canonical formula:
   Safety_Index = avg(100 - normalize(crime_rate_pc), 100 - normalize(crash_rate_pc), 100 - normalize(disaster_risk_pc), 100 - normalize(chronic_disease_pc))
   Opportunity_Index = avg(normalize(permit_rate_pc), 100 - normalize(unemployment_rate_pc), 100 - normalize(housing_inventory_pc))
-  Amenities_Index = 0.85 * [100 - normalize(request_rate_pc) + normalize(housing_rate_pc + schools_pc + grocery_pc + restaurants_pc + healthcare_pc)] + 0.15 * normalize(broadband_rate)
+  Amenities_Index = 0.85 * [100 - normalize(request_rate_pc) + normalize(housing_rate_pc + schools_pc + grocery_pc + restaurants_pc + healthcare_pc + entertainment_pc)] + 0.15 * normalize(broadband_rate)
   Transportation_Index = 0.7 * [normalize(trail_km_pc + transit_stops_pc) - normalize(traffic_vkm_pc)] + 0.3 * walk_score
   Affordability_Index = avg(100 - normalize(median_home_value), 100 - normalize(median_gross_rent), normalize(median_household_income), 100 - normalize(poverty_rate), 100 - normalize(housing_cost_burden_rate), normalize(homeownership_rate))
   Health_Score = 0.20*Safety + 0.20*Opportunity + 0.20*Amenities + 0.20*Transportation + 0.20*Affordability

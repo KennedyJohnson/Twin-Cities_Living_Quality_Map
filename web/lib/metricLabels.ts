@@ -78,6 +78,12 @@ export const metricLabels: Record<string, { label: string; unit: string; source:
     source: 'OpenStreetMap (via Overpass API, live/current data)',
     component: 'amenities',
   },
+  entertainment_pc: {
+    label: 'Entertainment Venue Access Rate',
+    unit: 'venues per 1,000 residents',
+    source: 'OpenStreetMap (via Overpass API, live/current data)',
+    component: 'amenities',
+  },
   chronic_disease_pc: {
     label: 'Chronic Disease Burden',
     unit: 'affected residents per 1,000 residents',
@@ -128,7 +134,7 @@ export function getMetricsForComponent(componentKey: string): string[] {
 }
 
 export const indexLabels: Record<string, string> = {
-  safety: 'Safety',
+  safety: 'Safety & Health',
   opportunity: 'Opportunity',
   amenities: 'Amenities & Services',
   transportation: 'Transportation',
@@ -140,7 +146,7 @@ export const indexLabels: Record<string, string> = {
 export const indexDescriptions: Record<string, string> = {
   safety: 'Comprised of: Crime Rate, Pedestrian/Cyclist Crash Rate, Natural Hazard Risk, and Chronic Disease Burden.',
   opportunity: 'Comprised of: Permit Rate and Unemployment Rate. More development raises this index; more unemployment lowers it.',
-  amenities: 'Comprised of: Schools, Grocery Stores, Restaurants/Bars, and Healthcare Access where available, blended 85/15 with Broadband Access below.',
+  amenities: 'Comprised of: Schools, Grocery Stores, Restaurants/Bars, Healthcare Access, and Entertainment Venues where available, blended 85/15 with Broadband Access below.',
   transportation: 'Comprised of: Trail/Path Length and Transit Stop Rate (direct) minus Traffic Volume (inverted), blended 30% with the Walk/Bike Score below.',
   affordability: 'Comprised of: Census median home value, median gross rent, median household income, poverty rate, housing cost burden (% of income spent on rent), and homeownership rate. See the Housing Affordability panel below for the raw figures.',
   walkability_score: 'A Zillow-style Walk/Bike Score: distance-decay proximity to groceries, restaurants/bars, transit, schools, and healthcare, plus street-intersection density (a block-size/bikeability proxy) and trail km per capita. Closer amenities, denser intersections, and more trails raise this score. Feeds 30% of the Transportation index.',

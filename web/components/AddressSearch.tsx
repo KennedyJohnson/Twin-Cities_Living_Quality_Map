@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { resolveNeighborhoodForPoint } from '@/lib/geo';
+import { resolveNeighborhoodForPoint, findNearestNamedPlace, searchPlaceIndex } from '@/lib/geo';
 import type { Neighborhood } from '@/types/neighborhood';
 
 interface SearchResult {
@@ -50,14 +50,92 @@ export default function AddressSearch({ onAddressSelect }: AddressSearchProps) {
     setError('');
 
     try {
-      const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
-          query
-        )}&bounded=1&viewbox=-93.4,44.8,-92.8,45.1&limit=10`
+      // Local named places (parks, businesses, buildings from the OSM
+      // extract) are matched instantly with no network call and surfaced
+      // first, since Nominatim's address-focused ranking often buries or
+      // misses them entirely.
+      const localMatches = await searchPlaceIndex(query, 5);
+
+      // The place index only has an address when the OSM element itself
+      // carried addr:housenumber/addr:street (see export_place_index.py) —
+      // plenty of named amenities/shops don't. Backfill those via a reverse
+      // geocode so results like "Nordstrom" show a street address too,
+      // instead of just the bare name. Bounded to the handful of local
+      // matches actually shown, not the whole 18k-entry index.
+      const localMatchesWithAddress = await Promise.all(
+        localMatches.map(async (m) => {
+          if (m.address) return m;
+          try {
+            const r = await fetch(`/api/reverse-geocode?lat=${m.lat}&lon=${m.lon}`);
+            const result = await r.json();
+            const houseNumber = result?.address?.house_number;
+            const road = result?.address?.road;
+            const address = houseNumber && road ? `${houseNumber} ${road}` : road || null;
+            return address ? { ...m, address } : m;
+          } catch {
+            return m;
+          }
+        })
       );
 
-      const results: SearchResult[] = await response.json();
-      setSuggestions(results);
+      const response = await fetch(`/api/geocode?q=${encodeURIComponent(query)}`);
+      const rawNominatimResults: SearchResult[] = await response.json();
+      const nominatimResults = (Array.isArray(rawNominatimResults) ? rawNominatimResults : []).map((r) => ({
+        ...r,
+        lat: Number(r.lat),
+        lon: Number(r.lon),
+      }));
+
+      // Both sources — and Nominatim on its own — can return several rows
+      // for the literal same place (the building itself, an enclosing area,
+      // a named point a few meters off). Group everything by name + ~60m
+      // proximity and keep only the single most specific row per group (the
+      // longest display_name, since that's the one carrying the fullest
+      // address) instead of showing every near-duplicate.
+      const distanceMeters = (a: { lat: number; lon: number }, b: { lat: number; lon: number }) => {
+        const dLat = (a.lat - b.lat) * 111320;
+        const dLon = (a.lon - b.lon) * 111320 * Math.cos((a.lat * Math.PI) / 180);
+        return Math.sqrt(dLat * dLat + dLon * dLon);
+      };
+
+      const combined: SearchResult[] = [
+        ...localMatchesWithAddress.map((m) => ({
+          name: m.name,
+          lat: m.lat,
+          lon: m.lon,
+          display_name: m.address ? `${m.name}, ${m.address}` : m.name,
+        })),
+        ...nominatimResults,
+      ];
+
+      const deduped: SearchResult[] = [];
+      for (const candidate of combined) {
+        const groupIdx = deduped.findIndex(
+          (existing) =>
+            existing.name?.trim().toLowerCase() === candidate.name?.trim().toLowerCase() &&
+            distanceMeters(existing, candidate) < 60
+        );
+        if (groupIdx === -1) {
+          deduped.push(candidate);
+        } else if (candidate.display_name.length > deduped[groupIdx].display_name.length) {
+          deduped[groupIdx] = candidate;
+        }
+      }
+
+      // Nominatim's viewbox param is a soft hint, not a hard filter, so it
+      // can still return points outside the mapped districts (a suburb, a
+      // lake, a highway interchange) — those have no district/score data
+      // and shouldn't be selectable here. Keep only results that resolve to
+      // an actual St. Paul/Minneapolis district.
+      const withinBounds = await Promise.all(
+        deduped.map(async (r) => ((await resolveNeighborhoodForPoint(r.lat, r.lon)) ? r : null))
+      );
+      const inBoundsResults = withinBounds.filter((r): r is SearchResult => r !== null);
+
+      if (inBoundsResults.length === 0) {
+        setError('No location found within the mapped St. Paul/Minneapolis districts');
+      }
+      setSuggestions(inBoundsResults);
     } catch (err) {
       setError('Failed to search addresses');
       setSuggestions([]);
@@ -84,7 +162,17 @@ export default function AddressSearch({ onAddressSelect }: AddressSearchProps) {
     setSelectedAddress(result.display_name);
     setSuggestions([]);
 
-    const { label, isNamedPlace } = shortLabel(result);
+    let { label, isNamedPlace } = shortLabel(result);
+    // Nominatim's search result only carries its own `name` tag; if it has
+    // none, check nearby buildings' addr:housename/operator tags too before
+    // settling for the bare street address (same fallback as map clicks).
+    if (!isNamedPlace) {
+      const named = await findNearestNamedPlace(result.lat, result.lon);
+      if (named) {
+        label = named.name;
+        isNamedPlace = true;
+      }
+    }
     const neighborhood = await resolveNeighborhoodForPoint(result.lat, result.lon);
 
     if (onAddressSelect) {

@@ -20,47 +20,28 @@ import time
 from pathlib import Path
 
 import pandas as pd
-from core.http_cache import cached_get, cached_post, LONG_TTL_SECONDS
+from core.http_cache import cached_get, LONG_TTL_SECONDS
+from core.osm_extract import query_osm
 from core.load import resolve_boundaries
 from shapely.geometry import Point, shape
 
 PIPELINE_DIR = Path(__file__).resolve().parent.parent
-OVERPASS_URL = "https://overpass-api.de/api/interpreter"
 NOMINATIM_REVERSE_URL = "https://nominatim.openstreetmap.org/reverse"
 
 # Twin Cities bounding box (south, west, north, east) - covers both
 # St. Paul and Minneapolis, same box clean_schools.py uses.
 BBOX = "44.85, -93.35, 45.05, -92.95"
 
-OVERPASS_QUERY = f"""
-[out:json][timeout:90];
-(
-  way["building"="apartments"]({BBOX});
-  node["building"="apartments"]({BBOX});
-);
-out center;
-"""
+
+def _is_apartment_building(tags):
+    return tags.get("building") == "apartments"
 
 
-def _fetch_nodes(max_retries=3):
-    """Query Overpass for apartment-building ways/nodes. Retries with
-    backoff on the public instance's occasional 504/429s, same pattern as
-    clean_schools.py / clean_transit.py."""
-    headers = {
-        "User-Agent": "StPaulNeighborhoodHealth/1.0 (data pipeline)",
-        "Accept": "*/*"
-    }
-    last_error = None
-    for attempt in range(max_retries):
-        try:
-            response = cached_post(OVERPASS_URL, data={"data": OVERPASS_QUERY}, headers=headers, timeout=150, ttl_seconds=LONG_TTL_SECONDS)
-            response.raise_for_status()
-            return response.json()["elements"]
-        except Exception as e:
-            last_error = e
-            if attempt < max_retries - 1:
-                time.sleep(15 * (attempt + 1))
-    raise last_error
+def _fetch_nodes():
+    """Fetch apartment-building nodes/ways from the local OSM extract (see
+    core/osm_extract.py) — replaces the live Overpass query this used to
+    make, which was slow/flaky on the public instance."""
+    return query_osm(node_matcher=_is_apartment_building, way_matcher=_is_apartment_building, cache_key="apartment_buildings")
 
 
 def _building_name_address(tags):
@@ -90,31 +71,45 @@ def _reverse_geocode_address(lat, lon):
     except Exception:
         return None
 
+    # A bare road name with no house number (Nominatim falls back to this
+    # when it can't pin down the exact parcel) isn't a usable address — it
+    # doesn't identify this building any more specifically than "somewhere
+    # on this street," but if accepted here it gets stored as both the
+    # row's address AND name, so the frontend ends up displaying e.g. just
+    # "Saunders Avenue" as if it were the building's actual name/address,
+    # complete with a bogus "View reviews on Google" link. Treat it the same
+    # as no result at all so _fill_missing_addresses drops the row instead.
     house_number = addr.get("house_number")
     road = addr.get("road")
     if road and house_number:
         return f"{house_number} {road}"
-    if road:
-        return road
     return None
 
 
 def _fill_missing_addresses(rows):
     """Reverse-geocode buildings OSM left both unnamed and address-less, so
     they show up in the UI/listing links as something more specific than
-    a generic "Apartment Building" placeholder."""
+    a generic "Apartment Building" placeholder. Buildings that still have
+    neither a real name nor a full house-number address afterward are
+    dropped entirely — see _reverse_geocode_address's docstring — rather
+    than shown with a misleading bare-street-name label."""
     missing = [row for row in rows if row["address"] is None and row["name"] == "Apartment Building"]
-    if not missing:
-        return
-    print(f"[INFO] Reverse-geocoding {len(missing)} unnamed/unaddressed buildings via Nominatim...")
-    for i, row in enumerate(missing):
-        address = _reverse_geocode_address(row["lat"], row["lon"])
-        if address:
-            row["address"] = address
-            row["name"] = address
-        time.sleep(1)  # Nominatim's public-instance usage policy: max 1 req/sec
-        if (i + 1) % 50 == 0:
-            print(f"  ...{i + 1}/{len(missing)}")
+    if missing:
+        print(f"[INFO] Reverse-geocoding {len(missing)} unnamed/unaddressed buildings via Nominatim...")
+        for i, row in enumerate(missing):
+            address = _reverse_geocode_address(row["lat"], row["lon"])
+            if address:
+                row["address"] = address
+                row["name"] = address
+            time.sleep(1)  # Nominatim's public-instance usage policy: max 1 req/sec
+            if (i + 1) % 50 == 0:
+                print(f"  ...{i + 1}/{len(missing)}")
+
+    unresolved = [row for row in rows if row["address"] is None and row["name"] == "Apartment Building"]
+    if unresolved:
+        print(f"[INFO] Dropping {len(unresolved)} buildings with no name and no resolvable street address")
+        unresolved_ids = {row["id"] for row in unresolved}
+        rows[:] = [row for row in rows if row["id"] not in unresolved_ids]
 
 
 def clean_apartment_buildings(fallback_behavior="exclude_from_scoring_if_geography_fails", city="stpaul"):

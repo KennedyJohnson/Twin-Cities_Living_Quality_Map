@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import NeighborhoodSidebar from '@/components/NeighborhoodSidebar';
@@ -12,11 +12,12 @@ import type { Neighborhood } from '@/types/neighborhood';
 import type { ScoreMetricKey, MatchWeights } from '@/lib/scoreMetric';
 import { DEFAULT_MATCH_WEIGHTS, hasActiveWeights } from '@/lib/scoreMetric';
 import type { MapClickMode, MapGranularity } from '@/components/NeighborhoodMap';
-import { reverseGeocode, googleMapsSearchUrl, snapToNearestBuilding } from '@/lib/geo';
+import { reverseGeocode, googleMapsSearchUrl, snapToNearestBuilding, findNearestNamedPlace, cityForDistrictId } from '@/lib/geo';
 import { POINT_LAYER_LABELS } from '@/lib/pointLayerColors';
 import { loadBudgetData, isWithinBudget } from '@/lib/budgetData';
 import type { MatchRegion } from '@/lib/matchRegions';
 import type { ApartmentBuildingPoint } from '@/components/NeighborhoodMap';
+import type { LetterGrade } from '@/lib/letterGrade';
 
 const NeighborhoodMap = dynamic(() => import('@/components/NeighborhoodMap'), {
   ssr: false,
@@ -28,6 +29,9 @@ export default function Home() {
   const [flyToLocation, setFlyToLocation] = useState<{ lat: number; lon: number } | null>(null);
   const [searchMarker, setSearchMarker] = useState<{ lat: number; lon: number; label: string; isNamedPlace: boolean; address?: string } | null>(null);
   const [scoreMetric, setScoreMetric] = useState<ScoreMetricKey>('health_score');
+  const [hoveredGrade, setHoveredGrade] = useState<LetterGrade | null>(null);
+  const [pinnedGrade, setPinnedGrade] = useState<LetterGrade | null>(null);
+  const highlightedGrade = hoveredGrade ?? pinnedGrade;
   const [clickMode, setClickMode] = useState<MapClickMode>('district');
   const [granularity, setGranularity] = useState<MapGranularity>('district');
   const [hiddenSources, setHiddenSources] = useState<Set<string>>(
@@ -41,7 +45,8 @@ export default function Home() {
   const [matchWeights, setMatchWeights] = useState<MatchWeights>({ ...DEFAULT_MATCH_WEIGHTS });
   const [maxRent, setMaxRent] = useState<number | null>(null);
   const [maxHomeValue, setMaxHomeValue] = useState<number | null>(null);
-  const [excludedDistrictIds, setExcludedDistrictIds] = useState<Set<number> | null>(null);
+  const [budgetExcludedDistrictIds, setBudgetExcludedDistrictIds] = useState<Set<number> | null>(null);
+  const [matchCityFilter, setMatchCityFilter] = useState<'all' | 'stpaul' | 'mpls'>('all');
   const [matchRegions, setMatchRegions] = useState<MatchRegion[]>([]);
   const [activeRegionId, setActiveRegionId] = useState<string | null>(null);
   const [apartmentBuildingsVisible, setApartmentBuildingsVisible] = useState(false);
@@ -52,13 +57,14 @@ export default function Home() {
     setMatchFinderOpen(false);
     setMatchRegions([]);
     setActiveRegionId(null);
+    setMatchCityFilter('all');
   };
 
   // Recompute which districts exceed the budget filters whenever they change,
   // so the map can gray them out even while the Match Finder panel is closed.
   useEffect(() => {
     if (maxRent === null && maxHomeValue === null) {
-      setExcludedDistrictIds(null);
+      setBudgetExcludedDistrictIds(null);
       return;
     }
     let cancelled = false;
@@ -70,12 +76,29 @@ export default function Home() {
           excluded.add(Number(idStr));
         }
       }
-      setExcludedDistrictIds(excluded);
+      setBudgetExcludedDistrictIds(excluded);
     });
     return () => {
       cancelled = true;
     };
   }, [maxRent, maxHomeValue]);
+
+  // Combine the budget-based exclusion set with the Find Your Match city
+  // filter: picking St. Paul or Minneapolis dims out every district in the
+  // other city on the map, same treatment as an over-budget district, so
+  // the chosen city stands out clearly instead of both staying equally lit.
+  const excludedDistrictIds = useMemo(() => {
+    if (matchCityFilter === 'all') return budgetExcludedDistrictIds;
+    const combined = new Set<number>(budgetExcludedDistrictIds ?? []);
+    const allIds = [
+      ...Array.from({ length: 17 }, (_, i) => i + 1),
+      ...Array.from({ length: 11 }, (_, i) => i + 101),
+    ];
+    for (const id of allIds) {
+      if (cityForDistrictId(id) !== matchCityFilter) combined.add(id);
+    }
+    return combined;
+  }, [budgetExcludedDistrictIds, matchCityFilter]);
 
   const MIN_SIDEBAR_WIDTH = 260;
   const MAX_SIDEBAR_WIDTH = 800;
@@ -122,7 +145,7 @@ export default function Home() {
 
   const revealNearbyLayers = () => {
     setHiddenSources((prev) => {
-      const toReveal = ['groceries', 'restaurants'].filter((s) => prev.has(s));
+      const toReveal = ['groceries', 'restaurants', 'entertainment'].filter((s) => prev.has(s));
       if (toReveal.length === 0) return prev;
       autoRevealedSourcesRef.current = new Set(toReveal);
       const next = new Set(prev);
@@ -192,8 +215,17 @@ export default function Home() {
       snappedPos = snapped;
       setSearchMarker((prev) => (prev ? { ...prev, lat: snapped.lat, lon: snapped.lon } : prev));
     });
+    // Prefer a nearby named building/POI (checked across name, addr:housename,
+    // and operator tags) over Nominatim's reverse geocode, which only reads
+    // `name` and falls back to the bare street address for the many buildings
+    // that don't carry that specific tag.
+    findNearestNamedPlace(lat, lon).then((named) => {
+      if (named) {
+        setSearchMarker((prev) => (prev ? { lat: named.lat, lon: named.lon, label: named.name, isNamedPlace: true, address: prev.address } : prev));
+      }
+    });
     reverseGeocode(lat, lon).then(({ label, isNamedPlace, address }) => {
-      setSearchMarker((prev) => (prev ? { ...snappedPos, label, isNamedPlace, address } : prev));
+      setSearchMarker((prev) => (prev && prev.label === 'Loading…' ? { ...snappedPos, label, isNamedPlace, address } : prev ? { ...prev, address } : prev));
     });
   };
 
@@ -246,10 +278,14 @@ export default function Home() {
           onSelectRegion={handleSelectRegion}
           apartmentBuildingsVisible={apartmentBuildingsVisible}
           onSelectApartmentBuilding={handleSelectApartmentBuilding}
+          highlightedGrade={highlightedGrade}
         />
         <Legend
           scoreMetric={scoreMetric}
           hiddenSources={hiddenSources}
+          onHoverGrade={setHoveredGrade}
+          pinnedGrade={pinnedGrade}
+          onClickGrade={(grade) => setPinnedGrade((prev) => (prev === grade ? null : grade))}
           onToggleSource={(key) => {
             // A manual toggle overrides the auto-reveal bookkeeping so
             // deselecting the place later doesn't fight the user's own choice.
@@ -264,57 +300,60 @@ export default function Home() {
           onDeselectAll={(allKeys) => {
             autoRevealedSourcesRef.current = new Set();
             setHiddenSources(new Set(allKeys));
+            setApartmentBuildingsVisible(false);
           }}
           apartmentBuildingsVisible={apartmentBuildingsVisible}
           onToggleApartmentBuildings={() => setApartmentBuildingsVisible((v) => !v)}
         />
-        <div className="map-controls-stack">
+        <div className={`map-controls-stack${matchFinderOpen ? ' match-finder-active' : ''}`}>
           {!matchFinderOpen && (
             <>
               <AddressSearch onAddressSelect={handleAddressSelect} />
               <ScoreSelector value={scoreMetric} onChange={setScoreMetric} />
               <div className="click-mode-toggle">
-                <span className="click-mode-toggle-label">Map view:</span>
-                <div className="click-mode-toggle-buttons">
-                  <button
-                    type="button"
-                    className={granularity === 'district' ? 'active' : ''}
-                    onClick={() => {
-                      setGranularity('district');
-                      setSelectedDistrict(null);
-                    }}
-                  >
-                    District
-                  </button>
-                  <button
-                    type="button"
-                    className={granularity === 'zip' ? 'active' : ''}
-                    onClick={() => {
-                      setGranularity('zip');
-                      setSelectedDistrict(null);
-                    }}
-                  >
-                    ZIP Code
-                  </button>
+                <div className="click-mode-toggle-row">
+                  <span className="click-mode-toggle-label">Map view:</span>
+                  <div className="click-mode-toggle-buttons">
+                    <button
+                      type="button"
+                      className={granularity === 'district' ? 'active' : ''}
+                      onClick={() => {
+                        setGranularity('district');
+                        setSelectedDistrict(null);
+                      }}
+                    >
+                      District
+                    </button>
+                    <button
+                      type="button"
+                      className={granularity === 'zip' ? 'active' : ''}
+                      onClick={() => {
+                        setGranularity('zip');
+                        setSelectedDistrict(null);
+                      }}
+                    >
+                      ZIP Code
+                    </button>
+                  </div>
                 </div>
-              </div>
-              <div className="click-mode-toggle">
-                <span className="click-mode-toggle-label">Clicking the map selects:</span>
-                <div className="click-mode-toggle-buttons">
-                  <button
-                    type="button"
-                    className={clickMode === 'district' ? 'active' : ''}
-                    onClick={() => setClickMode('district')}
-                  >
-                    District
-                  </button>
-                  <button
-                    type="button"
-                    className={clickMode === 'place' ? 'active' : ''}
-                    onClick={() => setClickMode('place')}
-                  >
-                    Place
-                  </button>
+                <div className="click-mode-toggle-row">
+                  <span className="click-mode-toggle-label">Clicking the map selects:</span>
+                  <div className="click-mode-toggle-buttons">
+                    <button
+                      type="button"
+                      className={clickMode === 'district' ? 'active' : ''}
+                      onClick={() => setClickMode('district')}
+                    >
+                      District
+                    </button>
+                    <button
+                      type="button"
+                      className={clickMode === 'place' ? 'active' : ''}
+                      onClick={() => setClickMode('place')}
+                    >
+                      Place
+                    </button>
+                  </div>
                 </div>
               </div>
             </>
@@ -340,6 +379,8 @@ export default function Home() {
               onMaxRentChange={setMaxRent}
               maxHomeValue={maxHomeValue}
               onMaxHomeValueChange={setMaxHomeValue}
+              cityFilter={matchCityFilter}
+              onCityFilterChange={setMatchCityFilter}
               onRegionsChange={setMatchRegions}
               activeRegionId={activeRegionId}
               onSelectRegion={handleSelectRegion}
@@ -386,15 +427,23 @@ export default function Home() {
           className={`sidebar-resize-handle${isDraggingSidebar ? ' dragging' : ''}`}
           onMouseDown={handleResizeStart}
         />
+        <div className="hero-banner">
+          <div className="hero-title">Twin Cities Living Quality Map</div>
+          <div className="hero-subtitle">
+            Safety, affordability, transportation, amenities &amp; opportunity —{' '}
+            <span className="hero-callout">search any address for its 1-mile radius score.</span>
+          </div>
+        </div>
         <NeighborhoodSidebar
           district={selectedDistrict}
           onSelectDistrict={setSelectedDistrict}
           granularity={granularity}
           reviewsUrl={
-            searchMarker?.isNamedPlace
-              ? googleMapsSearchUrl(searchMarker.lat, searchMarker.lon, searchMarker.label)
+            searchMarker
+              ? googleMapsSearchUrl(searchMarker.lat, searchMarker.lon, searchMarker.isNamedPlace ? searchMarker.label : undefined)
               : null
           }
+          reviewsLinkIsNamedPlace={searchMarker?.isNamedPlace ?? false}
         />
       </div>
     </div>

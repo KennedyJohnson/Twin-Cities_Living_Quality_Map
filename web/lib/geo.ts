@@ -67,7 +67,7 @@ export function cityForDistrictId(districtId: number): 'stpaul' | 'mpls' {
 export async function resolveNeighborhoodForPoint(lat: number, lon: number): Promise<Neighborhood | null> {
   const districtResult = await findDistrictForPoint(lat, lon);
   if (!districtResult) return null;
-  const neighborhoodMap = await getNeighborhoodMap();
+  const neighborhoodMap = await getNeighborhoodMap(cityForDistrictId(districtResult.districtId));
   return neighborhoodMap.get(districtResult.districtId) || null;
 }
 
@@ -81,6 +81,15 @@ export async function reverseGeocode(
   lat: number,
   lon: number
 ): Promise<{ label: string; isNamedPlace: boolean; address?: string }> {
+  // Check the local named-place index first (see findNearestNamedPlace) —
+  // it's already an in-memory static-file fetch, so this avoids a live
+  // Nominatim call whenever the click already lands on/near a place we
+  // indexed at build time.
+  const nearby = await findNearestNamedPlace(lat, lon, 40);
+  if (nearby) {
+    return { label: nearby.name, isNamedPlace: true };
+  }
+
   try {
     const response = await fetch(
       `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=18`
@@ -96,6 +105,77 @@ export async function reverseGeocode(
     console.error('Reverse geocode failed:', err);
   }
   return { label: `${lat.toFixed(5)}, ${lon.toFixed(5)}`, isNamedPlace: false };
+}
+
+interface PlaceIndexEntry {
+  name: string;
+  lat: number;
+  lon: number;
+  category: string | null;
+  address: string | null;
+}
+
+let placeIndexCache: Promise<PlaceIndexEntry[]> | null = null;
+
+// The named-place index is built once per pipeline run (see
+// pipeline/exports/export_place_index.py) from the same local OSM extract the
+// pipeline's other cleaners use, so this is a single static-file fetch
+// instead of a live Overpass query — no per-click network round trip, no
+// rate limiting, and it stays in sync with everything else the build derives
+// from OSM.
+function loadPlaceIndex(): Promise<PlaceIndexEntry[]> {
+  if (!placeIndexCache) {
+    placeIndexCache = fetch('/data/place_index.json')
+      .then((r) => (r.ok ? r.json() : []))
+      .catch(() => []);
+  }
+  return placeIndexCache;
+}
+
+// Substring match against the local named-place index, for surfacing named
+// places (parks, businesses, buildings) in address-search suggestions
+// without waiting on/depending on Nominatim's ranking of them.
+export async function searchPlaceIndex(query: string, limit = 5): Promise<PlaceIndexEntry[]> {
+  const q = query.trim().toLowerCase();
+  if (q.length < 3) return [];
+  const places = await loadPlaceIndex();
+  const matches = places.filter((p) => p.name.toLowerCase().includes(q));
+  return matches.slice(0, limit);
+}
+
+function distanceMeters(a: { lat: number; lon: number }, b: { lat: number; lon: number }): number {
+  const dLat = (a.lat - b.lat) * 111320;
+  const dLon = (a.lon - b.lon) * 111320 * Math.cos((a.lat * Math.PI) / 180);
+  return Math.sqrt(dLat * dLat + dLon * dLon);
+}
+
+// Look for a named place (building, shop, amenity, park) near a clicked
+// point using the local place index. Prefers ANY named place within
+// radiusMeters over the literal nearest building, since a complex's name is
+// often tagged on a separate node/way (e.g. a sign or office) from the
+// addressed residential building Nominatim's reverse lookup snaps to.
+// Returns null if nothing indexed nearby.
+export async function findNearestNamedPlace(
+  lat: number,
+  lon: number,
+  radiusMeters = 80
+): Promise<{ name: string; lat: number; lon: number } | null> {
+  try {
+    const places = await loadPlaceIndex();
+    let nearest: { name: string; lat: number; lon: number } | null = null;
+    let nearestDist = Infinity;
+    for (const place of places) {
+      const dist = distanceMeters({ lat, lon }, place);
+      if (dist <= radiusMeters && dist < nearestDist) {
+        nearestDist = dist;
+        nearest = { name: place.name, lat: place.lat, lon: place.lon };
+      }
+    }
+    return nearest;
+  } catch (err) {
+    console.error('Named-place lookup failed:', err);
+    return null;
+  }
 }
 
 // Snap a clicked point to the centroid of the nearest OSM building, store,

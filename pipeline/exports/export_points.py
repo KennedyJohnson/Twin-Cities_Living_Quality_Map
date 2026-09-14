@@ -32,7 +32,9 @@ from cleaners.clean_schools import _fetch_nodes as _fetch_school_nodes
 from cleaners.clean_groceries import _fetch_nodes as _fetch_grocery_nodes
 from cleaners.clean_healthcare import _fetch_nodes as _fetch_healthcare_nodes
 from cleaners.clean_restaurants import _fetch_nodes as _fetch_restaurant_nodes
+from cleaners.clean_entertainment import _fetch_nodes as _fetch_entertainment_nodes
 from cleaners.clean_walkability import _fetch_ways
+from cleaners.clean_crashes import _fetch_crashes
 
 PIPELINE_DIR = Path(__file__).resolve().parent.parent
 OUT_DIR = PIPELINE_DIR.parent / "web" / "public" / "data"
@@ -170,6 +172,67 @@ def _classify_by_district(nodes, stpaul_map, mpls_map, source, build_title_detai
     return stpaul_records, mpls_records, unassigned_records
 
 
+# Pedestrian/cyclist crash locations (MnDOT VRU crashes) are metro-wide like
+# the shared OSM node sources above, but come from an ArcGIS FeatureServer
+# with a different element shape (geometry.x/y + a flat attributes dict
+# instead of Overpass's lat/lon + tags) — same classify-by-district idea as
+# _classify_by_district, adapted to that shape.
+def _classify_arcgis_by_district(features, stpaul_map, mpls_map, source, build_title_details):
+    stpaul_records, mpls_records, unassigned_records = [], [], []
+    for feature in features:
+        geometry = feature.get("geometry")
+        if not isinstance(geometry, dict) or "x" not in geometry or "y" not in geometry:
+            continue
+        lon, lat = geometry["x"], geometry["y"]
+        attrs = feature.get("attributes", {})
+        title, details = build_title_details(attrs)
+
+        stpaul_id = _find_district(lon, lat, stpaul_map)
+        if stpaul_id is not None:
+            stpaul_records.append((lon, lat, source, title, details, stpaul_id))
+            continue
+        mpls_id = _find_district(lon, lat, mpls_map)
+        if mpls_id is not None:
+            mpls_records.append((lon, lat, source, title, details, mpls_id))
+            continue
+        unassigned_records.append((lon, lat, source, title, details, None))
+    return stpaul_records, mpls_records, unassigned_records
+
+
+def _crash_title_details(attrs):
+    title = "Pedestrian/Cyclist Crash"
+    details = {}
+    if _clean(attrs.get("global_crash_severity")):
+        details["Severity"] = str(attrs["global_crash_severity"]).replace("_", " ").title()
+    if _clean(attrs.get("crash_mode")):
+        details["Mode"] = str(attrs["crash_mode"]).replace("_", " ").title()
+    return title, details
+
+
+def _export_crash_records(stpaul_map, mpls_map):
+    """Fetch MnDOT/MnDPS pedestrian/cyclist crash locations once and classify
+    into St. Paul / Minneapolis / unassigned, same as the shared node
+    sources. Exported as its own "crashes" point layer so the 1-mile radius
+    "place" score can include it in Safety the same way district scores
+    already do (see config/sources.json), instead of Safety being crime-only
+    for a radius search."""
+    try:
+        features = _fetch_crashes()
+    except Exception as e:
+        print(f"[WARNING] Crash fetch failed: {e}")
+        return [], [], []
+    stpaul, mpls, unassigned = _classify_arcgis_by_district(features, stpaul_map, mpls_map, "crashes", _crash_title_details)
+    # Sample each city's list independently (like crime) rather than the
+    # combined list, so neither city's crashes get crowded out by the other.
+    if len(stpaul) > MAX_POINTS_PER_SOURCE:
+        random.Random(42).shuffle(stpaul)
+        stpaul = stpaul[:MAX_POINTS_PER_SOURCE]
+    if len(mpls) > MAX_POINTS_PER_SOURCE:
+        random.Random(42).shuffle(mpls)
+        mpls = mpls[:MAX_POINTS_PER_SOURCE]
+    return stpaul, mpls, unassigned
+
+
 def _transit_title_details(tags):
     mode = "rail" if (tags.get("railway") in ("station", "halt", "tram_stop") or tags.get("station") == "light_rail") else "bus"
     title = _clean(tags.get("name")) or f"Transit Stop ({mode.title()})"
@@ -233,6 +296,17 @@ def _restaurant_title_details(tags):
     return title, details
 
 
+def _entertainment_title_details(tags):
+    title = _clean(tags.get("name")) or "Entertainment Venue"
+    details = {}
+    kind = _clean(tags.get("amenity")) or _clean(tags.get("leisure")) or _clean(tags.get("tourism"))
+    if kind:
+        details["Type"] = kind.replace("_", " ").title()
+    if _clean(tags.get("addr:housenumber")) and _clean(tags.get("addr:street")):
+        details["Address"] = f"{tags['addr:housenumber']} {tags['addr:street']}"
+    return title, details
+
+
 def _fetch_and_classify_all(stpaul_map, mpls_map):
     """Fetch each shared node source once and classify into St. Paul /
     Minneapolis / unassigned record lists. Returns three lists of records."""
@@ -244,6 +318,7 @@ def _fetch_and_classify_all(stpaul_map, mpls_map):
         ("groceries", _fetch_grocery_nodes, _grocery_title_details, "Grocery stores"),
         ("healthcare", _fetch_healthcare_nodes, _healthcare_title_details, "Healthcare"),
         ("restaurants", _fetch_restaurant_nodes, _restaurant_title_details, "Restaurants/bars"),
+        ("entertainment", _fetch_entertainment_nodes, _entertainment_title_details, "Entertainment venues"),
     ]
     for source, fetch_fn, title_fn, label in sources:
         try:
@@ -398,21 +473,24 @@ def main():
     # intentionally excluded from the map's point layers (too granular /
     # low user interest) — they're still used in health score aggregation,
     # just not plotted as markers.
-    print("Fetching shared point sources (transit, schools, groceries, healthcare, restaurants)...")
+    print("Fetching shared point sources (transit, schools, groceries, healthcare, restaurants, entertainment)...")
     stpaul_records, mpls_records, unassigned_records = _fetch_and_classify_all(stpaul_map, mpls_map)
 
+    print("Fetching pedestrian/cyclist crash locations (MnDOT VRU crashes)...")
+    crash_stpaul, crash_mpls, crash_unassigned = _export_crash_records(stpaul_map, mpls_map)
+
     print("Exporting St. Paul points...")
-    stpaul_points = _points_feature_collection(stpaul_records + _export_stpaul_crime_records())
+    stpaul_points = _points_feature_collection(stpaul_records + _export_stpaul_crime_records() + crash_stpaul)
     (OUT_DIR / "points_stpaul.json").write_text(json.dumps(stpaul_points))
     print(f"[OK] {len(stpaul_points['features'])} St. Paul point features")
 
     print("Exporting Minneapolis points...")
-    mpls_points = _points_feature_collection(mpls_records + _export_mpls_crime_records())
+    mpls_points = _points_feature_collection(mpls_records + _export_mpls_crime_records() + crash_mpls)
     (OUT_DIR / "points_mpls.json").write_text(json.dumps(mpls_points))
     print(f"[OK] {len(mpls_points['features'])} MPLS point features")
 
     print("Exporting unassigned points (outside every district polygon, e.g. boundary slivers)...")
-    unassigned_points = _points_feature_collection(unassigned_records)
+    unassigned_points = _points_feature_collection(unassigned_records + crash_unassigned)
     (OUT_DIR / "points_unassigned.json").write_text(json.dumps(unassigned_points))
     print(f"[OK] {len(unassigned_points['features'])} unassigned point features")
 

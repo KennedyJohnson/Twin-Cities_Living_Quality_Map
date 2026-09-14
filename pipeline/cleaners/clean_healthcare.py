@@ -12,58 +12,27 @@ from pathlib import Path as _BootstrapPath
 sys.path.insert(0, str(_BootstrapPath(__file__).resolve().parent.parent))
 
 
-import time
-import requests
-from core.http_cache import cached_post, LONG_TTL_SECONDS
+from core.osm_extract import query_osm
 import pandas as pd
 from pathlib import Path
 from core.load import resolve_boundaries
 from shapely.geometry import Point, shape
 
 PIPELINE_DIR = Path(__file__).resolve().parent.parent
-OVERPASS_URL = "https://overpass-api.de/api/interpreter"
 
-# Twin Cities bounding box (south, west, north, east) - covers both
-# St. Paul and Minneapolis so this loader works for either city's districts.
-BBOX = "44.85, -93.35, 45.05, -92.95"
-
-OVERPASS_QUERY = f"""
-[out:json][timeout:90];
-(
-  nwr["amenity"="hospital"]({BBOX});
-  nwr["healthcare"="hospital"]({BBOX});
-  nwr["amenity"="clinic"]({BBOX});
-  nwr["healthcare"="clinic"]({BBOX});
-  nwr["amenity"="doctors"]({BBOX});
-  nwr["healthcare"="doctor"]({BBOX});
-  nwr["amenity"="pharmacy"]({BBOX});
-  nwr["healthcare"="pharmacy"]({BBOX});
-);
-out center;
-"""
+_HEALTHCARE_AMENITIES = {"hospital", "clinic", "doctors", "pharmacy"}
+_HEALTHCARE_TAGS = {"hospital", "clinic", "doctor", "pharmacy"}
 
 
-def _fetch_nodes(max_retries=3):
-    """Query Overpass API for healthcare facility nodes+ways.
+def _is_healthcare(tags):
+    return tags.get("amenity") in _HEALTHCARE_AMENITIES or tags.get("healthcare") in _HEALTHCARE_TAGS
 
-    Overpass's public instance occasionally returns 504/429 under load; retry
-    with backoff before giving up (same pattern as clean_groceries.py).
-    """
-    headers = {
-        "User-Agent": "StPaulNeighborhoodHealth/1.0 (data pipeline)",
-        "Accept": "*/*"
-    }
-    last_error = None
-    for attempt in range(max_retries):
-        try:
-            response = cached_post(OVERPASS_URL, data={"data": OVERPASS_QUERY}, headers=headers, timeout=120, ttl_seconds=LONG_TTL_SECONDS)
-            response.raise_for_status()
-            return response.json()["elements"]
-        except Exception as e:
-            last_error = e
-            if attempt < max_retries - 1:
-                time.sleep(15 * (attempt + 1))
-    raise last_error
+
+def _fetch_nodes():
+    """Fetch healthcare facility nodes+ways from the local OSM extract (see
+    core/osm_extract.py) — replaces the live Overpass query this used to
+    make, which was slow/flaky on the public instance."""
+    return query_osm(node_matcher=_is_healthcare, way_matcher=_is_healthcare, cache_key="healthcare")
 
 
 def clean_healthcare(fallback_behavior="exclude_from_scoring_if_geography_fails", city="stpaul", granularity="district"):

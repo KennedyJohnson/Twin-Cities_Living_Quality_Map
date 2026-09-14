@@ -3,3 +3,4 @@ numpy>=1.21.0
 scipy>=1.7.0
 shapely>=1.7.0
 requests>=2.28.0
+osmium>=4.0.0

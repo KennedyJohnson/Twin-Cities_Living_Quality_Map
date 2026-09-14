@@ -12,53 +12,28 @@ from pathlib import Path as _BootstrapPath
 sys.path.insert(0, str(_BootstrapPath(__file__).resolve().parent.parent))
 
 
-import time
-import requests
-from core.http_cache import cached_post, LONG_TTL_SECONDS
+from core.osm_extract import query_osm
 import pandas as pd
 from pathlib import Path
 from core.load import resolve_boundaries
 from shapely.geometry import Point, shape
 
 PIPELINE_DIR = Path(__file__).resolve().parent.parent
-OVERPASS_URL = "https://overpass-api.de/api/interpreter"
-
-# Twin Cities bounding box (south, west, north, east) - covers both
-# St. Paul and Minneapolis so this loader works for either city's districts.
-BBOX = "44.85, -93.35, 45.05, -92.95"
-
-OVERPASS_QUERY = f"""
-[out:json][timeout:60];
-(
-  node["shop"="supermarket"]({BBOX});
-  node["shop"="grocery"]({BBOX});
-  way["shop"="supermarket"]({BBOX});
-);
-out center;
-"""
 
 
-def _fetch_nodes(max_retries=3):
-    """Query Overpass API for grocery/supermarket nodes+ways.
+def _is_grocery_node(tags):
+    return tags.get("shop") in ("supermarket", "grocery")
 
-    Overpass's public instance occasionally returns 504/429 under load; retry
-    with backoff before giving up (same pattern as clean_schools.py).
-    """
-    headers = {
-        "User-Agent": "StPaulNeighborhoodHealth/1.0 (data pipeline)",
-        "Accept": "*/*"
-    }
-    last_error = None
-    for attempt in range(max_retries):
-        try:
-            response = cached_post(OVERPASS_URL, data={"data": OVERPASS_QUERY}, headers=headers, timeout=120, ttl_seconds=LONG_TTL_SECONDS)
-            response.raise_for_status()
-            return response.json()["elements"]
-        except Exception as e:
-            last_error = e
-            if attempt < max_retries - 1:
-                time.sleep(15 * (attempt + 1))
-    raise last_error
+
+def _is_grocery_way(tags):
+    return tags.get("shop") == "supermarket"
+
+
+def _fetch_nodes():
+    """Fetch grocery/supermarket nodes+ways from the local OSM extract (see
+    core/osm_extract.py) — replaces the live Overpass query this used to
+    make, which was slow/flaky on the public instance."""
+    return query_osm(node_matcher=_is_grocery_node, way_matcher=_is_grocery_way, cache_key="groceries")
 
 
 def clean_groceries(fallback_behavior="exclude_from_scoring_if_geography_fails", city="stpaul", granularity="district"):

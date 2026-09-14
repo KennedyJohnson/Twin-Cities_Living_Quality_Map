@@ -11,6 +11,7 @@ import {
   DEFAULT_MATCH_WEIGHTS,
 } from '@/lib/scoreMetric';
 import type { Neighborhood } from '@/types/neighborhood';
+import { cityForDistrictId } from '@/lib/geo';
 import {
   MatchRegion,
   MatchRegionBuilding,
@@ -94,6 +95,8 @@ interface MatchFinderProps {
   activeRegionId: string | null;
   onSelectRegion: (region: MatchRegion) => void;
   onClose: () => void;
+  cityFilter: 'all' | 'stpaul' | 'mpls';
+  onCityFilterChange: (city: 'all' | 'stpaul' | 'mpls') => void;
 }
 
 export default function MatchFinder({
@@ -107,6 +110,8 @@ export default function MatchFinder({
   activeRegionId,
   onSelectRegion,
   onClose,
+  cityFilter,
+  onCityFilterChange,
 }: MatchFinderProps) {
   const [allBuildings, setAllBuildings] = useState<ApartmentBuildingRecord[]>([]);
   const [districts, setDistricts] = useState<Neighborhood[]>([]);
@@ -143,8 +148,12 @@ export default function MatchFinder({
   // clean_apartment_buildings.py) — there's no condo/townhome/house
   // classification available to filter on.
   const buildingsWithinBudget = useMemo(() => {
-    return allBuildings.filter((b) => isWithinBudget(budgetByDistrict[b.district_id], maxRent, maxHomeValue));
-  }, [allBuildings, budgetByDistrict, maxRent, maxHomeValue]);
+    return allBuildings.filter(
+      (b) =>
+        (cityFilter === 'all' || cityForDistrictId(b.district_id) === cityFilter) &&
+        isWithinBudget(budgetByDistrict[b.district_id], maxRent, maxHomeValue)
+    );
+  }, [allBuildings, budgetByDistrict, maxRent, maxHomeValue, cityFilter]);
 
   const excludedCount = allBuildings.length - buildingsWithinBudget.length;
 
@@ -164,7 +173,11 @@ export default function MatchFinder({
     }
 
     const rankedDistricts = districts
-      .filter((d) => isWithinBudget(budgetByDistrict[d.district_id], maxRent, maxHomeValue))
+      .filter(
+        (d) =>
+          (cityFilter === 'all' || cityForDistrictId(d.district_id) === cityFilter) &&
+          isWithinBudget(budgetByDistrict[d.district_id], maxRent, maxHomeValue)
+      )
       .map((district) => ({ district, score: computeMatchScore(district, weights) }))
       .sort((a, b) => b.score - a.score);
 
@@ -202,7 +215,7 @@ export default function MatchFinder({
       if (out.length === 5) break;
     }
     return out;
-  }, [buildingsWithinBudget, districts, budgetByDistrict, weights, maxRent, maxHomeValue, weightsActive]);
+  }, [buildingsWithinBudget, districts, budgetByDistrict, weights, maxRent, maxHomeValue, weightsActive, cityFilter]);
 
   const onRegionsChangeRef = useRef(onRegionsChange);
   onRegionsChangeRef.current = onRegionsChange;
@@ -217,6 +230,26 @@ export default function MatchFinder({
         <button type="button" onClick={onClose} aria-label="Close">
           ✕
         </button>
+      </div>
+
+      <div className="match-finder-section">
+        <div className="match-finder-section-title">City</div>
+        <div className="click-mode-toggle-buttons">
+          {([
+            ['all', 'Both'],
+            ['stpaul', 'St. Paul'],
+            ['mpls', 'Minneapolis'],
+          ] as const).map(([value, label]) => (
+            <button
+              key={value}
+              type="button"
+              className={cityFilter === value ? 'active' : ''}
+              onClick={() => onCityFilterChange(value)}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
       </div>
 
       <div className="match-finder-section">

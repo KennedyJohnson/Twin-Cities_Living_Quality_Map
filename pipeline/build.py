@@ -13,6 +13,8 @@ from core.health_score import compute_health_scores_combined, compute_health_sco
 from core.load import load_population, load_boundaries, load_zip_population, load_zip_boundaries
 from core.radius_score import RadiusScoringContext
 from cleaners.clean_apartment_buildings import clean_apartment_buildings
+from exports.export_place_index import export_place_index
+from exports.export_city_outline import export_city_outlines
 
 PIPELINE_DIR = Path(__file__).parent
 REPO_DIR = PIPELINE_DIR.parent
@@ -307,6 +309,16 @@ if __name__ == "__main__":
     print("-" * 70)
     build_apartment_buildings(city="stpaul")
     build_apartment_buildings(city="mpls")
+
+    print("Building named-place index for address search / map-click labeling...")
+    print("-" * 70)
+    export_place_index()
+    print()
+
+    print("Building dissolved city outlines (St. Paul / Minneapolis borders)...")
+    print("-" * 70)
+    export_city_outlines()
+    print()
 
     print("Aggregating all ZIPs in the metro into one pooled normalization...")
     print("-" * 70)

@@ -5,8 +5,11 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend as RechartsLegend, Respons
 import { loadNeighborhoodData } from '@/lib/loadNeighborhoodData';
 import type { Neighborhood } from '@/types/neighborhood';
 
+type IndexKey = 'safety' | 'opportunity' | 'amenities' | 'transportation' | 'affordability';
+
 interface IndexComparisonChartProps {
   district: Neighborhood;
+  onSelectIndex?: (key: IndexKey) => void;
 }
 
 // 'zip' pools all 43 metro ZIPs into one normalization (see
@@ -32,31 +35,33 @@ type Averages = {
 // to avoid recomputing over the full neighborhood list on every click.
 const averagesCache: Record<string, Averages> = {};
 
-export default function IndexComparisonChart({ district }: IndexComparisonChartProps) {
-  const [chartData, setChartData] = useState<{ name: string; thisDistrict: number; average: number }[] | null>(null);
+export default function IndexComparisonChart({ district, onSelectIndex }: IndexComparisonChartProps) {
+  const [chartData, setChartData] = useState<
+    { name: string; key: IndexKey | null; thisDistrict: number; average: number }[] | null
+  >(null);
 
   useEffect(() => {
     const city = cityForDistrict(district);
     const cacheKey = `${city}:${district.district_id}`;
 
     const buildRows = (averages: Averages) => {
-      const rows: { name: string; thisDistrict: number; average: number }[] = [
-        { name: 'Living Quality Score', thisDistrict: district.health_score, average: averages.health_score },
+      const rows: { name: string; key: IndexKey | null; thisDistrict: number; average: number }[] = [
+        { name: 'Living Quality Score', key: null, thisDistrict: district.health_score, average: averages.health_score },
       ];
       if (district.indices.safety != null) {
-        rows.push({ name: 'Safety', thisDistrict: district.indices.safety, average: averages.safety });
+        rows.push({ name: 'Safety', key: 'safety', thisDistrict: district.indices.safety, average: averages.safety });
       }
       if (district.indices.opportunity != null) {
-        rows.push({ name: 'Opportunity', thisDistrict: district.indices.opportunity, average: averages.opportunity });
+        rows.push({ name: 'Opportunity', key: 'opportunity', thisDistrict: district.indices.opportunity, average: averages.opportunity });
       }
       if (district.indices.amenities != null) {
-        rows.push({ name: 'Amenities & Services', thisDistrict: district.indices.amenities, average: averages.amenities });
+        rows.push({ name: 'Amenities & Services', key: 'amenities', thisDistrict: district.indices.amenities, average: averages.amenities });
       }
       if (district.indices.transportation != null) {
-        rows.push({ name: 'Transportation', thisDistrict: district.indices.transportation, average: averages.transportation });
+        rows.push({ name: 'Transportation', key: 'transportation', thisDistrict: district.indices.transportation, average: averages.transportation });
       }
       if (district.indices.affordability != null) {
-        rows.push({ name: 'Affordability', thisDistrict: district.indices.affordability, average: averages.affordability });
+        rows.push({ name: 'Affordability', key: 'affordability', thisDistrict: district.indices.affordability, average: averages.affordability });
       }
       setChartData(rows.map((r) => ({ ...r, thisDistrict: Math.round(r.thisDistrict * 10) / 10, average: Math.round(r.average * 10) / 10 })));
     };
@@ -99,9 +104,32 @@ export default function IndexComparisonChart({ district }: IndexComparisonChartP
           : 'This District vs. Other Districts'}
       </div>
       <ResponsiveContainer width="100%" height={220}>
-        <BarChart data={chartData} layout="vertical" margin={{ top: 4, right: 16, left: 8, bottom: 4 }}>
-          <XAxis type="number" domain={[0, 100]} tick={{ fontSize: 10 }} />
-          <YAxis type="category" dataKey="name" tick={{ fontSize: 11 }} width={90} />
+        <BarChart
+          data={chartData}
+          layout="vertical"
+          margin={{ top: 4, right: 16, left: 8, bottom: 4 }}
+          barCategoryGap="30%"
+          barGap={2}
+        >
+          <XAxis
+            type="number"
+            domain={([dataMin, dataMax]: [number, number]) => {
+              const padding = Math.max((dataMax - dataMin) * 0.1, 2);
+              return [Math.max(0, Math.floor(dataMin - padding)), Math.min(100, Math.ceil(dataMax + padding))];
+            }}
+            tick={{ fontSize: 10 }}
+          />
+          <YAxis
+            type="category"
+            dataKey="name"
+            tick={{ fontSize: 11 }}
+            width={90}
+            onClick={(tick: any) => {
+              const row = chartData?.find((r) => r.name === tick?.value);
+              if (row?.key && onSelectIndex) onSelectIndex(row.key);
+            }}
+            style={onSelectIndex ? { cursor: 'pointer' } : undefined}
+          />
           <Tooltip contentStyle={{ fontSize: '11px' }} />
           <RechartsLegend wrapperStyle={{ fontSize: '10px' }} />
           <Bar
@@ -110,8 +138,22 @@ export default function IndexComparisonChart({ district }: IndexComparisonChartP
             fill="#756bb1"
             radius={[0, 3, 3, 0]}
             isAnimationActive={false}
+            onClick={(data: any) => {
+              if (data?.key && onSelectIndex) onSelectIndex(data.key);
+            }}
+            style={onSelectIndex ? { cursor: 'pointer' } : undefined}
           />
-          <Bar dataKey="average" name="Average of others" fill="#ccc" radius={[0, 3, 3, 0]} isAnimationActive={false} />
+          <Bar
+            dataKey="average"
+            name="Average of others"
+            fill="#ccc"
+            radius={[0, 3, 3, 0]}
+            isAnimationActive={false}
+            onClick={(data: any) => {
+              if (data?.key && onSelectIndex) onSelectIndex(data.key);
+            }}
+            style={onSelectIndex ? { cursor: 'pointer' } : undefined}
+          />
         </BarChart>
       </ResponsiveContainer>
     </div>

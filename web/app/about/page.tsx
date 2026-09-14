@@ -37,6 +37,13 @@ export default function AboutPage() {
         time.
       </p>
 
+      <p style={{ marginBottom: '20px', fontSize: '14px', color: '#666', fontStyle: 'italic' }}>
+        The Living Quality Score is a comparative index, not an objective measure of quality of
+        life — it reflects a specific choice of metrics, geography, normalization, and weighting,
+        and is only as complete as the public data available for each city. Use it to compare
+        districts against each other, not as a verdict on any one of them.
+      </p>
+
       <h2 style={{ fontSize: '18px', fontWeight: 600, marginTop: '32px', marginBottom: '12px' }}>
         Author
       </h2>
@@ -76,7 +83,7 @@ export default function AboutPage() {
       </p>
 
       <ul style={{ marginBottom: '24px', paddingLeft: '20px' }}>
-        <li><strong>Safety (20%)</strong>: crime rate, pedestrian/cyclist crash rate, natural hazard risk, and chronic disease burden (obesity/diabetes prevalence), all inverted</li>
+        <li><strong>Safety &amp; Health (20%)</strong>: crime rate, pedestrian/cyclist crash rate, natural hazard risk, and chronic disease burden (obesity/diabetes prevalence), all inverted</li>
         <li><strong>Opportunity (20%)</strong>: building permit rate per capita, unemployment rate (inverted), and Zillow for-sale home-listing tightness (fewer listings relative to population reads as a tighter, more in-demand market)</li>
         <li><strong>Amenities &amp; Services (20%)</strong>: schools, grocery stores, restaurants/bars, and healthcare access, blended 85/15 with a Census broadband/internet-access rate</li>
         <li><strong>Transportation (20%)</strong>: trail/path length and transit stop rate, minus traffic volume (inverted); blended 70/30 with a Zillow-style Walk/Bike Score (distance-decay proximity to daily-need amenities plus street-intersection density)</li>
@@ -131,7 +138,10 @@ export default function AboutPage() {
       <p style={{ marginBottom: '20px' }}>
         Within a component (e.g. Amenities &amp; Services), each metric&apos;s normalized value is combined
         into a single index using a weighted average. The five indices are then combined into the
-        overall Living Quality Score using the weights above (20/20/20/20/20).
+        overall Living Quality Score using the weights above (20/20/20/20/20). Equal weighting was
+        chosen deliberately, to avoid imposing a subjective preference for any one dimension of
+        quality of life over another — a district-by-district breakdown of all five is always
+        shown alongside the overall score, so you can weigh them differently yourself.
       </p>
 
       <h3 style={{ fontSize: '16px', fontWeight: 600, marginTop: '24px', marginBottom: '12px' }}>
