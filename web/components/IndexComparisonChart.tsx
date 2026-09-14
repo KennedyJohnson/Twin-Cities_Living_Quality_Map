@@ -61,7 +61,7 @@ export default function IndexComparisonChart({ district, onSelectIndex }: IndexC
         rows.push({ name: 'Transportation', key: 'transportation', thisDistrict: district.indices.transportation, average: averages.transportation });
       }
       if (district.indices.affordability != null) {
-        rows.push({ name: 'Affordability', key: 'affordability', thisDistrict: district.indices.affordability, average: averages.affordability });
+        rows.push({ name: 'Economic Profile', key: 'affordability', thisDistrict: district.indices.affordability, average: averages.affordability });
       }
       setChartData(rows.map((r) => ({ ...r, thisDistrict: Math.round(r.thisDistrict * 10) / 10, average: Math.round(r.average * 10) / 10 })));
     };

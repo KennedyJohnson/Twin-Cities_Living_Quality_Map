@@ -138,7 +138,7 @@ export const indexLabels: Record<string, string> = {
   opportunity: 'Opportunity',
   amenities: 'Amenities & Services',
   transportation: 'Transportation',
-  affordability: 'Affordability',
+  affordability: 'Economic Profile',
   walkability_score: 'Walk/Bike Score',
   broadband_score: 'Broadband Access',
 };
@@ -148,7 +148,7 @@ export const indexDescriptions: Record<string, string> = {
   opportunity: 'Comprised of: Permit Rate and Unemployment Rate. More development raises this index; more unemployment lowers it.',
   amenities: 'Comprised of: Schools, Grocery Stores, Restaurants/Bars, Healthcare Access, and Entertainment Venues where available, blended 85/15 with Broadband Access below.',
   transportation: 'Comprised of: Trail/Path Length and Transit Stop Rate (direct) minus Traffic Volume (inverted), blended 30% with the Walk/Bike Score below.',
-  affordability: 'Comprised of: Census median home value, median gross rent, median household income, poverty rate, housing cost burden (% of income spent on rent), and homeownership rate. See the Housing Affordability panel below for the raw figures.',
+  affordability: 'Comprised of: Census median home value, median gross rent, median household income, poverty rate, housing cost burden (% of income spent on rent), and homeownership rate. Named "Economic Profile" rather than "Affordability" because it blends housing cost (lower is better) with income/homeownership (higher is better) — a high-income area with expensive housing can still score well here, which isn\'t what "affordability" alone would suggest. See the panel below for the raw figures.',
   walkability_score: 'A Zillow-style Walk/Bike Score: distance-decay proximity to groceries, restaurants/bars, transit, schools, and healthcare, plus street-intersection density (a block-size/bikeability proxy) and trail km per capita. Closer amenities, denser intersections, and more trails raise this score. Feeds 30% of the Transportation index.',
   broadband_score: 'Share of households with an internet subscription (Census ACS), relative to other districts. Feeds 15% of the Amenities & Services index.',
 };

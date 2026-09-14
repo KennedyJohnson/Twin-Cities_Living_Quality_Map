@@ -430,7 +430,7 @@ export default function Home() {
         <div className="hero-banner">
           <div className="hero-title">Twin Cities Living Quality Map</div>
           <div className="hero-subtitle">
-            Safety, affordability, transportation, amenities &amp; opportunity —{' '}
+            Safety, economic profile, transportation, amenities &amp; opportunity:{' '}
             <span className="hero-callout">search any address for its 1-mile radius score.</span>
           </div>
         </div>

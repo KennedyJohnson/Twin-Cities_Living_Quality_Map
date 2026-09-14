@@ -8,7 +8,7 @@ export const SCORE_METRIC_LABELS: Record<ScoreMetricKey, string> = {
   opportunity: 'Opportunity',
   amenities: 'Amenities & Services',
   transportation: 'Transportation',
-  affordability: 'Affordability',
+  affordability: 'Economic Profile',
 };
 
 export function getScoreValue(neighborhood: Neighborhood, metric: ScoreMetricKey): number {

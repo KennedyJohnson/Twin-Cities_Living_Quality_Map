@@ -24,7 +24,7 @@ const COMPONENT_LABELS: Record<MatchComponent, string> = {
   opportunity: 'Opportunity',
   amenities: 'Amenities & Services',
   transportation: 'Transportation',
-  affordability: 'Affordability',
+  affordability: 'Economic Profile',
 };
 
 const COMPONENT_ORDER: MatchComponent[] = ['safety', 'opportunity', 'amenities', 'transportation', 'affordability'];

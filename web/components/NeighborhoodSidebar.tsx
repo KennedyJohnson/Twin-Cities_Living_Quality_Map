@@ -447,7 +447,7 @@ export default function NeighborhoodSidebar({ district, onSelectDistrict, granul
                   </div>
                   <ul style={{ paddingLeft: '18px', fontSize: '12px', color: '#555' }}>
                     {strengths.map((s) => (
-                      <li key={s.key}>{s.label} — top {Math.max(1, Math.round(100 - s.percentile))}% of districts</li>
+                      <li key={s.key}>{s.label}: top {Math.max(1, Math.round(100 - s.percentile))}% of districts</li>
                     ))}
                   </ul>
                 </div>
@@ -459,7 +459,7 @@ export default function NeighborhoodSidebar({ district, onSelectDistrict, granul
                   </div>
                   <ul style={{ paddingLeft: '18px', fontSize: '12px', color: '#555' }}>
                     {weaknesses.map((w) => (
-                      <li key={w.key}>{w.label} — bottom {Math.max(1, Math.round(w.percentile))}% of districts</li>
+                      <li key={w.key}>{w.label}: bottom {Math.max(1, Math.round(w.percentile))}% of districts</li>
                     ))}
                   </ul>
                 </div>

@@ -10,7 +10,7 @@ All data is fetched automatically from official APIs with no manual downloads:
 - **City Data** (ArcGIS FeatureServers): Crime, Building Permits (Service Requests and Housing Production are still fetched/cleaned but no longer feed the score — see note below)
 - **Census Data** (Census Bureau API): Population, Unemployment, Median home value/rent/income, poverty rate, housing cost burden, homeownership rate
 - **Geographic** (ArcGIS FeatureServers): District boundaries, neighborhood→district crosswalks (generated dynamically)
-- **Mapping** (OpenStreetMap Overpass API): Trails, transit stops, schools, grocery stores, healthcare facilities
+- **Mapping** (OpenStreetMap, queried locally via `pyosmium` against a monthly-refreshed Geofabrik Minnesota `.pbf` extract — see `pipeline/core/osm_extract.py` — instead of the public Overpass API): Trails, transit stops, schools, grocery stores, restaurants/bars, healthcare facilities, entertainment venues, apartment buildings, street network (Walk/Bike Score), named-place search index
 - **Traffic** (MnDOT ArcGIS): Annual Average Daily Traffic (AADT), pedestrian/cyclist crash locations
 - **Health** (CDC Socrata): Obesity/diabetes prevalence by census tract
 
@@ -22,7 +22,7 @@ All data is fetched automatically from official APIs with no manual downloads:
   - Opportunity: permit rate, unemployment rate (inverted), Zillow housing-market tightness
   - Amenities & Services: schools, groceries, restaurants, healthcare access, entertainment venues (movie theaters, performing-arts venues, museums/galleries, nightlife, bowling/arcades — OpenStreetMap), blended 85/15 with a Census broadband/internet-access rate
   - Transportation: trail/transit rate minus traffic volume, blended 70/30 with a Zillow-style Walk/Bike Score
-  - Affordability: home value, rent, poverty rate, housing cost burden (inverted), plus household income and homeownership rate
+  - Economic Profile (formerly labeled "Affordability" — renamed 2026-09-14 since it blends housing cost, lower=better, with income/homeownership, higher=better, so a high-income area with expensive housing like Summit Hill can still score well here, which "affordability" alone would misleadingly suggest): home value, rent, poverty rate, housing cost burden (inverted), plus household income and homeownership rate
 - Each metric is z-score-normalized (then logistic-squashed to 0-100) INDEPENDENTLY before being weight-blended into its component — not pooled with other metrics first. Normalization is pooled across ALL 28 districts of BOTH cities together, not per-city, so St. Paul and Minneapolis scores are directly comparable (see `pipeline/core/health_score.py`'s `compute_health_scores_combined`).
 - Crime/permits counts are restricted to a shared trailing recent-years window (`pipeline/core/date_window.py`) so the two cities' differing data-history lengths don't skew the comparison.
 - Multi-year trend charts for crime/permits and Census affordability figures

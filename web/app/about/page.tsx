@@ -39,9 +39,9 @@ export default function AboutPage() {
 
       <p style={{ marginBottom: '20px', fontSize: '14px', color: '#666', fontStyle: 'italic' }}>
         The Living Quality Score is a comparative index, not an objective measure of quality of
-        life — it reflects a specific choice of metrics, geography, normalization, and weighting,
+        life: it reflects a specific choice of metrics, geography, normalization, and weighting,
         and is only as complete as the public data available for each city. Use it to compare
-        districts against each other, not as a verdict on any one of them.
+        districts, ZIP codes, or buildings against each other, not as a verdict on any one of them.
       </p>
 
       <h2 style={{ fontSize: '18px', fontWeight: 600, marginTop: '32px', marginBottom: '12px' }}>
@@ -64,14 +64,21 @@ export default function AboutPage() {
       <ul style={{ paddingLeft: '20px', marginBottom: '24px' }}>
         <TechRow name="City of St. Paul Open Data" href="https://information.stpaul.gov/" use="crime, permits" />
         <TechRow name="City of Minneapolis Open Data" href="https://opendata.minneapolismn.gov/" use="crime, permits" />
-        <TechRow name="OpenStreetMap" href="https://www.openstreetmap.org/" use="trails, transit stops, schools, grocery stores, restaurants/bars, healthcare facilities, street network (Walk/Bike Score)" />
-        <TechRow name="Overpass API" href="https://overpass-api.de/" use="queries the OpenStreetMap data above" />
+        <TechRow name="OpenStreetMap" href="https://www.openstreetmap.org/" use="trails, transit stops, schools, grocery stores, restaurants/bars, healthcare facilities, entertainment venues, apartment buildings, street network (Walk/Bike Score), and the named-place search index" />
+        <TechRow name="Geofabrik" href="https://download.geofabrik.de/" use="a monthly-refreshed Minnesota OSM data extract, queried locally instead of the public Overpass API: faster and immune to that API's rate limits/outages" />
+        <TechRow name="Nominatim" href="https://nominatim.org/" use="address search-bar geocoding and reverse-geocoding a clicked map point to a street address" />
         <TechRow name="U.S. Census Bureau ACS 5-Year Estimates" href="https://www.census.gov/programs-surveys/acs" use="median home value, gross rent, household income, poverty rate, housing cost burden, homeownership rate, unemployment rate, broadband/internet access" />
         <TechRow name="Zillow Research" href="https://www.zillow.com/research/data/" use="for-sale home listing inventory by ZIP, used as a housing-market tightness signal" />
         <TechRow name="MnDOT Traffic Forecasting & Analysis" href="https://www.dot.state.mn.us/traffic/data/" use="Annual Average Daily Traffic (AADT) volumes and pedestrian/cyclist crash locations" />
         <TechRow name="CDC PLACES" href="https://www.cdc.gov/places/" use="obesity and diabetes prevalence by census tract" />
         <TechRow name="FEMA National Risk Index" href="https://hazards.fema.gov/nri/" use="natural hazard risk score by census tract" />
       </ul>
+      <p style={{ fontSize: '12px', color: '#999', marginBottom: '24px' }}>
+        St. Paul&apos;s crime data has no geocoded address in the source, only a district, so
+        individual crime incidents aren&apos;t plotted as markers on the map (Minneapolis crime
+        does include real coordinates and is plotted). St. Paul crime still fully feeds the
+        Safety index and district-level Crime Rate metric.
+      </p>
 
       <h2 style={{ fontSize: '18px', fontWeight: 600, marginTop: '32px', marginBottom: '12px' }}>
         How We Calculate This
@@ -85,98 +92,74 @@ export default function AboutPage() {
       <ul style={{ marginBottom: '24px', paddingLeft: '20px' }}>
         <li><strong>Safety &amp; Health (20%)</strong>: crime rate, pedestrian/cyclist crash rate, natural hazard risk, and chronic disease burden (obesity/diabetes prevalence), all inverted</li>
         <li><strong>Opportunity (20%)</strong>: building permit rate per capita, unemployment rate (inverted), and Zillow for-sale home-listing tightness (fewer listings relative to population reads as a tighter, more in-demand market)</li>
-        <li><strong>Amenities &amp; Services (20%)</strong>: schools, grocery stores, restaurants/bars, and healthcare access, blended 85/15 with a Census broadband/internet-access rate</li>
+        <li><strong>Amenities &amp; Services (20%)</strong>: schools, grocery stores, restaurants/bars, healthcare access, and entertainment venues (movie theaters, performing-arts venues, museums/galleries, nightlife, bowling/arcades), blended 85/15 with a Census broadband/internet-access rate</li>
         <li><strong>Transportation (20%)</strong>: trail/path length and transit stop rate, minus traffic volume (inverted); blended 70/30 with a Zillow-style Walk/Bike Score (distance-decay proximity to daily-need amenities plus street-intersection density)</li>
-        <li><strong>Affordability (20%)</strong>: Census median home value, rent, poverty rate, and housing cost burden (all inverted), plus median household income and homeownership rate</li>
+        <li><strong>Economic Profile (20%)</strong>: Census median home value, rent, poverty rate, and housing cost burden (all inverted), plus median household income and homeownership rate</li>
       </ul>
 
       <p style={{ marginBottom: '20px' }}>
         All 28 districts across both cities (17 St. Paul District Councils + 11 Minneapolis
-        Communities) are normalized together in one pool, not city-by-city; otherwise a St.
-        Paul district&apos;s &quot;72&quot; and a Minneapolis district&apos;s &quot;72&quot; wouldn&apos;t
-        actually mean the same thing. Crime and permit counts are also restricted to a shared
-        trailing recent-years window before they&apos;re turned into rates, so the two
-        cities&apos; differing lengths of data history (e.g. one dataset going back to 2014,
-        another only to 2019) don&apos;t skew which city looks safer or more active than it
-        really is.
+        Communities) are normalized together in one pool, not city-by-city, so a &quot;72&quot; means
+        the same thing in either city. Crime and permit counts are restricted to a shared trailing
+        recent-years window before becoming rates, so the two cities&apos; differing data-history
+        lengths (e.g. one dataset back to 2014, another only to 2019) don&apos;t skew which city
+        looks safer or more active than it really is.
       </p>
 
       <h3 style={{ fontSize: '16px', fontWeight: 600, marginTop: '24px', marginBottom: '12px' }}>
-        Step 1: Per-capita rates
+        How a Score Is Built
       </h3>
       <p style={{ marginBottom: '20px' }}>
-        Raw counts (crime incidents, permits, service requests, etc.) are converted to a rate per
-        1,000 residents, so a small district with fewer incidents isn&apos;t unfairly penalized
-        against a large one.
+        Raw counts (crime incidents, permits, etc.) first become a rate per 1,000 residents, so a
+        small district isn&apos;t unfairly penalized against a large one. Each rate is then
+        normalized against every other district with a z-score, squashed through a logistic curve
+        into 0–100, deliberately not simple min-max scaling, which would force the single most
+        extreme district to exactly 0 or 100 and overstate how unusual it really is; z-score +
+        logistic compresses outliers asymptotically, landing near but never exactly at the floor
+        or ceiling. Metrics where a higher raw number is worse (crime rate, traffic volume,
+        housing cost) are inverted first, so a lower rate produces a higher score.
       </p>
-
-      <h3 style={{ fontSize: '16px', fontWeight: 600, marginTop: '24px', marginBottom: '12px' }}>
-        Step 2: Normalization
-      </h3>
       <p style={{ marginBottom: '20px' }}>
-        Each rate is normalized against every other district using a z-score (how many standard
-        deviations a district is from the citywide average), then squashed through a logistic
-        curve into a 0–100 range. This is deliberately different from simple min-max scaling: with
-        min-max, the single most extreme district always lands at exactly 0 or 100, which
-        overstates how unusual it really is. The z-score + logistic approach compresses outliers
-        asymptotically instead: extreme districts land near, but never exactly at, the floor or
-        ceiling.
-      </p>
-
-      <h3 style={{ fontSize: '16px', fontWeight: 600, marginTop: '24px', marginBottom: '12px' }}>
-        Step 3: Direction
-      </h3>
-      <p style={{ marginBottom: '20px' }}>
-        Some metrics are inverted before blending, because a higher raw number is worse, not
-        better: crime rate, traffic volume, and housing cost are all inverted so that a{' '}
-        <em>lower</em> rate produces a <em>higher</em> index score.
-      </p>
-
-      <h3 style={{ fontSize: '16px', fontWeight: 600, marginTop: '24px', marginBottom: '12px' }}>
-        Step 4: Blend into indices, then into one score
-      </h3>
-      <p style={{ marginBottom: '20px' }}>
-        Within a component (e.g. Amenities &amp; Services), each metric&apos;s normalized value is combined
-        into a single index using a weighted average. The five indices are then combined into the
-        overall Living Quality Score using the weights above (20/20/20/20/20). Equal weighting was
-        chosen deliberately, to avoid imposing a subjective preference for any one dimension of
-        quality of life over another — a district-by-district breakdown of all five is always
-        shown alongside the overall score, so you can weigh them differently yourself.
+        Within a component, each metric&apos;s normalized value is weight-averaged into that
+        component&apos;s index, and the five indices are then blended into the overall Living
+        Quality Score using the equal 20/20/20/20/20 weights above, chosen deliberately to avoid
+        imposing a subjective preference for any one dimension of quality of life. A
+        district-by-district breakdown of all five is always shown alongside the overall score, so
+        you can weigh them differently yourself.
       </p>
 
       <h3 style={{ fontSize: '16px', fontWeight: 600, marginTop: '24px', marginBottom: '12px' }}>
         1-Mile Radius Scores
       </h3>
       <p style={{ marginBottom: '20px' }}>
-        Clicking anywhere on the map or searching an address computes a score for that point&apos;s
-        1-mile radius, rather than just the enclosing district. This is estimated from OpenStreetMap
-        and Census data within 1 mile using per-area rates. It excludes metrics only available at the
-        district level (weight redistributed among the remaining metrics) and the Walk/Bike Score&apos;s
-        distance decay. District scores use the full metric set described above.
+        Clicking anywhere on the map or searching an address scores that point&apos;s 1-mile
+        radius instead of the enclosing district, comparing it against a dense grid of thousands
+        of other 1-mile circles sampled across the same city, not whole-district averages, which
+        are diluted by sparse edges and parks a small circle would never actually cover. Each
+        source is normalized independently before blending, the same z-score treatment district
+        scores get. Safety blends the same four signals as the district-level index (crime,
+        pedestrian/cyclist crashes, tract-level chronic disease burden, natural hazard risk); the
+        one exclusion is the Walk/Bike Score&apos;s distance decay and any metric only available at
+        the district level (its weight redistributed among the rest). A clicked/searched point
+        gets its name from a local index of named OpenStreetMap places built at data-refresh time
+        rather than a live lookup on every click, falling back to Nominatim only for addresses not
+        already in that index.
       </p>
 
       <h3 style={{ fontSize: '16px', fontWeight: 600, marginTop: '24px', marginBottom: '12px' }}>
         ZIP Code Scores
       </h3>
       <p style={{ marginBottom: '20px' }}>
-        The map&apos;s &quot;Map view: District / ZIP Code&quot; toggle switches to a finer-grained
-        geography: every ZIP code in the Twin Cities is scored the same way districts are, but
-        normalized in its own separate pool: every ZIP compared directly against every other ZIP,
-        not against districts or split per city. A ZIP&apos;s score, letter grade, and
-        &quot;this ZIP vs. other ZIPs&quot; comparisons are only meaningful relative to other ZIPs,
-        the same way a district score is only meaningful relative to other districts: the two
-        pools use different normalizations and aren&apos;t on a directly comparable 0–100 scale to
-        each other.
-      </p>
-      <p style={{ marginBottom: '20px' }}>
-        Only ZIP codes with at least 98% of their area inside St. Paul or Minneapolis&apos;s
-        combined district boundaries are included (currently 27 of the ~49 ZCTAs that touch the
-        metro area). A ZIP that only clips a corner of a district has most of its area and
-        population outside our data coverage. Crime, permits, and every other source come from
-        the two cities&apos; own feeds, not the surrounding suburbs, so scoring it anyway would
-        divide a real population by an artificially small incident count and understate every
-        rate. The threshold is a large-majority-area test rather than exact polygon containment,
-        since real-world administrative boundaries rarely align to the pixel.
+        The map&apos;s &quot;Map view: District / ZIP Code&quot; toggle scores every ZIP code the
+        same way, but normalized in its own separate pool: ZIP vs. ZIP, never against districts
+        or split per city, so a ZIP&apos;s score/grade is only meaningful relative to other ZIPs,
+        the same way a district score only means something relative to other districts; the two
+        pools aren&apos;t on a directly comparable 0–100 scale. Only ZIPs with at least 98% of
+        their area inside St. Paul or Minneapolis&apos;s combined boundaries are included (27 of
+        the ~49 ZCTAs touching the metro), since a ZIP that only clips a corner of a district would
+        divide a real population by an artificially small incident count from a source that
+        doesn&apos;t cover most of that ZIP&apos;s actual population: a large-majority-area test
+        rather than exact containment, since real boundaries rarely align to the pixel.
       </p>
       <p style={{ marginBottom: '20px' }}>
         Every metric that feeds the district score is recomputed at ZIP granularity from the same
@@ -200,6 +183,7 @@ export default function AboutPage() {
         <TechRow name="Python" use="the data pipeline language" />
         <TechRow name="pandas" use="tabular data cleaning and aggregation" />
         <TechRow name="Shapely" use="geospatial joins (points/lines to district polygons)" />
+        <TechRow name="pyosmium" use="reads the local Geofabrik OSM extract directly, replacing live Overpass API calls" />
         <TechRow name="NumPy" use="the score normalization math" />
         <TechRow name="pytest" use="unit tests for the scoring math" />
         <TechRow name="Playwright" use="end-to-end tests of the map UI" />
@@ -207,13 +191,6 @@ export default function AboutPage() {
         <TechRow name="Vercel" use="hosting, deployment, and analytics" />
         <TechRow name="Claude Code" use="AI-assisted development of the pipeline and frontend" />
       </ul>
-
-      <p style={{ fontSize: '12px', color: '#999', marginTop: '32px' }}>
-        St. Paul&apos;s crime data has no geocoded address in the source, only a district, so
-        individual crime incidents aren&apos;t plotted as markers on the map (Minneapolis crime
-        does include real coordinates and is plotted). St. Paul crime still fully feeds the
-        Safety index and district-level Crime Rate metric.
-      </p>
     </div>
   );
 }
