@@ -113,7 +113,7 @@ export default function IndexComparisonChart({ district, onSelectIndex }: IndexC
         >
           <XAxis
             type="number"
-            domain={([dataMin, dataMax]: [number, number]) => {
+            domain={([dataMin, dataMax]) => {
               const padding = Math.max((dataMax - dataMin) * 0.1, 2);
               return [Math.max(0, Math.floor(dataMin - padding)), Math.min(100, Math.ceil(dataMax + padding))];
             }}
