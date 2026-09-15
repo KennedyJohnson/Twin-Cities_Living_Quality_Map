@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
 
   const response = await fetch(url, {
     headers: {
-      'User-Agent': 'TwinCitiesLivingQualityMap/1.0 (https://github.com/)',
+      'User-Agent': 'TwinCitiesLivingQualityMap/1.0 (https://github.com/KennedyJohnson/Twin-Cities_Living_Quality_Map)',
     },
   });
 

@@ -22,7 +22,7 @@ from core.http_cache import cached_get
 CACHE_FILE = Path(__file__).parent / ".cache" / "stpaul_block_geocode.json"
 CENSUS_URL = "https://geocoding.geo.census.gov/geocoder/locations/onelineaddress"
 NOMINATIM_URL = "https://nominatim.openstreetmap.org/search"
-NOMINATIM_USER_AGENT = "TwinCitiesLivingQualityMap/1.0 (REDACTED)"
+NOMINATIM_USER_AGENT = "TwinCitiesLivingQualityMap/1.0 (https://github.com/KennedyJohnson/Twin-Cities_Living_Quality_Map)"
 
 # Every block here is appended ", Saint Paul, MN", but a geocoder can still
 # match an ambiguous/misspelled street to a same-named street elsewhere in

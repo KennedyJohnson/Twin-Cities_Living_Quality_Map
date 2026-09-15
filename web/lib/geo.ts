@@ -91,8 +91,13 @@ export async function reverseGeocode(
   }
 
   try {
+    // Routed through our own /api/reverse-geocode rather than calling
+    // Nominatim directly — Nominatim's usage policy requires requests to
+    // identify the application via User-Agent, which a browser fetch() can't
+    // set itself (see that route's comment), so a direct client-side call
+    // here would silently violate the policy on every place-mode map click.
     const response = await fetch(
-      `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=18`
+      `/api/reverse-geocode?lat=${lat}&lon=${lon}`
     );
     const result = await response.json();
     if (result?.name && result.name.trim().length > 0) {
