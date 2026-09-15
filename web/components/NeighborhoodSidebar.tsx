@@ -427,9 +427,11 @@ export default function NeighborhoodSidebar({ district, onSelectDistrict, granul
           .sort((a, b) => a.percentile - b.percentile)
           .slice(0, 3);
 
+        const comparisonNoun = district.is_zip ? 'ZIP codes' : 'districts';
+
         const summarize = () => {
           if (strengths.length === 0 && weaknesses.length === 0) {
-            return "Scores close to average across the board relative to other districts.";
+            return `Scores close to average across the board relative to other ${comparisonNoun}.`;
           }
           const parts: string[] = [];
           if (strengths.length > 0) {
@@ -438,7 +440,7 @@ export default function NeighborhoodSidebar({ district, onSelectDistrict, granul
           if (weaknesses.length > 0) {
             parts.push(`${weaknesses.length > 1 ? 'weaker' : 'lower'} ${weaknesses.map((w) => w.label.toLowerCase()).join(' and ')}`);
           }
-          const sentence = parts.join(', but ') + ' relative to other districts.';
+          const sentence = parts.join(', but ') + ` relative to other ${comparisonNoun}.`;
           return sentence.charAt(0).toUpperCase() + sentence.slice(1);
         };
 
@@ -460,7 +462,7 @@ export default function NeighborhoodSidebar({ district, onSelectDistrict, granul
                   </div>
                   <ul style={{ paddingLeft: '18px', fontSize: '12px', color: '#555' }}>
                     {strengths.map((s) => (
-                      <li key={s.key}>{s.label}: top {Math.max(1, Math.round(100 - s.percentile))}% of districts</li>
+                      <li key={s.key}>{s.label}: top {Math.max(1, Math.round(100 - s.percentile))}% of {comparisonNoun}</li>
                     ))}
                   </ul>
                 </div>
@@ -472,7 +474,7 @@ export default function NeighborhoodSidebar({ district, onSelectDistrict, granul
                   </div>
                   <ul style={{ paddingLeft: '18px', fontSize: '12px', color: '#555' }}>
                     {weaknesses.map((w) => (
-                      <li key={w.key}>{w.label}: bottom {Math.max(1, Math.round(w.percentile))}% of districts</li>
+                      <li key={w.key}>{w.label}: bottom {Math.max(1, Math.round(w.percentile))}% of {comparisonNoun}</li>
                     ))}
                   </ul>
                 </div>
