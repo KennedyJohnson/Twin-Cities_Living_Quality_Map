@@ -342,10 +342,6 @@ export default function MatchFinder({
       {weightsActive && regions.length > 0 && (
         <div className="match-finder-section">
           <div className="match-finder-section-title">Top 5 recommended areas</div>
-          <p className="match-finder-region-hint">
-            Each option is a district that fits your criteria, shown as a 1-mile radius on the map. Pick one, then
-            click any building marker inside it to look up that place.
-          </p>
           <ol className="match-finder-listings">
             {regions.map((region) => (
               <li key={region.id} className="match-finder-listing-item">

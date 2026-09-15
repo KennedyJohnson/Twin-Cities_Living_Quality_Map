@@ -80,6 +80,7 @@ export default function NeighborhoodSidebar({ district, onSelectDistrict, granul
   }, [district, scoreMetric]);
   const [allNeighborhoods, setAllNeighborhoods] = useState<Neighborhood[]>([]);
   const [allZips, setAllZips] = useState<Neighborhood[]>([]);
+  const [radiusScoreSamples, setRadiusScoreSamples] = useState<Record<string, number[]>>({});
 
   useEffect(() => {
     Promise.all([
@@ -109,16 +110,43 @@ export default function NeighborhoodSidebar({ district, onSelectDistrict, granul
     loadNeighborhoodData('zip')
       .then((zip) => setAllZips(zip.neighborhoods))
       .catch(() => setAllZips([]));
+
+    // A radius/place click (search, map click in "place" mode, an apartment
+    // building) scores on a visibly different scale than a district or ZIP —
+    // fewer metrics are available client-side (Opportunity's permits/
+    // unemployment and Walk/Bike Score's distance decay aren't shipped to
+    // the browser, so their weight redistributes onto what's left), and
+    // pipeline/tests/sanity_check_place_scoring.py shows radius health_score
+    // running ~6 points below the same spot's district score city-wide.
+    // Grading a radius result against the district/ZIP pool below therefore
+    // reads as unfairly harsh (routinely D/F even inside an "A" district) —
+    // it needs its own distribution of other radius scores to rank against
+    // instead. See pipeline/exports/export_radius_score_samples.py.
+    fetch('/data/radius_score_samples.json')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((samples) => setRadiusScoreSamples(samples || {}))
+      .catch(() => setRadiusScoreSamples({}));
   }, []);
 
   const comparisonPool = district?.is_zip ? allZips : allNeighborhoods;
+  const useRadiusSamples = !!district?.is_radius && Object.keys(radiusScoreSamples).length > 0;
 
-  const healthScoreGrade =
-    district && comparisonPool.length > 0
-      ? percentileRank(district.health_score, comparisonPool.map((n) => n.health_score))
-      : null;
+  const healthScoreGrade = !district
+    ? null
+    : useRadiusSamples
+    ? (radiusScoreSamples.health_score?.length
+        ? percentileRank(district.health_score, radiusScoreSamples.health_score)
+        : null)
+    : comparisonPool.length > 0
+    ? percentileRank(district.health_score, comparisonPool.map((n) => n.health_score))
+    : null;
 
   const indexGrade = (key: string, value: number): number | null => {
+    if (useRadiusSamples) {
+      const values = radiusScoreSamples[key];
+      if (!values || values.length === 0) return null;
+      return percentileRank(value, values);
+    }
     if (comparisonPool.length === 0) return null;
     const values = comparisonPool
       .map((n) => n.indices[key])
@@ -427,7 +455,11 @@ export default function NeighborhoodSidebar({ district, onSelectDistrict, granul
           .sort((a, b) => a.percentile - b.percentile)
           .slice(0, 3);
 
-        const comparisonNoun = district.is_zip ? 'ZIP codes' : 'districts';
+        const comparisonNoun = district.is_radius
+          ? 'nearby 1-mile areas'
+          : district.is_zip
+          ? 'ZIP codes'
+          : 'districts';
 
         const summarize = () => {
           if (strengths.length === 0 && weaknesses.length === 0) {

@@ -18,6 +18,13 @@ export_points.py must finish first. Every other export only reads from the
 pipeline's cleaners/aggregation, not from another export's output, so they
 run in parallel.
 
+export_radius_score_samples.py runs last, on its own: it scores a sample
+grid of points via RadiusScoringContext, which itself reads
+radius_baseline_{city}.json, points_{city}.json/lines_trails.json, and
+tracts_affordability_{city}.json — i.e. the outputs of export_radius_baseline,
+export_points, and export_tracts_affordability all have to already be on
+disk, so it can't join the parallel group above.
+
 None of this changes what gets fetched or written — pipeline/core/http_cache.py's
 existing 6-hour cache is what actually avoids redundant network calls
 across exports (and across build.py) that ask for the same data; this just
@@ -40,6 +47,7 @@ import exports.export_affordability as export_affordability
 import exports.export_affordability_timeseries as export_affordability_timeseries
 import exports.export_tracts_affordability as export_tracts_affordability
 import exports.export_radius_baseline as export_radius_baseline
+import exports.export_radius_score_samples as export_radius_score_samples
 
 
 def main():
@@ -71,6 +79,15 @@ def main():
                 print(f"[OK] {name} complete")
             except Exception as e:
                 print(f"[ERROR] {name} failed: {e}")
+
+    print("=" * 70)
+    print("Running export_radius_score_samples.py (needs the exports above)")
+    print("=" * 70)
+    try:
+        export_radius_score_samples.main()
+        print("[OK] export_radius_score_samples complete")
+    except Exception as e:
+        print(f"[ERROR] export_radius_score_samples failed: {e}")
 
     elapsed = time.time() - start
     print()
