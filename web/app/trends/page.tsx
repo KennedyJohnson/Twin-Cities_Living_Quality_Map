@@ -32,6 +32,19 @@ export default function TrendsPage() {
       </p>
 
       <section style={{ marginBottom: '24px' }}>
+        <SectionTitle subtitle="Which districts changed the most, first year to latest, on the metrics with real year-by-year history">
+          Biggest Changes Over Time
+        </SectionTitle>
+        <p style={{ fontSize: '12px', color: '#666', marginBottom: '16px', lineHeight: 1.4 }}>
+          This isn&apos;t the full Living Quality Score over time: most of its inputs (schools,
+          transit, crash rate, chronic disease, etc.) are single-snapshot data with no historical
+          archive to compare against. Only crime, permits, and the Census Economic Profile fields
+          below have genuine multi-year history.
+        </p>
+        <BiggestMoversTable />
+      </section>
+
+      <section style={{ marginBottom: '24px' }}>
         <SectionTitle subtitle="Per 1,000 residents, per year">Crime Incidents</SectionTitle>
         <TimeSeriesComparisonChart metric="crime" />
       </section>
@@ -53,19 +66,6 @@ export default function TrendsPage() {
           <AffordabilityComparisonChart field="homeownership_rate" />
           <AffordabilityComparisonChart field="unemployment_rate_pc" />
         </div>
-      </section>
-
-      <section style={{ marginBottom: '24px' }}>
-        <SectionTitle subtitle="Which districts changed the most, first year to latest, on the metrics with real year-by-year history">
-          Biggest Changes Over Time
-        </SectionTitle>
-        <p style={{ fontSize: '12px', color: '#666', marginBottom: '16px', lineHeight: 1.4 }}>
-          This isn&apos;t the full Living Quality Score over time: most of its inputs (schools,
-          transit, crash rate, chronic disease, etc.) are single-snapshot data with no historical
-          archive to compare against. Only crime, permits, and the Census Economic Profile fields
-          below have genuine multi-year history.
-        </p>
-        <BiggestMoversTable />
       </section>
     </div>
   );

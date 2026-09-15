@@ -20,6 +20,7 @@ import { percentileRank, getLetterGrade } from '@/lib/letterGrade';
 import { loadNeighborhoodData } from '@/lib/loadNeighborhoodData';
 import { cityForDistrictId } from '@/lib/geo';
 import type { Neighborhood } from '@/types/neighborhood';
+import type { ScoreMetricKey } from '@/lib/scoreMetric';
 
 // Below this magnitude a vs-average difference reads as noise rather than a
 // meaningful strength/weakness, so it stays neutral gray instead of
@@ -37,6 +38,12 @@ interface NeighborhoodSidebarProps {
   granularity?: 'district' | 'zip';
   reviewsUrl?: string | null;
   reviewsLinkIsNamedPlace?: boolean;
+  // The component currently coloring the map (e.g. "transportation"). When a
+  // district is (re)selected while the map is colored by one of the five
+  // components (not the overall "health_score"), that component's panel
+  // below is preselected/expanded to match, instead of requiring a second
+  // click to see what's driving the color the user just clicked on.
+  scoreMetric?: ScoreMetricKey;
 }
 
 const COMPONENT_WEIGHTS: { key: 'safety' | 'opportunity' | 'amenities' | 'transportation' | 'affordability'; weight: number }[] = [
@@ -61,10 +68,16 @@ interface AffordabilityFile {
   districts: Record<string, Affordability>;
 }
 
-export default function NeighborhoodSidebar({ district, onSelectDistrict, granularity = 'district', reviewsUrl, reviewsLinkIsNamedPlace = false }: NeighborhoodSidebarProps) {
+export default function NeighborhoodSidebar({ district, onSelectDistrict, granularity = 'district', reviewsUrl, reviewsLinkIsNamedPlace = false, scoreMetric }: NeighborhoodSidebarProps) {
   const [affordability, setAffordability] = useState<Record<string, Affordability>>({});
   const [acsYear, setAcsYear] = useState<number | null>(null);
   const [expandedIndex, setExpandedIndex] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (district && scoreMetric && scoreMetric !== 'health_score') {
+      setExpandedIndex(scoreMetric);
+    }
+  }, [district, scoreMetric]);
   const [allNeighborhoods, setAllNeighborhoods] = useState<Neighborhood[]>([]);
   const [allZips, setAllZips] = useState<Neighborhood[]>([]);
 
@@ -356,7 +369,7 @@ export default function NeighborhoodSidebar({ district, onSelectDistrict, granul
                           const isGood = diffPct != null && (isMetricInverted(metricKey) ? diffPct < 0 : diffPct >= 0);
                           return (
                             <div style={{ fontSize: '11px', color: '#999', marginTop: '2px' }}>
-                              All-district avg rate: {avg.toFixed(1)}
+                              {district.is_zip ? 'All-zip' : 'All-district'} avg rate: {avg.toFixed(1)}
                               {diffPct != null && (
                                 <span style={{ color: diffColor(diffPct, isGood) }}>
                                   {' '}({diffPct >= 0 ? '+' : ''}{diffPct.toFixed(0)}%)

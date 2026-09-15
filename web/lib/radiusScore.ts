@@ -10,12 +10,15 @@ export interface RadiusBaselineSource {
   metric_name: string;
   weight_in_component: number;
   rate_direction: 'direct' | 'invert';
-  geometry_type: 'point' | 'line';
+  geometry_type: 'point' | 'line' | 'tract';
+  tract_field?: string;
+  // Mean/std are per-source (each source's raw rate has its own scale), not
+  // shared across a whole component — see pipeline/exports/export_radius_baseline.py.
+  mean: number;
+  std: number;
 }
 
 export interface RadiusBaselineComponent {
-  mean: number;
-  std: number;
   sources: RadiusBaselineSource[];
 }
 
@@ -80,13 +83,38 @@ function computeComponentIndex(
   center: L.LatLng,
   component: RadiusBaselineComponent,
   points: PointEntry[],
-  trails: TrailEntry[]
+  trails: TrailEntry[],
+  tracts: TractAffordabilityRow[]
 ): { value: number | null; metrics: Record<string, Metric> } {
   const metrics: Record<string, Metric> = {};
   let weightedSum = 0;
   let weightSum = 0;
 
   for (const source of component.sources) {
+    if (source.geometry_type === 'tract') {
+      // Population-weighted average of a Census-tract field (chronic
+      // disease prevalence, FEMA hazard risk) across tracts within the
+      // radius — same treatment as computeAffordability, since these are
+      // already rates/scores, not point counts to sum.
+      const field = source.tract_field as keyof TractAffordabilityRow;
+      const valid = tracts.filter(
+        (t) => (t as any)[field] != null && t.population != null && t.population > 0 &&
+          L.latLng(t.lat, t.lon).distanceTo(center) <= RADIUS_METERS
+      );
+      const totalPop = valid.reduce((s, t) => s + (t.population || 0), 0);
+      if (totalPop === 0) {
+        metrics[source.metric_name] = { raw_count: valid.length, rate_per_1000: 0 };
+        continue;
+      }
+      const value = valid.reduce((s, t) => s + (t as any)[field] * (t.population || 0), 0) / totalPop;
+      const signedRate = source.rate_direction === 'invert' ? -value : value;
+      const normalized = logisticNormalize(signedRate, source.mean, source.std);
+      weightedSum += normalized * source.weight_in_component;
+      weightSum += source.weight_in_component;
+      metrics[source.metric_name] = { raw_count: valid.length, rate_per_1000: Math.round(value * 100) / 100 };
+      continue;
+    }
+
     let rawCount = 0;
     if (source.geometry_type === 'line') {
       for (const trail of trails) {
@@ -109,7 +137,7 @@ function computeComponentIndex(
 
     const perSqMi = rawCount / CIRCLE_AREA_SQMI;
     const signedRate = source.rate_direction === 'invert' ? -perSqMi : perSqMi;
-    const normalized = logisticNormalize(signedRate, component.mean, component.std);
+    const normalized = logisticNormalize(signedRate, source.mean, source.std);
 
     weightedSum += normalized * source.weight_in_component;
     weightSum += source.weight_in_component;
@@ -170,7 +198,7 @@ export function computeRadiusNeighborhood(params: {
   // (safety, opportunity, amenities, transportation, ...) rather than
   // a fixed list, so a newly added component is scored automatically.
   for (const key of Object.keys(baseline.components)) {
-    const { value, metrics } = computeComponentIndex(center, baseline.components[key], points, trails);
+    const { value, metrics } = computeComponentIndex(center, baseline.components[key], points, trails, tracts);
     componentValues[key] = value;
     Object.assign(allMetrics, metrics);
   }

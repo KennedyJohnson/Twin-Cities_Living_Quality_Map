@@ -15,7 +15,7 @@ import {
   PointEntry,
   TrailEntry,
 } from '@/lib/radiusScore';
-import type { MatchRegion } from '@/lib/matchRegions';
+import type { MatchRegion, MatchRegionBuilding } from '@/lib/matchRegions';
 
 const MATCH_REGION_COLORS = ['#e31a1c', '#ff7f00', '#33a02c', '#1f78b4', '#6a3d9a'];
 
@@ -155,6 +155,10 @@ export type MapGranularity = 'district' | 'zip';
 interface NeighborhoodMapProps {
   onDistrictSelect: (district: Neighborhood | null) => void;
   selectedDistrict: Neighborhood | null;
+  // The second district picked while comparing (NeighborhoodSidebar's
+  // Compare flow) — outlined on the map alongside selectedDistrict so both
+  // sides of the comparison are visible, not just the first pick.
+  compareDistrict?: Neighborhood | null;
   flyToLocation?: { lat: number; lon: number } | null;
   searchMarker?: { lat: number; lon: number; label: string; address?: string } | null;
   onClearSearchMarker?: () => void;
@@ -192,6 +196,7 @@ function makeSearchMarkerIcon(): L.DivIcon {
 function MapContent({
   onDistrictSelect,
   selectedDistrict,
+  compareDistrict = null,
   flyToLocation,
   searchMarker,
   onClearSearchMarker,
@@ -226,6 +231,11 @@ function MapContent({
     { kind: MapGranularity; entries: { layer: L.GeoJSON; neighborhoodMap: Map<number, Neighborhood> }[] }[]
   >([]);
   const granularityRef = useRef<MapGranularity>(granularity);
+  // The outer city-outline border switches shape with granularity too (the
+  // ZIP pool's outer edge isn't the same shape as the district pool's — see
+  // export_city_outline.py) — kept separate from layerPoolsRef since these
+  // aren't score-colored district/zip layers, just the perimeter overlay.
+  const outlineLayersRef = useRef<{ district: L.Layer[]; zip: L.Layer[] }>({ district: [], zip: [] });
   const searchMarkerRef = useRef<L.Marker | null>(null);
   const searchRadiusCircleRef = useRef<L.Circle | null>(null);
   const regionCircleLayerRef = useRef<L.LayerGroup | null>(null);
@@ -251,17 +261,38 @@ function MapContent({
   // cheap for canvas layers since there's no DOM icon to rebuild.
   const canvasMarkersShownRef = useRef<Record<string, Set<L.CircleMarker>>>({});
   const canvasRendererRef = useRef<L.Canvas | null>(null);
+  // Separate canvas renderer for polygon layers (district/ZIP boundaries,
+  // outlines, divider strip), kept in the default 'overlayPane' (below
+  // 'markerPane' where point markers render) so stacking order is unchanged.
+  // Without this, boundary polygons render as SVG, and Leaflet rebuilds the
+  // entire SVG <path> DOM (every vertex) on every zoomend — the main cause of
+  // the visible stutter right as a zoom settles with these vertex-dense,
+  // Census-quality boundaries. A canvas renderer instead just repaints
+  // pixels, which is far cheaper at this vertex count.
+  const polygonCanvasRendererRef = useRef<L.Canvas | null>(null);
   // Trail/path segments: kept separately from point markers since they're
   // polylines (no single lat/lon) and never carry a district_id, so they're
   // filtered purely by "does any vertex fall within the search radius".
   const trailEntriesRef = useRef<{ layer: L.Layer; latlngs: L.LatLng[]; source: string }[]>([]);
   const trailGroupRef = useRef<L.LayerGroup | null>(null);
   const selectedDistrictRef = useRef<Neighborhood | null>(selectedDistrict);
+  const compareDistrictRef = useRef<Neighborhood | null>(compareDistrict);
   const searchMarkerPropRef = useRef<{ lat: number; lon: number; label: string; address?: string } | null | undefined>(searchMarker);
   const hiddenSourcesRef = useRef<Set<string>>(hiddenSources ?? new Set());
   const clickModeRef = useRef<MapClickMode>(clickMode);
   const onMapClickRef = useRef(onMapClick);
   onMapClickRef.current = onMapClick;
+  // Held in a ref (like every other callback prop here) so the big map-loading
+  // effect below does NOT depend on this prop's identity. page.tsx defines
+  // handleDistrictSelect/handleMapClick inline, so they get a new identity on
+  // every render of the page; with them in the dep array, any page state
+  // change (selecting a district, a sidebar update, a hover) tore down and
+  // re-ran the whole loadMap effect, which ends with
+  // map.fitBounds(TWIN_CITIES_BOUNDS) — visibly snapping the user back to the
+  // initial zoomed-out extent mid-interaction.
+  const onDistrictSelectRef = useRef(onDistrictSelect);
+  onDistrictSelectRef.current = onDistrictSelect;
+  const didFitInitialViewRef = useRef(false);
   const onClearSearchMarkerRef = useRef(onClearSearchMarker);
   onClearSearchMarkerRef.current = onClearSearchMarker;
   const neighborhoodMapsRef = useRef<Map<number, Neighborhood>[]>([]);
@@ -271,7 +302,22 @@ function MapContent({
   const districtBoundsRef = useRef<Record<number, L.LatLngBounds>>({});
   const [isLoading, setIsLoading] = useState(true);
 
-  const isEntryVisible = (entry: { marker: PointMarker; districtId: number | null; source: string }) => {
+  // Leaflet only re-measures its container on window resize. This map's width
+  // also changes without one — the draggable sidebar handle in page.tsx, and
+  // any post-paint layout settling (fonts/scrollbar) right after mount — which
+  // leaves Leaflet with a stale size and renders tiles/markers at the wrong
+  // offset until the next interaction. Re-measure on mount and on any container
+  // size change.
+  useEffect(() => {
+    const container = map.getContainer();
+    map.invalidateSize({ animate: false });
+    if (typeof ResizeObserver === 'undefined') return;
+    const ro = new ResizeObserver(() => map.invalidateSize({ animate: false }));
+    ro.observe(container);
+    return () => ro.disconnect();
+  }, [map]);
+
+  const isEntryVisible = (entry:{ marker: PointMarker; districtId: number | null; source: string }) => {
     if (hiddenSourcesRef.current.has(entry.source)) return false;
     const sm = searchMarkerPropRef.current;
     if (sm) {
@@ -392,6 +438,14 @@ function MapContent({
         else if (!shouldShow && isOnMap) map.removeLayer(layer);
       }
     }
+    for (const [kind, layers] of Object.entries(outlineLayersRef.current) as [MapGranularity, L.Layer[]][]) {
+      const shouldShow = kind === granularityRef.current;
+      for (const layer of layers) {
+        const isOnMap = map.hasLayer(layer);
+        if (shouldShow && !isOnMap) layer.addTo(map);
+        else if (!shouldShow && isOnMap) map.removeLayer(layer);
+      }
+    }
   };
 
   useEffect(() => {
@@ -400,7 +454,11 @@ function MapContent({
   }, [granularity]);
 
   useEffect(() => {
-    const onZoomEnd = () => renderAllLabels();
+    // Deferred a frame so this (re-clustering every point layer, an O(total
+    // markers) pass) doesn't compete with the browser's own paint of the
+    // just-settled zoom frame — running it synchronously in the zoomend
+    // handler was blocking that paint and read as part of the zoom stutter.
+    const onZoomEnd = () => requestAnimationFrame(() => renderAllLabels());
     map.on('zoomend', onZoomEnd);
     return () => {
       map.off('zoomend', onZoomEnd);
@@ -442,7 +500,7 @@ function MapContent({
         resolveNeighborhoodForPoint(e.latlng.lat, e.latlng.lng).then((neighborhood) => {
           if (!neighborhood) return;
           const isCurrentlySelected = selectedDistrictRef.current?.district_id === neighborhood.district_id;
-          onDistrictSelect(isCurrentlySelected ? null : neighborhood);
+          onDistrictSelectRef.current(isCurrentlySelected ? null : neighborhood);
         });
       }
     };
@@ -450,7 +508,7 @@ function MapContent({
     return () => {
       map.off('click', onClick);
     };
-  }, [map, onMapClick, onDistrictSelect]);
+  }, [map]);
 
   // District name labels are permanent tooltips. At the map's fully-zoomed-
   // out view (minZoom, 11) all 28 districts' labels — several multi-word —
@@ -487,6 +545,11 @@ function MapContent({
     let cancelled = false;
     const layersToClean: L.Layer[] = [];
     layerPoolsRef.current = [];
+    outlineLayersRef.current = { district: [], zip: [] };
+
+    if (!polygonCanvasRendererRef.current) {
+      polygonCanvasRendererRef.current = L.canvas({ padding: 0.5 });
+    }
 
     const buildDistrictLayer = (
       geojson: any,
@@ -510,12 +573,14 @@ function MapContent({
           const color = isOverBudget ? '#d0d0d0' : gradeColor(getLetterGrade(percentile));
 
           const isSelected = selectedDistrict?.district_id === districtId;
+          const isCompare = compareDistrict?.district_id === districtId;
           return {
+            renderer: polygonCanvasRendererRef.current!,
             fillColor: color,
             fillOpacity: isOverBudget ? 0.25 : 0.7,
-            color: isSelected ? '#ff00ff' : '#333',
-            weight: isSelected ? 5 : 2,
-            opacity: isSelected ? 1 : 0.5,
+            color: isSelected || isCompare ? '#ff00ff' : '#333',
+            weight: isSelected || isCompare ? 5 : 2,
+            opacity: isSelected || isCompare ? 1 : 0.5,
             // Path layers bubble clicks to the map by default. Without this,
             // every polygon click also fired the map's own click event —
             // which now also runs the district-select fallback below — and
@@ -546,20 +611,22 @@ function MapContent({
               }
               if (clickModeRef.current !== 'district') return;
               const isCurrentlySelected = selectedDistrictRef.current?.district_id === districtId;
-              onDistrictSelect(isCurrentlySelected ? null : neighborhood);
+              onDistrictSelectRef.current(isCurrentlySelected ? null : neighborhood);
             });
 
             layer.on('mouseover', () => {
               if (selectedDistrictRef.current?.district_id === districtId) return;
+              if (compareDistrictRef.current?.district_id === districtId) return;
               (layer as L.Path).setStyle({ color: '#333', weight: 3, opacity: 1 });
             });
 
             layer.on('mouseout', () => {
               const isSelected = selectedDistrictRef.current?.district_id === districtId;
+              const isCompare = compareDistrictRef.current?.district_id === districtId;
               (layer as L.Path).setStyle({
-                color: isSelected ? '#ff00ff' : '#333',
-                weight: isSelected ? 5 : 2,
-                opacity: isSelected ? 1 : 0.5,
+                color: isSelected || isCompare ? '#ff00ff' : '#333',
+                weight: isSelected || isCompare ? 5 : 2,
+                opacity: isSelected || isCompare ? 1 : 0.5,
               });
             });
           }
@@ -636,24 +703,46 @@ function MapContent({
         if (cancelled) return;
         applyGranularityVisibility();
 
-        // Light outer border around each city as a whole (dissolved from its
-        // districts at build time — see pipeline/exports/export_city_outline.py),
-        // separate from the individual district lines so the two cities read
-        // as distinct areas at a glance. Added last + brought to front so it
-        // renders on top of the district fill/stroke instead of getting
-        // hidden underneath it.
+        // Light outer border around the current granularity's coverage area
+        // (dissolved district or ZIP boundaries at build time — see
+        // pipeline/exports/export_city_outline.py) so the two cities (or the
+        // ZIP pool's own edge, which isn't the same shape) read as distinct
+        // areas at a glance. Only the pool matching the active granularity
+        // is actually attached to the map (see applyGranularityVisibility);
+        // both are built up front so switching is instant.
         try {
-          const outlineUrls = ['/data/city_outline_stpaul.geojson', '/data/city_outline_mpls.geojson'];
-          for (const url of outlineUrls) {
+          const outlineStyle = {
+            color: '#555',
+            weight: 3,
+            opacity: 0.85,
+            fill: false,
+            interactive: false,
+            renderer: polygonCanvasRendererRef.current!,
+          };
+          const districtOutlineUrls = ['/data/city_outline_stpaul.geojson', '/data/city_outline_mpls.geojson'];
+          for (const url of districtOutlineUrls) {
             const response = await fetch(url);
             if (!response.ok || cancelled) continue;
             const geojson = await response.json();
             if (cancelled) break;
-            const outlineLayer = L.geoJSON(geojson, {
-              style: { color: '#555', weight: 3, opacity: 0.85, fill: false, interactive: false },
-            }).addTo(map);
-            outlineLayer.bringToFront();
+            const outlineLayer = L.geoJSON(geojson, { style: outlineStyle });
+            outlineLayersRef.current.district.push(outlineLayer);
             layersToClean.push(outlineLayer);
+          }
+
+          const zipOutlineResponse = await fetch('/data/city_outline_zip.geojson');
+          if (zipOutlineResponse.ok && !cancelled) {
+            const zipOutlineGeojson = await zipOutlineResponse.json();
+            if (!cancelled) {
+              const zipOutlineLayer = L.geoJSON(zipOutlineGeojson, { style: outlineStyle });
+              outlineLayersRef.current.zip.push(zipOutlineLayer);
+              layersToClean.push(zipOutlineLayer);
+            }
+          }
+
+          applyGranularityVisibility();
+          for (const layers of Object.values(outlineLayersRef.current)) {
+            for (const layer of layers) (layer as L.GeoJSON).bringToFront();
           }
 
           // The St. Paul/Minneapolis shared border specifically — a thin
@@ -667,7 +756,15 @@ function MapContent({
             const dividerGeojson = await dividerResponse.json();
             if (!cancelled && dividerGeojson.features?.length > 0) {
               const dividerLayer = L.geoJSON(dividerGeojson, {
-                style: { color: '#e6550d', weight: 1, opacity: 0.9, fillColor: '#e6550d', fillOpacity: 0.7, interactive: false },
+                style: {
+                  color: '#e6550d',
+                  weight: 1,
+                  opacity: 0.9,
+                  fillColor: '#e6550d',
+                  fillOpacity: 0.7,
+                  interactive: false,
+                  renderer: polygonCanvasRendererRef.current!,
+                },
               }).addTo(map);
               dividerLayer.bringToFront();
               layersToClean.push(dividerLayer);
@@ -702,7 +799,25 @@ function MapContent({
 
         // Default view: zoomed out enough to see all of St. Paul + Minneapolis
         // at once, centered on the pannable area (TWIN_CITIES_BOUNDS below).
-        map.fitBounds(TWIN_CITIES_BOUNDS, { padding: [10, 10] });
+        // animate: false — this runs right as the map first becomes
+        // interactive (isLoading clears right after). Left animated, a user
+        // who scrolls/zooms in that instant interrupts the in-flight pan/zoom
+        // transition, which Leaflet doesn't handle cleanly (tiles render at
+        // the wrong offset/zoom for a moment).
+        // Guarded: only ever frames the default view once per mounted map. If
+        // this effect is re-run for any reason, re-framing here would yank the
+        // user back out to the initial zoomed-out extent.
+        if (!didFitInitialViewRef.current) {
+          didFitInitialViewRef.current = true;
+          map.fitBounds(TWIN_CITIES_BOUNDS, { padding: [10, 10], animate: false });
+        }
+
+        // The map itself (boundaries, districts, outlines) is fully usable at
+        // this point — clear the spinner here instead of waiting on the much
+        // larger point/line overlay files below (~12MB combined), which are
+        // all hidden by default anyway (see page.tsx's initial hiddenSources)
+        // and load in the background instead of blocking perceived load time.
+        setIsLoading(false);
 
         // Load point/line data-source layers (crime, permits, requests,
         // housing, transit, schools, trails) as toggleable overlays.
@@ -724,6 +839,14 @@ function MapContent({
             }
           })
         );
+        // Yield to the browser between chunks below (instead of building all
+        // ~12MB of markers across every file in one uninterrupted synchronous
+        // pass) so the main thread stays responsive — otherwise the map
+        // looks loaded (isLoading already cleared above) but freezes for a
+        // beat before it responds to clicks/drags.
+        const yieldToBrowser = () =>
+          new Promise<void>((resolve) => (window.requestIdleCallback ?? window.requestAnimationFrame)(() => resolve()));
+
         for (const fetched of fetchedLayerFiles) {
           if (!fetched || cancelled) continue;
           const { url, geojson } = fetched;
@@ -735,6 +858,8 @@ function MapContent({
             }
 
             for (const [source, features] of Object.entries(bySource)) {
+              await yieldToBrowser();
+              if (cancelled) break;
               const color = POINT_LAYER_COLORS[source] || '#666';
               const label = POINT_LAYER_LABELS[source] || source;
               const isLines = features[0]?.geometry?.type === 'LineString';
@@ -866,8 +991,6 @@ function MapContent({
         for (const layer of Object.values(overlays)) {
           layersToClean.push(layer);
         }
-
-        setIsLoading(false);
       } catch (error) {
         console.error('Failed to load boundary data:', error);
         setIsLoading(false);
@@ -882,9 +1005,11 @@ function MapContent({
         map.removeLayer(layer);
       }
     };
-  }, [map, onDistrictSelect]);
+  }, [map]);
 
   useEffect(() => {
+    selectedDistrictRef.current = selectedDistrict;
+    compareDistrictRef.current = compareDistrict;
     for (const pool of layerPoolsRef.current) {
       for (const { layer: geoJsonLayer } of pool.entries) {
         geoJsonLayer.eachLayer((layer: L.Layer) => {
@@ -892,17 +1017,18 @@ function MapContent({
             const feature = (layer as any).feature;
             const districtId = (feature?.id || feature?.properties?.district_id) as number;
             const isSelected = selectedDistrict?.district_id === districtId;
+            const isCompare = compareDistrict?.district_id === districtId;
 
             layer.setStyle({
-              color: isSelected ? '#ff00ff' : '#333',
-              weight: isSelected ? 5 : 2,
-              opacity: isSelected ? 1 : 0.5,
+              color: isSelected || isCompare ? '#ff00ff' : '#333',
+              weight: isSelected || isCompare ? 5 : 2,
+              opacity: isSelected || isCompare ? 1 : 0.5,
             });
           }
         });
       }
     }
-  }, [selectedDistrict]);
+  }, [selectedDistrict, compareDistrict]);
 
   useEffect(() => {
     if (flyToLocation) {
@@ -1067,36 +1193,84 @@ function MapContent({
   // highest-scoring apartment building. The buildings themselves are shown
   // by the always-on apartment-buildings layer below, not drawn here.
   useEffect(() => {
+    // Region circles/markers need to sit above the canvas layer that point
+    // sources (groceries, restaurants, etc.) render into — that canvas lives
+    // in 'markerPane' (z-index 600) and covers the whole map as one DOM
+    // element, which otherwise swallows clicks on a circle's open area
+    // (SVG paths default to the lower-z 'overlayPane') before they ever
+    // reach it. A dedicated pane above markerPane fixes that regardless of
+    // which layer happened to mount first.
+    if (!map.getPane('regionPane')) {
+      map.createPane('regionPane');
+      map.getPane('regionPane')!.style.zIndex = '650';
+    }
+
     if (regionCircleLayerRef.current) {
       map.removeLayer(regionCircleLayerRef.current);
       regionCircleLayerRef.current = null;
     }
     if (!matchRegions || matchRegions.length === 0) return;
 
+    // regionPane sits above markerPane so a click anywhere in the circle's
+    // filled area (not just its stroke) reaches Leaflet at all — but that
+    // means the circle's own DOM element also sits above, and fully
+    // occludes, the apartment-building dots drawn into markerPane's canvas
+    // underneath it, so those dots never receive the native click. Rather
+    // than let the circle just reselect the region every time, check
+    // whether the click landed on (or very near) one of the region's own
+    // buildings first and route it to the building-select handler instead —
+    // that's how a click on a dot "inside" the circle still opens that
+    // building, same as it would outside any region.
+    const BUILDING_HIT_RADIUS_PX = 10;
+    const findClickedBuilding = (region: MatchRegion, e: L.LeafletMouseEvent) => {
+      const clickPt = map.latLngToContainerPoint(e.latlng);
+      let closest: MatchRegionBuilding | null = null;
+      let closestDist = BUILDING_HIT_RADIUS_PX;
+      for (const b of region.buildings) {
+        const pt = map.latLngToContainerPoint([b.lat, b.lon]);
+        const dist = clickPt.distanceTo(pt);
+        if (dist <= closestDist) {
+          closest = b;
+          closestDist = dist;
+        }
+      }
+      return closest;
+    };
+    const handleRegionAreaClick = (region: MatchRegion, e: L.LeafletMouseEvent) => {
+      L.DomEvent.stop(e.originalEvent ?? (e as unknown as Event));
+      const building = region.id === activeRegionId ? findClickedBuilding(region, e) : null;
+      if (building) {
+        onSelectApartmentBuildingRef.current?.({ ...building, district_id: region.districtId });
+      } else {
+        onSelectRegionRef.current?.(region);
+      }
+    };
+
     const circleGroup = L.layerGroup();
     matchRegions.forEach((region, i) => {
       const color = MATCH_REGION_COLORS[i % MATCH_REGION_COLORS.length];
       const active = region.id === activeRegionId;
-      L.circle([region.center.lat, region.center.lon], {
+      const circle = L.circle([region.center.lat, region.center.lon], {
+        pane: 'regionPane',
         radius: region.radiusMeters,
         color,
         weight: active ? 2.5 : 1.5,
         fillColor: color,
         fillOpacity: active ? 0.12 : 0.05,
         dashArray: active ? undefined : '4 4',
-      }).addTo(circleGroup);
+      });
+      circle.on('click', (e: L.LeafletMouseEvent) => handleRegionAreaClick(region, e));
+      circle.addTo(circleGroup);
 
       const marker = L.marker([region.center.lat, region.center.lon], {
+        pane: 'regionPane',
         icon: makeRegionCenterIcon(region.rank, color, active),
       });
       marker.bindTooltip(escapeHtml(region.districtName), {
         direction: 'top',
         offset: [0, active ? -18 : -14],
       });
-      marker.on('click', (e: L.LeafletMouseEvent) => {
-        L.DomEvent.stop(e.originalEvent ?? (e as unknown as Event));
-        onSelectRegionRef.current?.(region);
-      });
+      marker.on('click', (e: L.LeafletMouseEvent) => handleRegionAreaClick(region, e));
       marker.addTo(circleGroup);
     });
     circleGroup.addTo(map);
@@ -1223,9 +1397,24 @@ const TWIN_CITIES_BOUNDS: L.LatLngBoundsExpression = [
   [45.07, -92.94],  // Northeast corner
 ];
 
+// Panning limit. Deliberately MUCH larger than TWIN_CITIES_BOUNDS (the area we
+// frame on load): at the initial/minimum zoom of 11, TWIN_CITIES_BOUNDS is only
+// ~640px wide on screen, i.e. far narrower than a typical map viewport. When a
+// map's viewport is larger than its maxBounds, Leaflet's center-clamping
+// (_limitCenter, hard-applied because maxBoundsViscosity is 1.0) has no valid
+// center to pick and fights every pan/zoom — the view visibly snaps/jumps at
+// the end of a zoom and dragging rubber-bands back. That's the "looks weird
+// when you zoom right after loading" symptom, and it disappears on its own once
+// you're zoomed in past ~12 (viewport finally smaller than the bounds), which
+// is why it read as a load-time/animation glitch. Padding the bounds out so
+// they always exceed the viewport at minZoom removes the conflict while still
+// keeping the user from panning off to another state.
+const MAP_MAX_BOUNDS = L.latLngBounds(TWIN_CITIES_BOUNDS).pad(0.9);
+
 export default function NeighborhoodMap({
   onDistrictSelect,
   selectedDistrict,
+  compareDistrict,
   flyToLocation,
   searchMarker,
   onClearSearchMarker,
@@ -1249,7 +1438,7 @@ export default function NeighborhoodMap({
       center={[44.9537, -93.094]}
       zoom={11}
       minZoom={11}
-      maxBounds={TWIN_CITIES_BOUNDS}
+      maxBounds={MAP_MAX_BOUNDS}
       maxBoundsViscosity={1.0}
       zoomControl={false}
       className="gmap-container"
@@ -1258,6 +1447,7 @@ export default function NeighborhoodMap({
       <MapContent
         onDistrictSelect={onDistrictSelect}
         selectedDistrict={selectedDistrict}
+        compareDistrict={compareDistrict}
         flyToLocation={flyToLocation}
         searchMarker={searchMarker}
         onClearSearchMarker={onClearSearchMarker}

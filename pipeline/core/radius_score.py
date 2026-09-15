@@ -108,12 +108,37 @@ def _load_tracts(city):
     return data.get("tracts", [])
 
 
-def _compute_component_index(lat, lon, component, points, trails):
+def _compute_component_index(lat, lon, component, points, trails, tracts):
     metrics = {}
     weighted_sum = 0.0
     weight_sum = 0.0
 
     for source in component.get("sources", []):
+        weight = source.get("weight_in_component", 0.0)
+
+        if source.get("geometry_type") == "tract":
+            # Population-weighted average of a Census-tract field (e.g.
+            # chronic disease prevalence, FEMA hazard risk) across tracts
+            # within the radius — same treatment as _compute_affordability,
+            # since these are already rates/scores, not point counts to sum.
+            tract_field = source.get("tract_field")
+            valid = [
+                t for t in tracts
+                if t.get(tract_field) is not None and t.get("population")
+                and _haversine_meters(lat, lon, t["lat"], t["lon"]) <= RADIUS_METERS
+            ]
+            total_pop = sum(t["population"] for t in valid)
+            value = (sum(t[tract_field] * t["population"] for t in valid) / total_pop) if total_pop else None
+            if value is None:
+                metrics[source["metric_name"]] = {"raw_count": len(valid), "rate_per_1000": 0.0}
+                continue
+            signed_rate = -value if source.get("rate_direction") == "invert" else value
+            normalized = logistic_normalize(signed_rate, source.get("mean", 0.0), source.get("std", 0.0))
+            weighted_sum += normalized * weight
+            weight_sum += weight
+            metrics[source["metric_name"]] = {"raw_count": len(valid), "rate_per_1000": round(value, 2)}
+            continue
+
         raw_count = 0.0
         if source.get("geometry_type") == "line":
             for trail_source, latlngs in trails:
@@ -132,9 +157,8 @@ def _compute_component_index(lat, lon, component, points, trails):
 
         per_sqmi = raw_count / CIRCLE_AREA_SQMI
         signed_rate = -per_sqmi if source.get("rate_direction") == "invert" else per_sqmi
-        normalized = logistic_normalize(signed_rate, component.get("mean", 0.0), component.get("std", 0.0))
+        normalized = logistic_normalize(signed_rate, source.get("mean", 0.0), source.get("std", 0.0))
 
-        weight = source.get("weight_in_component", 0.0)
         weighted_sum += normalized * weight
         weight_sum += weight
 
@@ -178,7 +202,7 @@ def compute_radius_neighborhood(lat, lon, label, baseline, points, trails, tract
     component_values = {}
 
     for key, component in baseline.get("components", {}).items():
-        value, metrics = _compute_component_index(lat, lon, component, points, trails)
+        value, metrics = _compute_component_index(lat, lon, component, points, trails, tracts)
         component_values[key] = value
         all_metrics.update(metrics)
 

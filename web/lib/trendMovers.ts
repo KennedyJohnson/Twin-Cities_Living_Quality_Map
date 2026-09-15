@@ -53,6 +53,12 @@ interface NeighborhoodLite {
   population: number;
 }
 
+// The current year's crime/permit counts are a partial-year total (data
+// collection is ongoing), not a real annual figure — including it as the
+// "latest" value would show every district as a ~100% drop the moment the
+// calendar rolls over, same reason TimeSeriesComparisonChart excludes it.
+const CURRENT_YEAR = new Date().getFullYear();
+
 async function fetchJson<T>(url: string): Promise<T | null> {
   try {
     const r = await fetch(url);
@@ -91,7 +97,7 @@ export async function computeMovers(metricKey: string): Promise<DistrictMover[]>
         if (!population || !rawValues) continue;
         const pairs = series.years
           .map((year, i) => ({ year, value: rawValues[i] }))
-          .filter((p): p is { year: number; value: number } => p.value != null);
+          .filter((p): p is { year: number; value: number } => p.value != null && p.year < CURRENT_YEAR);
         if (pairs.length < 2) continue;
         const first = pairs[0];
         const last = pairs[pairs.length - 1];

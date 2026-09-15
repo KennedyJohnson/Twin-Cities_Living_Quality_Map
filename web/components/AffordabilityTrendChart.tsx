@@ -87,7 +87,7 @@ export default function AffordabilityTrendChart({ districtId, field, label }: Af
           />
           <Tooltip contentStyle={{ fontSize: '11px' }} formatter={(v) => formatValue(Number(v))} />
           <RechartsLegend wrapperStyle={{ fontSize: '10px' }} />
-          <Line type="monotone" dataKey="value" name="This district" stroke="#756bb1" strokeWidth={2} dot={false} connectNulls />
+          <Line type="monotone" dataKey="value" name="This district" stroke="#756bb1" strokeWidth={2} dot={false} connectNulls isAnimationActive={false} />
           <Line
             type="monotone"
             dataKey="average"
@@ -96,6 +96,7 @@ export default function AffordabilityTrendChart({ districtId, field, label }: Af
             strokeWidth={1.5}
             strokeDasharray="4 3"
             dot={false}
+            isAnimationActive={false}
             connectNulls
           />
         </LineChart>

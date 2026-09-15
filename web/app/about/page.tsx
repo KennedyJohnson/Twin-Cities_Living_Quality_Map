@@ -45,6 +45,16 @@ export default function AboutPage() {
       </p>
 
       <h2 style={{ fontSize: '18px', fontWeight: 600, marginTop: '32px', marginBottom: '12px' }}>
+        Why Just St. Paul and Minneapolis?
+      </h2>
+      <p style={{ marginBottom: '20px' }}>
+        Mainly because St. Paul and Minneapolis publish genuinely comparable free, open data:
+        matching crime/permit feeds, the same Census geography, similar OSM/CDC/MnDOT coverage.
+        Adding a third city means finding one whose open data holds up to that same standard, so
+        every district stays on the same 0–100 scale.
+      </p>
+
+      <h2 style={{ fontSize: '18px', fontWeight: 600, marginTop: '32px', marginBottom: '12px' }}>
         Author
       </h2>
       <p style={{ marginBottom: '20px' }}>

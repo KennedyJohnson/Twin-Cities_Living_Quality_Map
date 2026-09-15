@@ -78,7 +78,7 @@ export default function MetricTrendChart({ districtId, trendKey, label }: Metric
           <YAxis tick={{ fontSize: 10 }} width={44} />
           <Tooltip contentStyle={{ fontSize: '11px' }} />
           <RechartsLegend wrapperStyle={{ fontSize: '10px' }} />
-          <Line type="monotone" dataKey="value" name="This district" stroke="#756bb1" strokeWidth={2} dot={false} />
+          <Line type="monotone" dataKey="value" name="This district" stroke="#756bb1" strokeWidth={2} dot={false} isAnimationActive={false} />
           <Line
             type="monotone"
             dataKey="average"
@@ -88,6 +88,7 @@ export default function MetricTrendChart({ districtId, trendKey, label }: Metric
             strokeDasharray="4 3"
             dot={false}
             connectNulls
+            isAnimationActive={false}
           />
         </LineChart>
       </ResponsiveContainer>

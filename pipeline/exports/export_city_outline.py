@@ -8,9 +8,18 @@ the two dissolved city outlines actually touch, so the frontend can style
 the St. Paul/Minneapolis shared border distinctly from each city's outward-
 facing perimeter (e.g. a dashed line vs. a solid one).
 
+Also exports web/public/data/city_outline_zip.geojson — the dissolved outer
+edge of every included ZIP code (a different shape than the district-based
+outline, since the ZIP pool excludes/includes different area at the edges —
+see core/load.py's load_zip_boundaries 98%-coverage filter), so the map's
+outer border can switch to match whichever granularity is active instead of
+always showing the district-shaped edge even in ZIP view.
+
 Output:
   web/public/data/city_outline_{stpaul,mpls}.geojson — a single Feature per
     city (Polygon or MultiPolygon) with no per-district seams.
+  web/public/data/city_outline_zip.geojson — a single Feature for the outer
+    edge of the combined ZIP pool.
   web/public/data/city_divider.geojson — a single Feature (LineString or
     MultiLineString) for the shared St. Paul/Minneapolis border.
 """
@@ -23,7 +32,7 @@ import json
 from pathlib import Path
 from shapely.geometry import shape, mapping
 from shapely.ops import unary_union
-from core.load import resolve_boundaries
+from core.load import resolve_boundaries, load_zip_boundaries
 
 PIPELINE_DIR = Path(__file__).resolve().parent.parent
 WEB_DATA_DIR = PIPELINE_DIR.parent / "web" / "public" / "data"
@@ -76,6 +85,18 @@ def export_city_outlines():
     with open(divider_path, "w", encoding="utf-8") as f:
         json.dump(divider_geojson, f)
     print(f"[OK] Wrote city divider line to {divider_path}")
+
+    zip_boundaries = load_zip_boundaries()
+    zip_polygons = [shape(feature["geometry"]) for feature in zip_boundaries["features"]]
+    zip_dissolved = unary_union(zip_polygons)
+    zip_outline = {
+        "type": "FeatureCollection",
+        "features": [{"type": "Feature", "properties": {}, "geometry": mapping(zip_dissolved)}],
+    }
+    zip_outline_path = WEB_DATA_DIR / "city_outline_zip.geojson"
+    with open(zip_outline_path, "w", encoding="utf-8") as f:
+        json.dump(zip_outline, f)
+    print(f"[OK] Wrote ZIP-pool outline to {zip_outline_path}")
 
 
 if __name__ == "__main__":

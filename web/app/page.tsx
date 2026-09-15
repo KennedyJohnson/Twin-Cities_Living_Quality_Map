@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import NeighborhoodSidebar from '@/components/NeighborhoodSidebar';
+import CompareSidebar from '@/components/CompareSidebar';
 import AddressSearch from '@/components/AddressSearch';
 import Legend from '@/components/Legend';
 import ScoreSelector from '@/components/ScoreSelector';
@@ -50,6 +51,34 @@ export default function Home() {
   const [matchRegions, setMatchRegions] = useState<MatchRegion[]>([]);
   const [activeRegionId, setActiveRegionId] = useState<string | null>(null);
   const [apartmentBuildingsVisible, setApartmentBuildingsVisible] = useState(false);
+
+  // Compare mode: once selectedDistrict is set, "Compare" arms picking a
+  // second district/ZIP (via map click or search) of the SAME type
+  // (district-vs-district or zip-vs-zip only — the two granularities are
+  // normalized in separate pools, see NeighborhoodSidebar's comparisonPool
+  // comment, so a district-vs-zip comparison wouldn't be on a shared scale).
+  // Radius/place selections can't be compared since they have no stable
+  // identity to diff against.
+  const [compareArmed, setCompareArmed] = useState(false);
+  const [compareDistrict, setCompareDistrict] = useState<Neighborhood | null>(null);
+
+  const tryAddCompareDistrict = useCallback(
+    (candidate: Neighborhood | null) => {
+      if (!candidate || candidate.is_radius) return false;
+      if (!selectedDistrict || selectedDistrict.is_radius) return false;
+      if (!!candidate.is_zip !== !!selectedDistrict.is_zip) return false;
+      if (candidate.district_id === selectedDistrict.district_id) return false;
+      setCompareDistrict(candidate);
+      setCompareArmed(false);
+      return true;
+    },
+    [selectedDistrict]
+  );
+
+  const exitCompare = () => {
+    setCompareArmed(false);
+    setCompareDistrict(null);
+  };
 
   // Closing Find Your Match should also clear the ranked-region recommendation
   // circles it drew on the map, not just hide the panel.
@@ -142,10 +171,16 @@ export default function Home() {
   // instead of leaving them on — and re-checking the box after that isn't
   // fighting a reveal that silently re-fires on the next render.
   const autoRevealedSourcesRef = useRef<Set<string>>(new Set());
+  // Sources the user has explicitly checked/unchecked themselves — once a
+  // layer is here, auto-reveal must leave it alone so it doesn't override a
+  // deliberate uncheck the next time a place gets selected.
+  const userOverriddenSourcesRef = useRef<Set<string>>(new Set());
 
   const revealNearbyLayers = () => {
     setHiddenSources((prev) => {
-      const toReveal = ['groceries', 'restaurants', 'entertainment'].filter((s) => prev.has(s));
+      const toReveal = ['groceries', 'restaurants', 'entertainment'].filter(
+        (s) => prev.has(s) && !userOverriddenSourcesRef.current.has(s)
+      );
       if (toReveal.length === 0) return prev;
       autoRevealedSourcesRef.current = new Set(toReveal);
       const next = new Set(prev);
@@ -168,7 +203,14 @@ export default function Home() {
   const deselectPlace = () => {
     setSearchMarker(null);
     setSelectedDistrict(null);
+    exitCompare();
     hideAutoRevealedLayers();
+  };
+
+  const handleDistrictSelect = (district: Neighborhood | null) => {
+    if (compareArmed && tryAddCompareDistrict(district)) return;
+    setSelectedDistrict(district);
+    setCompareDistrict(null);
   };
 
   const handleAddressSelect = (
@@ -179,9 +221,11 @@ export default function Home() {
     label: string,
     isNamedPlace: boolean
   ) => {
+    if (compareArmed && tryAddCompareDistrict(district)) return;
     // Shown briefly until NeighborhoodMap's radius-score effect reports the
     // computed 1-mile-radius result for this same searchMarker.
     setSelectedDistrict(district);
+    setCompareDistrict(null);
     setFlyToLocation({ lat, lon });
     setSearchMarker({ lat, lon, label, isNamedPlace, address });
     revealNearbyLayers();
@@ -260,8 +304,9 @@ export default function Home() {
     <div className="container">
       <div className="map-container">
         <NeighborhoodMap
-          onDistrictSelect={setSelectedDistrict}
+          onDistrictSelect={handleDistrictSelect}
           selectedDistrict={selectedDistrict}
+          compareDistrict={compareDistrict}
           flyToLocation={flyToLocation}
           searchMarker={searchMarker}
           onClearSearchMarker={deselectPlace}
@@ -290,6 +335,7 @@ export default function Home() {
             // A manual toggle overrides the auto-reveal bookkeeping so
             // deselecting the place later doesn't fight the user's own choice.
             autoRevealedSourcesRef.current.delete(key);
+            userOverriddenSourcesRef.current.add(key);
             setHiddenSources((prev) => {
               const next = new Set(prev);
               if (next.has(key)) next.delete(key);
@@ -299,6 +345,7 @@ export default function Home() {
           }}
           onDeselectAll={(allKeys) => {
             autoRevealedSourcesRef.current = new Set();
+            userOverriddenSourcesRef.current = new Set();
             setHiddenSources(new Set(allKeys));
             setApartmentBuildingsVisible(false);
           }}
@@ -393,6 +440,26 @@ export default function Home() {
               {!searchMarker && selectedDistrict && (
                 <span className="selected-place-name">{selectedDistrict.district_name}</span>
               )}
+              {compareDistrict && (
+                <span className="selected-place-name" style={{ color: '#e6550d' }}>vs {compareDistrict.district_name}</span>
+              )}
+              {selectedDistrict && !selectedDistrict.is_radius && !compareDistrict && (
+                <button
+                  type="button"
+                  className="deselect-marker-button"
+                  onClick={() => setCompareArmed((v) => !v)}
+                  style={compareArmed ? { background: '#e6550d', color: 'white' } : undefined}
+                >
+                  {compareArmed
+                    ? `Click another ${selectedDistrict.is_zip ? 'ZIP' : 'district'}…`
+                    : 'Compare'}
+                </button>
+              )}
+              {compareDistrict && (
+                <button type="button" className="deselect-marker-button" onClick={exitCompare}>
+                  Exit compare
+                </button>
+              )}
               <button
                 type="button"
                 className="deselect-marker-button"
@@ -434,17 +501,26 @@ export default function Home() {
             <span className="hero-callout">search any address for its 1-mile radius score.</span>
           </div>
         </div>
-        <NeighborhoodSidebar
-          district={selectedDistrict}
-          onSelectDistrict={setSelectedDistrict}
-          granularity={granularity}
-          reviewsUrl={
-            searchMarker
-              ? googleMapsSearchUrl(searchMarker.lat, searchMarker.lon, searchMarker.isNamedPlace ? searchMarker.label : undefined)
-              : null
-          }
-          reviewsLinkIsNamedPlace={searchMarker?.isNamedPlace ?? false}
-        />
+        {compareDistrict && selectedDistrict ? (
+          <CompareSidebar
+            districtA={selectedDistrict}
+            districtB={compareDistrict}
+            onClose={exitCompare}
+          />
+        ) : (
+          <NeighborhoodSidebar
+            district={selectedDistrict}
+            onSelectDistrict={handleDistrictSelect}
+            granularity={granularity}
+            scoreMetric={scoreMetric}
+            reviewsUrl={
+              searchMarker
+                ? googleMapsSearchUrl(searchMarker.lat, searchMarker.lon, searchMarker.isNamedPlace ? searchMarker.label : undefined)
+                : null
+            }
+            reviewsLinkIsNamedPlace={searchMarker?.isNamedPlace ?? false}
+          />
+        )}
       </div>
     </div>
   );

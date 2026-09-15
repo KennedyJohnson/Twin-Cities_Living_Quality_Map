@@ -39,6 +39,13 @@ WEB_DATA_DIR = PIPELINE_DIR.parent / "web" / "public" / "data"
 
 INDEX_KEYS = ["safety", "opportunity", "amenities", "transportation", "affordability"]
 
+# Opportunity's inputs (permits, unemployment) aren't shipped to the client
+# for radius/place scoring at all (see radius_score.py's docstring / About
+# page) — its weight is redistributed among the other components instead.
+# So "no data for opportunity" here is an intentional, documented gap, not
+# a regression to flag.
+EXPECTED_MISSING_RADIUS_INDICES = {"opportunity"}
+
 # If more than this fraction of sampled points land in the top 20 points of
 # an index's 0-100 scale, that's the exact shape the circle-vs-district bug
 # produced (nearly everywhere looked "top few percent").
@@ -132,8 +139,11 @@ def check_city(city):
     print(f"\n{'Metric':<18}{'n':>6}{'min':>8}{'mean':>8}{'median':>8}{'max':>8}{'std':>8}   top-heavy?")
     for key, values in scores_by_key.items():
         if not values:
-            issues.append(f"[FAIL] No valid values at all for {key}.")
-            print(f"{key:<18} -- no data --")
+            if key in EXPECTED_MISSING_RADIUS_INDICES:
+                print(f"{key:<18} -- no data (expected: not shipped client-side for radius scoring) --")
+            else:
+                issues.append(f"[FAIL] No valid values at all for {key}.")
+                print(f"{key:<18} -- no data --")
             continue
         n = len(values)
         vmin, vmax = min(values), max(values)
@@ -148,7 +158,12 @@ def check_city(city):
                 f"[FAIL] {city}/{key}: {top_heavy_frac:.0%} of sampled points score >= "
                 f"{TOP_HEAVY_SCORE_THRESHOLD} — looks like the old circle-vs-district clustering bug."
             )
-        if std < LOW_VARIANCE_STD_THRESHOLD:
+        # health_score is a weighted BLEND of several components, so its
+        # variance is naturally compressed relative to any single component
+        # (averaging several semi-independent ~15-std components produces a
+        # ~4-6 std composite, not a bug) — only flag low variance on the
+        # individual components themselves.
+        if key != "health_score" and std < LOW_VARIANCE_STD_THRESHOLD:
             flag += f"  <-- std={std:.1f} (collapsed?)"
             issues.append(
                 f"[WARN] {city}/{key}: std={std:.1f} across {n} points, suspiciously low — "

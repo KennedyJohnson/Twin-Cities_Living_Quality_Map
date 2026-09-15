@@ -1,9 +1,12 @@
 name: Refresh Pipeline Data
 
-# Weekly: every Monday at 08:00 UTC. Also runnable manually.
+# Monthly: 08:00 UTC on the 1st. Also runnable manually. Data sources here
+# (Census, OSM, CDC, FEMA) barely change week to week, so monthly matches
+# core/osm_extract.py's own EXTRACT_MAX_AGE_DAYS=30 re-download cadence —
+# no point refreshing more often than the OSM extract itself refreshes.
 on:
   schedule:
-    - cron: '0 8 * * 1'
+    - cron: '0 8 1 * *'
   workflow_dispatch: {}
 
 permissions:
@@ -21,6 +24,29 @@ jobs:
 
       - name: Install pipeline dependencies
         run: pip install -r pipeline/requirements.txt
+
+      - name: Compute cache key (year-month, so it rotates roughly in step
+          with the 30-day OSM extract refresh)
+        id: cache-key
+        run: echo "yearmonth=$(date +%Y-%m)" >> "$GITHUB_OUTPUT"
+
+      # Without this, every scheduled run starts from a totally fresh
+      # checkout and pays the full ~80-130min cost of re-downloading the
+      # ~285MB Minnesota OSM extract and re-scanning it for every source
+      # (schools, groceries, healthcare, restaurants, entertainment,
+      # transit, trails, apartment buildings, street network) — see
+      # core/osm_extract.py's query cache. Persisting pipeline/core/.cache
+      # here means only the first run each month pays that cost; the
+      # extract's own mtime-based staleness check (EXTRACT_MAX_AGE_DAYS)
+      # still re-downloads and correctly invalidates the query cache
+      # whenever it's actually stale, even if this restores an older key.
+      - name: Cache OSM extract and query results
+        uses: actions/cache@v4
+        with:
+          path: pipeline/core/.cache
+          key: osm-cache-${{ steps.cache-key.outputs.yearmonth }}
+          restore-keys: |
+            osm-cache-
 
       - name: Compute health scores (St. Paul + Minneapolis)
         working-directory: pipeline
