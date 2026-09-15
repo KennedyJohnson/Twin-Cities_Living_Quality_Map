@@ -260,16 +260,28 @@ function MapContent({
   // visibility is tracked here and applied via incremental add/remove —
   // cheap for canvas layers since there's no DOM icon to rebuild.
   const canvasMarkersShownRef = useRef<Record<string, Set<L.CircleMarker>>>({});
+  // Shared by both point markers AND district/ZIP polygons (see below) —
+  // boundary polygons render as canvas rather than SVG so Leaflet isn't
+  // rebuilding the entire SVG <path> DOM (every vertex) on every zoomend,
+  // the main cause of visible stutter right as a zoom settles with these
+  // vertex-dense, Census-quality boundaries. A canvas renderer instead just
+  // repaints pixels, far cheaper at this vertex count.
+  //
+  // Polygons used to get their own separate L.Canvas() in the default
+  // 'overlayPane'. Two independent canvas renderers each paint one full-map
+  // <canvas> element into their own pane, and whichever pane sits higher
+  // ('markerPane', where every point-marker layer lives) physically
+  // occludes the other for native click hit-testing across the ENTIRE map,
+  // not just where something is actually drawn — so as soon as any Data
+  // Points layer had a marker on screen, its 'markerPane' canvas silently
+  // ate every click meant for a district/ZIP polygon underneath, anywhere
+  // on the map. Same class of bug already hit once with region circles vs.
+  // this canvas (see 'regionPane' below) and with two independent marker
+  // canvases racing each other (see the apartment-buildings effect) — the
+  // fix is the same: one shared renderer/pane so Leaflet's own per-shape
+  // hit-testing decides what was clicked instead of DOM stacking order.
   const canvasRendererRef = useRef<L.Canvas | null>(null);
-  // Separate canvas renderer for polygon layers (district/ZIP boundaries,
-  // outlines, divider strip), kept in the default 'overlayPane' (below
-  // 'markerPane' where point markers render) so stacking order is unchanged.
-  // Without this, boundary polygons render as SVG, and Leaflet rebuilds the
-  // entire SVG <path> DOM (every vertex) on every zoomend — the main cause of
-  // the visible stutter right as a zoom settles with these vertex-dense,
-  // Census-quality boundaries. A canvas renderer instead just repaints
-  // pixels, which is far cheaper at this vertex count.
-  const polygonCanvasRendererRef = useRef<L.Canvas | null>(null);
+  const polygonCanvasRendererRef = canvasRendererRef;
   // Trail/path segments: kept separately from point markers since they're
   // polylines (no single lat/lon) and never carry a district_id, so they're
   // filtered purely by "does any vertex fall within the search radius".
@@ -323,6 +335,13 @@ function MapContent({
     if (sm) {
       const searchLatLng = L.latLng(sm.lat, sm.lon);
       return entry.marker.getLatLng().distanceTo(searchLatLng) <= 1609.34; // 1 mile
+    }
+    // A plain district click (not a ZIP or an arbitrary radius point, which
+    // don't share this district_id numbering) narrows Data Points down to
+    // just that district instead of showing the whole city/metro.
+    const selected = selectedDistrictRef.current;
+    if (selected && !selected.is_radius && !selected.is_zip) {
+      return entry.districtId === selected.district_id;
     }
     return true;
   };
@@ -548,7 +567,7 @@ function MapContent({
     outlineLayersRef.current = { district: [], zip: [] };
 
     if (!polygonCanvasRendererRef.current) {
-      polygonCanvasRendererRef.current = L.canvas({ padding: 0.5 });
+      polygonCanvasRendererRef.current = L.canvas({ padding: 0.5, pane: 'markerPane' });
     }
 
     const buildDistrictLayer = (

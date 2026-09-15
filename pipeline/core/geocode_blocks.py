@@ -24,6 +24,19 @@ CENSUS_URL = "https://geocoding.geo.census.gov/geocoder/locations/onelineaddress
 NOMINATIM_URL = "https://nominatim.openstreetmap.org/search"
 NOMINATIM_USER_AGENT = "TwinCitiesLivingQualityMap/1.0 (REDACTED)"
 
+# Every block here is appended ", Saint Paul, MN", but a geocoder can still
+# match an ambiguous/misspelled street to a same-named street elsewhere in
+# the state (e.g. "PARK ST" resolving near Lino Lakes, ~15 miles north of
+# St. Paul) with no error — it just returns a confident, wrong point. Bound
+# accepted results to St. Paul's city limits (with a small buffer) and treat
+# anything outside as a failed geocode rather than plot it in the wrong city.
+ST_PAUL_BBOX = (44.87, -93.20, 45.03, -92.97)  # (south, west, north, east)
+
+
+def _in_bbox(lat, lon):
+    south, west, north, east = ST_PAUL_BBOX
+    return south <= lat <= north and west <= lon <= east
+
 _BLOCK_RE = re.compile(r"^\s*(\d+)X\s+(.+?)\s*$", re.IGNORECASE)
 
 
@@ -77,7 +90,9 @@ def _geocode_census(address):
         matches = resp.json().get("result", {}).get("addressMatches", [])
         if matches:
             coords = matches[0]["coordinates"]
-            return float(coords["y"]), float(coords["x"])
+            lat, lon = float(coords["y"]), float(coords["x"])
+            if _in_bbox(lat, lon):
+                return lat, lon
     except Exception:
         pass
     return None
@@ -95,7 +110,9 @@ def _geocode_nominatim(address):
         resp.raise_for_status()
         results = resp.json()
         if results:
-            return float(results[0]["lat"]), float(results[0]["lon"])
+            lat, lon = float(results[0]["lat"]), float(results[0]["lon"])
+            if _in_bbox(lat, lon):
+                return lat, lon
     except Exception:
         pass
     return None

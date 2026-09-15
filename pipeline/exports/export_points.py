@@ -395,6 +395,31 @@ def _export_stpaul_crime_records():
 # don't get exported.
 TRAIL_BUFFER_DEG = 1609.34 / 111_000
 
+# Crime records rely on a geocoded/source point that occasionally lands far
+# from where it should (see core/geocode_blocks.py's own bounding-box check
+# for St. Paul's block-level geocoding) — a wrong match can silently place an
+# incident miles from its real neighborhood. Rather than only keep points
+# strictly inside a district polygon (which would drop legitimate incidents
+# right at a city's edge), keep anything within 5 miles of the combined
+# district boundary and treat anything farther as a bad geocode/source point.
+CRIME_SANITY_BUFFER_DEG = 5 * 1609.34 / 111_000
+
+
+def _filter_crime_records_to_buffer(records, boundary_buffer):
+    """records: list of (lon, lat, source, title, details, district_id).
+    Drops any record whose point falls outside boundary_buffer (a shapely
+    geometry already buffered to CRIME_SANITY_BUFFER_DEG)."""
+    kept = []
+    dropped = 0
+    for lon, lat, source, title, details, district_id in records:
+        if pd.isna(lon) or pd.isna(lat) or not boundary_buffer.contains(Point(lon, lat)):
+            dropped += 1
+            continue
+        kept.append((lon, lat, source, title, details, district_id))
+    if dropped:
+        print(f"[WARNING] Dropped {dropped} crime record(s) more than 5 miles from the district boundary (likely a bad geocode/source point)")
+    return kept
+
 
 def _export_trail_lines(boundary_union):
     """Trails are city-agnostic (single Overpass bbox already covers the metro),
@@ -461,6 +486,9 @@ def main():
 
     stpaul_map = _load_boundary_map("stpaul")
     mpls_map = _load_boundary_map("mpls")
+    crime_sanity_buffer = unary_union(
+        list(stpaul_map.values()) + list(mpls_map.values())
+    ).buffer(CRIME_SANITY_BUFFER_DEG)
 
     # St. Paul's crime feed has no geocoded lat/lon — only a district and a
     # block-level address string — so incidents are plotted at a geocoded
@@ -480,12 +508,14 @@ def main():
     crash_stpaul, crash_mpls, crash_unassigned = _export_crash_records(stpaul_map, mpls_map)
 
     print("Exporting St. Paul points...")
-    stpaul_points = _points_feature_collection(stpaul_records + _export_stpaul_crime_records() + crash_stpaul)
+    stpaul_crime = _filter_crime_records_to_buffer(_export_stpaul_crime_records(), crime_sanity_buffer)
+    stpaul_points = _points_feature_collection(stpaul_records + stpaul_crime + crash_stpaul)
     (OUT_DIR / "points_stpaul.json").write_text(json.dumps(stpaul_points))
     print(f"[OK] {len(stpaul_points['features'])} St. Paul point features")
 
     print("Exporting Minneapolis points...")
-    mpls_points = _points_feature_collection(mpls_records + _export_mpls_crime_records() + crash_mpls)
+    mpls_crime = _filter_crime_records_to_buffer(_export_mpls_crime_records(), crime_sanity_buffer)
+    mpls_points = _points_feature_collection(mpls_records + mpls_crime + crash_mpls)
     (OUT_DIR / "points_mpls.json").write_text(json.dumps(mpls_points))
     print(f"[OK] {len(mpls_points['features'])} MPLS point features")
 
@@ -495,10 +525,10 @@ def main():
     print(f"[OK] {len(unassigned_points['features'])} unassigned point features")
 
     print("Exporting trail lines...")
-    boundary_union = unary_union(
+    trail_boundary = unary_union(
         list(stpaul_map.values()) + list(mpls_map.values())
     ).buffer(TRAIL_BUFFER_DEG)
-    trail_lines = _export_trail_lines(boundary_union)
+    trail_lines = _export_trail_lines(trail_boundary)
     (OUT_DIR / "lines_trails.json").write_text(json.dumps(trail_lines))
     print(f"[OK] {len(trail_lines['features'])} trail line features")
 
