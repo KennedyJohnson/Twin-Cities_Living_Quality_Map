@@ -5,7 +5,7 @@ Canonical formula:
   Opportunity_Index = avg(normalize(permit_rate_pc), 100 - normalize(unemployment_rate_pc), 100 - normalize(housing_inventory_pc))
   Amenities_Index = 0.85 * [100 - normalize(request_rate_pc) + normalize(housing_rate_pc + schools_pc + grocery_pc + restaurants_pc + healthcare_pc + entertainment_pc)] + 0.15 * normalize(broadband_rate)
   Transportation_Index = 0.7 * [normalize(trail_km_pc + transit_stops_pc) - normalize(traffic_vkm_pc)] + 0.3 * walk_score
-  Affordability_Index = avg(100 - normalize(median_home_value), 100 - normalize(median_gross_rent), normalize(median_household_income), 100 - normalize(poverty_rate), 100 - normalize(housing_cost_burden_rate), normalize(homeownership_rate))
+  Affordability_Index = avg(100 - normalize(median_home_value), 100 - normalize(median_gross_rent), normalize(median_household_income), 100 - normalize(poverty_rate), 100 - normalize(housing_cost_burden_rate), normalize(homeownership_rate), 100 - normalize(gini_index))
   Health_Score = 0.20*Safety + 0.20*Opportunity + 0.20*Amenities + 0.20*Transportation + 0.20*Affordability
 """
 
@@ -170,6 +170,7 @@ def _affordability_index_from_df(df):
     poverty_rates = df["poverty_rate"].tolist()
     cost_burden_rates = df["housing_cost_burden_rate"].tolist()
     homeownership_rates = df["homeownership_rate"].tolist()
+    gini_indices = df["gini_index"].tolist()
 
     def normalized_or_none(values):
         valid_idx = [i for i, v in enumerate(values) if v is not None and not pd.isna(v)]
@@ -184,6 +185,7 @@ def _affordability_index_from_df(df):
     poverty_norm = normalized_or_none(poverty_rates)
     cost_burden_norm = normalized_or_none(cost_burden_rates)
     homeownership_norm = normalized_or_none(homeownership_rates)
+    gini_norm = normalized_or_none(gini_indices)
 
     affordability_index = {}
     for i, district_id in enumerate(df["district_id"]):
@@ -200,6 +202,8 @@ def _affordability_index_from_df(df):
             parts.append(100 - cost_burden_norm[i])
         if i in homeownership_norm:
             parts.append(homeownership_norm[i])
+        if i in gini_norm:
+            parts.append(100 - gini_norm[i])
         if parts:
             affordability_index[int(district_id)] = sum(parts) / len(parts)
 

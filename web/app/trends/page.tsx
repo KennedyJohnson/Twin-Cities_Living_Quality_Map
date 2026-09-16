@@ -4,6 +4,7 @@ import Link from 'next/link';
 import TimeSeriesComparisonChart from '@/components/TimeSeriesComparisonChart';
 import AffordabilityComparisonChart from '@/components/AffordabilityComparisonChart';
 import BiggestMoversTable from '@/components/BiggestMoversTable';
+import InequalityRanking from '@/components/InequalityRanking';
 
 function SectionTitle({ children, subtitle }: { children: React.ReactNode; subtitle: string }) {
   return (
@@ -66,6 +67,13 @@ export default function TrendsPage() {
           <AffordabilityComparisonChart field="homeownership_rate" />
           <AffordabilityComparisonChart field="unemployment_rate_pc" />
         </div>
+      </section>
+
+      <section style={{ marginBottom: '24px' }}>
+        <SectionTitle subtitle="Census ACS Gini index (0 = perfect equality, 1 = maximum inequality), most unequal district first — not part of the Living Quality Score">
+          Income Inequality by District
+        </SectionTitle>
+        <InequalityRanking />
       </section>
     </div>
   );

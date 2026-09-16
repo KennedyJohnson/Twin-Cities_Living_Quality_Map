@@ -33,14 +33,17 @@ def _acs_url(year):
 # 40-49.9, 50+ = cost-burdened) + total renter households (universe),
 # occupied housing units by tenure (total + owner-occupied),
 # households universe + households with no internet access (broadband proxy),
-# and unemployed labor-force count (opportunity trend proxy)
+# unemployed labor-force count (opportunity trend proxy), Gini index of
+# income inequality, and occupied/vacant housing units (vacancy rate)
 ACS_VARS = (
     "B25077_001E,B25064_001E,B19013_001E,B01003_001E,"
     "B17001_001E,B17001_002E,"
     "B25070_001E,B25070_007E,B25070_008E,B25070_009E,B25070_010E,"
     "B25003_001E,B25003_002E,"
     "B28002_001E,B28002_013E,"
-    "B23025_005E"
+    "B23025_005E,"
+    "B19083_001E,"
+    "B25002_001E,B25002_003E"
 )
 
 # state=MN (27); county FIPS per city
@@ -108,6 +111,12 @@ def _fetch_acs_tracts(county_fips, year=ACS_YEAR):
     unemployed = pd.to_numeric(df["B23025_005E"], errors="coerce")
     df["unemployment_rate_pc"] = (unemployed / df["population"] * 1000).where(df["population"] > 0)
 
+    df["gini_index"] = pd.to_numeric(df["B19083_001E"], errors="coerce")
+
+    housing_universe = pd.to_numeric(df["B25002_001E"], errors="coerce")
+    vacant_units = pd.to_numeric(df["B25002_003E"], errors="coerce")
+    df["vacancy_rate"] = (vacant_units / housing_universe * 100).where(housing_universe > 0)
+
     # Census codes negative sentinel values (e.g. -666666666) for unavailable estimates
     df.loc[df["median_home_value"] < 0, "median_home_value"] = None
     df.loc[df["median_gross_rent"] < 0, "median_gross_rent"] = None
@@ -117,10 +126,12 @@ def _fetch_acs_tracts(county_fips, year=ACS_YEAR):
     df.loc[owner_occupied < 0, "homeownership_rate"] = None
     df.loc[no_internet < 0, "broadband_rate"] = None
     df.loc[unemployed < 0, "unemployment_rate_pc"] = None
+    df.loc[df["gini_index"] < 0, "gini_index"] = None
+    df.loc[vacant_units < 0, "vacancy_rate"] = None
     return df[[
         "geoid", "median_home_value", "median_gross_rent", "median_household_income",
         "poverty_rate", "housing_cost_burden_rate", "homeownership_rate", "broadband_rate",
-        "unemployment_rate_pc", "population",
+        "unemployment_rate_pc", "gini_index", "vacancy_rate", "population",
     ]]
 
 
@@ -155,7 +166,8 @@ def clean_housing_price_tracts(city="stpaul", year=ACS_YEAR):
     Returns:
         DataFrame with columns: geoid, lat, lon, population,
         median_home_value, median_gross_rent, median_household_income,
-        poverty_rate, housing_cost_burden_rate, homeownership_rate
+        poverty_rate, housing_cost_burden_rate, homeownership_rate,
+        gini_index, vacancy_rate
     """
     county_fips = CITY_COUNTY[city]
     acs = _fetch_acs_tracts(county_fips, year=year)
@@ -164,7 +176,7 @@ def clean_housing_price_tracts(city="stpaul", year=ACS_YEAR):
     return tracts[[
         "geoid", "lat", "lon", "population", "median_home_value", "median_gross_rent",
         "median_household_income", "poverty_rate", "housing_cost_burden_rate", "homeownership_rate",
-        "broadband_rate", "unemployment_rate_pc",
+        "broadband_rate", "unemployment_rate_pc", "gini_index", "vacancy_rate",
     ]]
 
 
@@ -202,12 +214,12 @@ def clean_housing_price(city="stpaul", year=ACS_YEAR, granularity="district"):
     tracts = tracts.dropna(subset=["district_id"])
     tracts["district_id"] = tracts["district_id"].astype(int)
 
-    def weighted_mean(group, col):
+    def weighted_mean(group, col, decimals=0):
         valid = group.dropna(subset=[col, "population"])
         valid = valid[valid["population"] > 0]
         if valid.empty:
             return None
-        return round((valid[col] * valid["population"]).sum() / valid["population"].sum(), 0)
+        return round((valid[col] * valid["population"]).sum() / valid["population"].sum(), decimals)
 
     rows = []
     for district_id, group in tracts.groupby("district_id"):
@@ -221,12 +233,19 @@ def clean_housing_price(city="stpaul", year=ACS_YEAR, granularity="district"):
             "homeownership_rate": weighted_mean(group, "homeownership_rate"),
             "broadband_rate": weighted_mean(group, "broadband_rate"),
             "unemployment_rate_pc": weighted_mean(group, "unemployment_rate_pc"),
+            # Population-weighted average of tract Gini values, not a
+            # recomputed district-level Gini (which would need household
+            # income microdata, not published at tract level) — an
+            # approximation suitable for relative comparison across
+            # districts, not an exact inequality measure.
+            "gini_index": weighted_mean(group, "gini_index", decimals=3),
+            "vacancy_rate": weighted_mean(group, "vacancy_rate", decimals=1),
         })
 
     return pd.DataFrame(rows, columns=[
         "district_id", "median_home_value", "median_gross_rent", "median_household_income",
         "poverty_rate", "housing_cost_burden_rate", "homeownership_rate", "broadband_rate",
-        "unemployment_rate_pc",
+        "unemployment_rate_pc", "gini_index", "vacancy_rate",
     ])
 
 

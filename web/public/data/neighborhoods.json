@@ -71,11 +71,11 @@
         "opportunity": 43,
         "amenities": 41,
         "transportation": 46,
-        "affordability": 50,
+        "affordability": 54,
         "walkability_score": 35,
         "broadband_score": 63
       },
-      "health_score": 48
+      "health_score": 49
     },
     {
       "district_id": 2,
@@ -148,7 +148,7 @@
         "opportunity": 57,
         "amenities": 38,
         "transportation": 42,
-        "affordability": 58,
+        "affordability": 61,
         "walkability_score": 43,
         "broadband_score": 63
       },
@@ -225,7 +225,7 @@
         "opportunity": 48,
         "amenities": 39,
         "transportation": 58,
-        "affordability": 49,
+        "affordability": 51,
         "walkability_score": 49,
         "broadband_score": 35
       },
@@ -302,7 +302,7 @@
         "opportunity": 48,
         "amenities": 34,
         "transportation": 44,
-        "affordability": 52,
+        "affordability": 54,
         "walkability_score": 50,
         "broadband_score": 54
       },
@@ -379,11 +379,11 @@
         "opportunity": 52,
         "amenities": 43,
         "transportation": 48,
-        "affordability": 50,
+        "affordability": 52,
         "walkability_score": 57,
         "broadband_score": 27
       },
-      "health_score": 48
+      "health_score": 49
     },
     {
       "district_id": 6,
@@ -456,11 +456,11 @@
         "opportunity": 51,
         "amenities": 46,
         "transportation": 53,
-        "affordability": 50,
+        "affordability": 52,
         "walkability_score": 53,
         "broadband_score": 54
       },
-      "health_score": 49
+      "health_score": 50
     },
     {
       "district_id": 7,
@@ -533,7 +533,7 @@
         "opportunity": 54,
         "amenities": 44,
         "transportation": 49,
-        "affordability": 45,
+        "affordability": 47,
         "walkability_score": 54,
         "broadband_score": 27
       },
@@ -610,11 +610,11 @@
         "opportunity": 46,
         "amenities": 47,
         "transportation": 36,
-        "affordability": 53,
+        "affordability": 47,
         "walkability_score": 56,
         "broadband_score": 54
       },
-      "health_score": 47
+      "health_score": 46
     },
     {
       "district_id": 9,
@@ -687,11 +687,11 @@
         "opportunity": 41,
         "amenities": 44,
         "transportation": 46,
-        "affordability": 50,
+        "affordability": 49,
         "walkability_score": 59,
         "broadband_score": 20
       },
-      "health_score": 48
+      "health_score": 47
     },
     {
       "district_id": 10,
@@ -764,7 +764,7 @@
         "opportunity": 79,
         "amenities": 51,
         "transportation": 61,
-        "affordability": 67,
+        "affordability": 68,
         "walkability_score": 53,
         "broadband_score": 72
       },
@@ -841,11 +841,11 @@
         "opportunity": 52,
         "amenities": 56,
         "transportation": 45,
-        "affordability": 60,
+        "affordability": 63,
         "walkability_score": 54,
         "broadband_score": 54
       },
-      "health_score": 54
+      "health_score": 55
     },
     {
       "district_id": 12,
@@ -918,11 +918,11 @@
         "opportunity": 62,
         "amenities": 73,
         "transportation": 48,
-        "affordability": 45,
+        "affordability": 42,
         "walkability_score": 57,
         "broadband_score": 63
       },
-      "health_score": 56
+      "health_score": 55
     },
     {
       "district_id": 13,
@@ -995,11 +995,11 @@
         "opportunity": 63,
         "amenities": 68,
         "transportation": 53,
-        "affordability": 49,
+        "affordability": 47,
         "walkability_score": 58,
         "broadband_score": 63
       },
-      "health_score": 54
+      "health_score": 53
     },
     {
       "district_id": 14,
@@ -1072,7 +1072,7 @@
         "opportunity": 75,
         "amenities": 46,
         "transportation": 44,
-        "affordability": 53,
+        "affordability": 49,
         "walkability_score": 55,
         "broadband_score": 79
       },
@@ -1149,7 +1149,7 @@
         "opportunity": 76,
         "amenities": 57,
         "transportation": 59,
-        "affordability": 53,
+        "affordability": 50,
         "walkability_score": 54,
         "broadband_score": 54
       },
@@ -1226,11 +1226,11 @@
         "opportunity": 69,
         "amenities": 60,
         "transportation": 52,
-        "affordability": 63,
+        "affordability": 62,
         "walkability_score": 59,
         "broadband_score": 79
       },
-      "health_score": 63
+      "health_score": 62
     },
     {
       "district_id": 17,
@@ -1303,11 +1303,11 @@
         "opportunity": 32,
         "amenities": 56,
         "transportation": 64,
-        "affordability": 36,
+        "affordability": 33,
         "walkability_score": 60,
         "broadband_score": 27
       },
-      "health_score": 41
+      "health_score": 40
     }
   ],
   "metadata": {

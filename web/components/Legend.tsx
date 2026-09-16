@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { POINT_LAYER_COLORS, POINT_LAYER_LABELS, POINT_LAYER_ICONS, CANVAS_MARKER_THRESHOLD } from '@/lib/pointLayerColors';
+import { POINT_LAYER_COLORS, POINT_LAYER_LABELS } from '@/lib/pointLayerColors';
 import { SCORE_METRIC_LABELS, ScoreMetricKey } from '@/lib/scoreMetric';
 import { LetterGrade, gradeColor, gradeTextColor } from '@/lib/letterGrade';
 
@@ -105,33 +105,39 @@ export default function Legend({
       </div>
       <div className="legend-points">
         {Object.entries(POINT_LAYER_LABELS).map(([key, label]) => {
-          const isCanvasDot = (sourceCounts[key] || 0) > CANVAS_MARKER_THRESHOLD;
           const isHidden = hiddenSources?.has(key) ?? false;
+          const isLine = key === 'trails';
           return (
             <label key={key} style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', cursor: 'pointer' }}>
               <input
                 type="checkbox"
                 checked={!isHidden}
                 onChange={() => onToggleSource?.(key)}
+                style={isLine ? { accentColor: POINT_LAYER_COLORS[key] } : undefined}
               />
-              <span
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  width: isCanvasDot ? '10px' : '16px',
-                  height: isCanvasDot ? '10px' : '16px',
-                  borderRadius: '50%',
-                  backgroundColor: POINT_LAYER_COLORS[key],
-                  border: isCanvasDot ? '1px solid #fff' : 'none',
-                  boxShadow: isCanvasDot ? '0 0 0 1px rgba(0,0,0,0.2)' : 'none',
-                  fontSize: '9px',
-                  lineHeight: 1,
-                  opacity: isHidden ? 0.4 : 1,
-                }}
-              >
-                {isCanvasDot ? '' : POINT_LAYER_ICONS[key]}
-              </span>
+              {isLine ? (
+                <span
+                  style={{
+                    display: 'inline-block',
+                    width: '16px',
+                    height: '3px',
+                    borderRadius: '2px',
+                    backgroundColor: POINT_LAYER_COLORS[key],
+                    opacity: isHidden ? 0.4 : 1,
+                  }}
+                />
+              ) : (
+                <span
+                  style={{
+                    display: 'inline-block',
+                    width: '14px',
+                    height: '14px',
+                    borderRadius: '50%',
+                    backgroundColor: POINT_LAYER_COLORS[key],
+                    opacity: isHidden ? 0.4 : 1,
+                  }}
+                />
+              )}
               <span style={{ opacity: isHidden ? 0.4 : 1 }}>{label}</span>
             </label>
           );

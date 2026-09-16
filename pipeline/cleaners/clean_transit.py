@@ -23,6 +23,15 @@ PIPELINE_DIR = Path(__file__).resolve().parent.parent
 
 _TRANSIT_RAILWAY_TAGS = {"station", "halt", "tram_stop"}
 
+# Rail (light rail/train stations, tram stops) counts for more than a single
+# bus stop toward the transit metric. METRO Blue/Green line stations average
+# roughly 1,000-3,000+ weekday boardings vs. single/low-double-digit boardings
+# at a typical local bus stop, and offer frequent (10-15 min) all-day service
+# plus regional reach (airport, downtown, U of M) that local bus routes
+# usually don't match. 3x reflects that gap without letting one station
+# dominate a district that only has a couple of rail stops.
+_MODE_WEIGHT = {"rail": 3.0, "bus": 1.0}
+
 
 def _is_transit_node(tags):
     if tags.get("highway") == "bus_stop":
@@ -49,9 +58,10 @@ def clean_transit(fallback_behavior="exclude_from_scoring_if_geography_fails", c
     'mpls'. granularity: 'district' or 'zip'.
 
     Returns:
-        DataFrame with columns: node_id, district_id, mode
+        DataFrame with columns: node_id, district_id, mode, value
         (one row per stop found inside a zone; aggregate_by_source()
-        counts rows per district_id since there is no "value" column)
+        sums the "value" column per district_id, which weights rail
+        stops higher than bus stops via _MODE_WEIGHT)
     """
     boundaries = resolve_boundaries(city=city, granularity=granularity)
 
@@ -66,7 +76,7 @@ def clean_transit(fallback_behavior="exclude_from_scoring_if_geography_fails", c
         if fallback_behavior == "strict":
             raise
         print(f"[WARNING] Overpass API fetch failed ({e}); transit will be excluded from scoring")
-        return pd.DataFrame(columns=["node_id", "district_id", "mode"])
+        return pd.DataFrame(columns=["node_id", "district_id", "mode", "value"])
 
     rows = []
     for element in elements:
@@ -88,11 +98,12 @@ def clean_transit(fallback_behavior="exclude_from_scoring_if_geography_fails", c
             rows.append({
                 "node_id": element.get("id"),
                 "district_id": district_id,
-                "mode": mode
+                "mode": mode,
+                "value": _MODE_WEIGHT[mode]
             })
             break
 
-    transit = pd.DataFrame(rows, columns=["node_id", "district_id", "mode"])
+    transit = pd.DataFrame(rows, columns=["node_id", "district_id", "mode", "value"])
 
     if transit.empty and fallback_behavior == "strict":
         raise ValueError("No transit data could be joined to districts")

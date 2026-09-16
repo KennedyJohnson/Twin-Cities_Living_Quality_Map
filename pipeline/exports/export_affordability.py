@@ -29,6 +29,8 @@ def _rows_to_districts_json(df):
             "poverty_rate": None if pd.isna(row["poverty_rate"]) else round(row["poverty_rate"], 1),
             "housing_cost_burden_rate": None if pd.isna(row["housing_cost_burden_rate"]) else round(row["housing_cost_burden_rate"], 1),
             "homeownership_rate": None if pd.isna(row["homeownership_rate"]) else round(row["homeownership_rate"], 1),
+            "gini_index": None if pd.isna(row["gini_index"]) else round(row["gini_index"], 3),
+            "vacancy_rate": None if pd.isna(row["vacancy_rate"]) else round(row["vacancy_rate"], 1),
         }
         for _, row in df.iterrows()
     }

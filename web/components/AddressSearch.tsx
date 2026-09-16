@@ -203,7 +203,7 @@ export default function AddressSearch({ onAddressSelect }: AddressSearchProps) {
       <form onSubmit={handleSearch}>
         <input
           type="text"
-          placeholder="Search for an address in the Twin Cities..."
+          placeholder="Search for an address"
           value={searchInput}
           onChange={handleInputChange}
           className="search-input"

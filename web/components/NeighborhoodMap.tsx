@@ -40,6 +40,31 @@ export interface ApartmentBuildingPoint {
   district_id: number;
 }
 
+// Same ray-casting approach as lib/geo.ts's pointInPolygon, extended to
+// handle MultiPolygon geometries (some district/ZIP boundaries are one) —
+// used to filter Data Points/trails down to the selected shape.
+function ringContains(ring: [number, number][], lon: number, lat: number): boolean {
+  let inside = false;
+  for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+    const [xi, yi] = ring[i];
+    const [xj, yj] = ring[j];
+    const intersect = yi > lat !== yj > lat && lon < ((xj - xi) * (lat - yi)) / (yj - yi) + xi;
+    if (intersect) inside = !inside;
+  }
+  return inside;
+}
+
+function geometryContains(geometry: any, lat: number, lon: number): boolean {
+  if (!geometry) return false;
+  if (geometry.type === 'Polygon') {
+    return ringContains(geometry.coordinates[0], lon, lat);
+  }
+  if (geometry.type === 'MultiPolygon') {
+    return geometry.coordinates.some((poly: [number, number][][]) => ringContains(poly[0], lon, lat));
+  }
+  return false;
+}
+
 function makeMarkerIcon(color: string, emoji: string): L.DivIcon {
   return L.divIcon({
     className: 'point-marker-icon',
@@ -312,6 +337,17 @@ function MapContent({
   const matchWeightsRef = useRef<MatchWeights | null>(matchWeights);
   const excludedDistrictIdsRef = useRef<Set<number> | null>(excludedDistrictIds);
   const districtBoundsRef = useRef<Record<number, L.LatLngBounds>>({});
+  // Raw GeoJSON geometry per district/zip id, so Data Points (crime, trails,
+  // etc.) can be filtered down to exactly the selected boundary's shape when
+  // a district/ZIP is selected — a bounding-box or attribute-based check
+  // isn't precise/available for ZIPs (points only carry a district_id, not a
+  // zip code), which previously let points/trails outside — sometimes far
+  // outside — the selected shape show up whenever a component score was
+  // clicked (see geometryContains below).
+  const boundaryGeometryRef = useRef<{ district: Record<number, any>; zip: Record<number, any> }>({
+    district: {},
+    zip: {},
+  });
   const [isLoading, setIsLoading] = useState(true);
 
   // Leaflet only re-measures its container on window resize. This map's width
@@ -336,12 +372,22 @@ function MapContent({
       const searchLatLng = L.latLng(sm.lat, sm.lon);
       return entry.marker.getLatLng().distanceTo(searchLatLng) <= 1609.34; // 1 mile
     }
-    // A plain district click (not a ZIP or an arbitrary radius point, which
-    // don't share this district_id numbering) narrows Data Points down to
-    // just that district instead of showing the whole city/metro.
+    // A plain district or ZIP selection narrows Data Points down to just
+    // that shape instead of showing the whole city/metro. Points don't
+    // carry a ZIP code (only a district_id), so ZIP selections need an
+    // actual point-in-polygon test against the selected ZIP's boundary
+    // rather than an attribute match; district selections use the same
+    // geometry test for precision, falling back to the cheap district_id
+    // match if the boundary geometry somehow isn't loaded yet.
     const selected = selectedDistrictRef.current;
-    if (selected && !selected.is_radius && !selected.is_zip) {
-      return entry.districtId === selected.district_id;
+    if (selected && !selected.is_radius) {
+      const geometry = boundaryGeometryRef.current[selected.is_zip ? 'zip' : 'district'][selected.district_id];
+      if (geometry) {
+        const ll = entry.marker.getLatLng();
+        return geometryContains(geometry, ll.lat, ll.lng);
+      }
+      if (!selected.is_zip) return entry.districtId === selected.district_id;
+      return true;
     }
     return true;
   };
@@ -387,18 +433,28 @@ function MapContent({
   };
 
   // Trails are radius-filtered when a place is selected (search or map
-  // click); otherwise every trail is shown (subject to hiddenSources).
+  // click), or boundary-filtered (any point of the trail within the shape)
+  // when a district/ZIP is selected; otherwise every trail is shown
+  // (subject to hiddenSources).
   const renderTrails = () => {
     const group = trailGroupRef.current;
     if (!group) return;
     group.clearLayers();
     const sm = searchMarkerPropRef.current;
+    const selected = selectedDistrictRef.current;
+    const selectedGeometry =
+      selected && !selected.is_radius
+        ? boundaryGeometryRef.current[selected.is_zip ? 'zip' : 'district'][selected.district_id]
+        : null;
     for (const entry of trailEntriesRef.current) {
       if (hiddenSourcesRef.current.has(entry.source)) continue;
       if (sm) {
         const searchLatLng = L.latLng(sm.lat, sm.lon);
         const withinRadius = entry.latlngs.some((ll) => ll.distanceTo(searchLatLng) <= 1609.34);
         if (!withinRadius) continue;
+      } else if (selectedGeometry) {
+        const withinBoundary = entry.latlngs.some((ll) => geometryContains(selectedGeometry, ll.lat, ll.lng));
+        if (!withinBoundary) continue;
       }
       group.addLayer(entry.layer);
     }
@@ -573,7 +629,8 @@ function MapContent({
     const buildDistrictLayer = (
       geojson: any,
       neighborhoodMap: Map<number, Neighborhood>,
-      allScores: number[]
+      allScores: number[],
+      kind: 'district' | 'zip' = 'district'
     ) =>
       L.geoJSON(geojson, {
         style: (feature) => {
@@ -615,6 +672,7 @@ function MapContent({
 
           if (neighborhood) {
             districtBoundsRef.current[districtId] = (layer as L.Polygon).getBounds();
+            boundaryGeometryRef.current[kind][districtId] = feature?.geometry;
 
             layer.bindTooltip(escapeHtml(neighborhood.district_name), {
               permanent: true,
@@ -707,7 +765,7 @@ function MapContent({
               const zipScores = Array.from(zipNeighborhoodMap.values()).map((n) =>
                 resolveScore(n, scoreMetricRef.current, matchWeightsRef.current)
               );
-              const zipLayer = buildDistrictLayer(zipGeojson, zipNeighborhoodMap, zipScores);
+              const zipLayer = buildDistrictLayer(zipGeojson, zipNeighborhoodMap, zipScores, 'zip');
               layersToClean.push(zipLayer);
               layerPoolsRef.current.push({
                 kind: 'zip',

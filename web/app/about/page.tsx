@@ -91,7 +91,7 @@ export default function AboutPage() {
       </p>
 
       <h2 style={{ fontSize: '18px', fontWeight: 600, marginTop: '32px', marginBottom: '12px' }}>
-        How We Calculate This
+        How We Calculate the Overall Score and Each Component
       </h2>
 
       <p style={{ marginBottom: '20px' }}>
@@ -117,7 +117,7 @@ export default function AboutPage() {
       </p>
 
       <h3 style={{ fontSize: '16px', fontWeight: 600, marginTop: '24px', marginBottom: '12px' }}>
-        How a Score Is Built
+        How a District Score Is Built
       </h3>
       <p style={{ marginBottom: '20px' }}>
         Raw counts (crime incidents, permits, etc.) first become a rate per 1,000 residents, so a

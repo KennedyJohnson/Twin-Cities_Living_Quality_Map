@@ -69,9 +69,21 @@ export default function MetricTrendChart({ districtId, trendKey, label }: Metric
     return <div style={{ fontSize: '11px', color: '#999', marginTop: '4px' }}>Loading trend…</div>;
   }
 
+  const complete = chartData.filter((p) => p.value != null);
+  const last = complete[complete.length - 1];
+  const prev = complete[complete.length - 2];
+  const yoyPct = last && prev && prev.value !== 0 ? ((last.value - prev.value) / prev.value) * 100 : null;
+
   return (
     <div style={{ marginTop: '6px', marginBottom: '4px' }}>
-      <div style={{ fontSize: '11px', color: '#666', marginBottom: '2px' }}>{label} by year (vs. citywide average)</div>
+      <div style={{ fontSize: '11px', color: '#666', marginBottom: '2px', display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+        <span>{label} by year (vs. citywide average)</span>
+        {yoyPct != null && (
+          <span style={{ fontSize: '11px', fontWeight: 600, color: '#666' }} title="Direction only — whether this is 'good' depends on the metric">
+            {yoyPct > 0 ? '▲' : yoyPct < 0 ? '▼' : '–'} {Math.abs(yoyPct).toFixed(0)}% vs {prev.year}
+          </span>
+        )}
+      </div>
       <ResponsiveContainer width="100%" height={120}>
         <LineChart data={chartData} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
           <XAxis dataKey="year" tick={{ fontSize: 10 }} />

@@ -207,6 +207,41 @@ export default function Home() {
     hideAutoRevealedLayers();
   };
 
+  // Clicking a Component Score card (Safety & Health, Amenities & Services,
+  // Transportation) in the sidebar auto-reveals the point layers that feed
+  // that component, so you can see what's actually nearby without digging
+  // into the layer checkboxes yourself. Opportunity and Economic Profile
+  // have no map point layers (permits/unemployment/Census figures aren't
+  // plotted), so they reveal nothing. Mirrors the groceries/restaurants
+  // auto-reveal pattern above: only layers this turned on get remembered,
+  // so switching to a different component (or closing the panel) hides
+  // exactly what it revealed rather than fighting a manual toggle.
+  const COMPONENT_LAYER_SOURCES: Record<string, string[]> = {
+    safety: ['crime', 'crashes'],
+    amenities: ['schools', 'groceries', 'restaurants', 'healthcare', 'entertainment'],
+    transportation: ['transit', 'trails'],
+  };
+  const componentRevealedSourcesRef = useRef<Set<string>>(new Set());
+
+  const handleExpandedIndexChange = (key: string | null) => {
+    setHiddenSources((prev) => {
+      const next = new Set(prev);
+      // Always undo whatever the previously-expanded component revealed
+      // first, so switching straight from one component to another doesn't
+      // leave the old one's layers stuck on.
+      if (componentRevealedSourcesRef.current.size > 0) {
+        componentRevealedSourcesRef.current.forEach((s) => next.add(s));
+        componentRevealedSourcesRef.current = new Set();
+      }
+      const toReveal = (key ? COMPONENT_LAYER_SOURCES[key] || [] : []).filter(
+        (s) => next.has(s) && !userOverriddenSourcesRef.current.has(s)
+      );
+      toReveal.forEach((s) => next.delete(s));
+      componentRevealedSourcesRef.current = new Set(toReveal);
+      return next;
+    });
+  };
+
   const handleDistrictSelect = (district: Neighborhood | null) => {
     if (compareArmed && tryAddCompareDistrict(district)) return;
     setSelectedDistrict(district);
@@ -254,9 +289,19 @@ export default function Home() {
     // Promise.all made the label sit at "Loading…" until the slower of the
     // two (usually the Overpass building-snap query) finished, even though
     // the label only depends on the Nominatim reverse-geocode call.
+    // The building-snap (Overpass) and named-place (local index) lookups
+    // race independently and both want to move the marker. Without
+    // coordination, whichever happens to resolve LAST wins — so a
+    // fast-resolving named-place match could get silently overwritten by a
+    // slower snap call falling back to the raw click point, making the
+    // final marker position (and therefore the 1-mile-radius score) depend
+    // on network timing instead of the click itself. Once a named place has
+    // been applied, the snap is purely geometric and shouldn't clobber it.
+    let namedPlaceApplied = false;
     let snappedPos = { lat, lon };
     snapToNearestBuilding(lat, lon).then((snapped) => {
       snappedPos = snapped;
+      if (namedPlaceApplied) return;
       setSearchMarker((prev) => (prev ? { ...prev, lat: snapped.lat, lon: snapped.lon } : prev));
     });
     // Prefer a nearby named building/POI (checked across name, addr:housename,
@@ -265,6 +310,7 @@ export default function Home() {
     // that don't carry that specific tag.
     findNearestNamedPlace(lat, lon).then((named) => {
       if (named) {
+        namedPlaceApplied = true;
         setSearchMarker((prev) => (prev ? { lat: named.lat, lon: named.lon, label: named.name, isNamedPlace: true, address: prev.address } : prev));
       }
     });
@@ -335,6 +381,7 @@ export default function Home() {
             // A manual toggle overrides the auto-reveal bookkeeping so
             // deselecting the place later doesn't fight the user's own choice.
             autoRevealedSourcesRef.current.delete(key);
+            componentRevealedSourcesRef.current.delete(key);
             userOverriddenSourcesRef.current.add(key);
             setHiddenSources((prev) => {
               const next = new Set(prev);
@@ -345,6 +392,7 @@ export default function Home() {
           }}
           onDeselectAll={(allKeys) => {
             autoRevealedSourcesRef.current = new Set();
+            componentRevealedSourcesRef.current = new Set();
             userOverriddenSourcesRef.current = new Set();
             setHiddenSources(new Set(allKeys));
             setApartmentBuildingsVisible(false);
@@ -391,7 +439,7 @@ export default function Home() {
                       className={clickMode === 'district' ? 'active' : ''}
                       onClick={() => setClickMode('district')}
                     >
-                      District
+                      {granularity === 'zip' ? 'ZIP Code' : 'District'}
                     </button>
                     <button
                       type="button"
@@ -519,6 +567,7 @@ export default function Home() {
                 : null
             }
             reviewsLinkIsNamedPlace={searchMarker?.isNamedPlace ?? false}
+            onExpandedIndexChange={handleExpandedIndexChange}
           />
         )}
       </div>

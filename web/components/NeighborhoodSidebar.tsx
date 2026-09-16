@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   getMetricLabel,
   getMetricUnit,
@@ -44,6 +44,10 @@ interface NeighborhoodSidebarProps {
   // below is preselected/expanded to match, instead of requiring a second
   // click to see what's driving the color the user just clicked on.
   scoreMetric?: ScoreMetricKey;
+  // Notified whenever the expanded component-score panel changes (including
+  // back to null when collapsed or the district changes), so the map can
+  // auto-reveal the point layers relevant to whichever component is open.
+  onExpandedIndexChange?: (key: string | null) => void;
 }
 
 const COMPONENT_WEIGHTS: { key: 'safety' | 'opportunity' | 'amenities' | 'transportation' | 'affordability'; weight: number }[] = [
@@ -61,6 +65,8 @@ interface Affordability {
   poverty_rate: number | null;
   housing_cost_burden_rate: number | null;
   homeownership_rate: number | null;
+  gini_index: number | null;
+  vacancy_rate: number | null;
 }
 
 interface AffordabilityFile {
@@ -68,16 +74,36 @@ interface AffordabilityFile {
   districts: Record<string, Affordability>;
 }
 
-export default function NeighborhoodSidebar({ district, onSelectDistrict, granularity = 'district', reviewsUrl, reviewsLinkIsNamedPlace = false, scoreMetric }: NeighborhoodSidebarProps) {
+export default function NeighborhoodSidebar({ district, onSelectDistrict, granularity = 'district', reviewsUrl, reviewsLinkIsNamedPlace = false, scoreMetric, onExpandedIndexChange }: NeighborhoodSidebarProps) {
   const [affordability, setAffordability] = useState<Record<string, Affordability>>({});
   const [acsYear, setAcsYear] = useState<number | null>(null);
   const [expandedIndex, setExpandedIndex] = useState<string | null>(null);
+
+  // Resets whenever the selected district itself changes (not just a
+  // re-render with the same one) so a previously-expanded component panel
+  // — and any map layers it auto-revealed — doesn't carry over to a newly
+  // selected district.
+  useEffect(() => {
+    setExpandedIndex(district && scoreMetric && scoreMetric !== 'health_score' ? scoreMetric : null);
+  }, [district?.district_id, district?.is_radius, district?.is_zip]);
 
   useEffect(() => {
     if (district && scoreMetric && scoreMetric !== 'health_score') {
       setExpandedIndex(scoreMetric);
     }
   }, [district, scoreMetric]);
+
+  // Only depends on expandedIndex itself — onExpandedIndexChange is read
+  // through a ref instead of being a dependency, since page.tsx passes a
+  // plain (non-memoized) inline function that gets a new identity every
+  // render. Depending on it directly caused an infinite loop: this effect
+  // calls it -> page.tsx calls setHiddenSources -> page.tsx re-renders with
+  // a new callback identity -> effect fires again -> repeat.
+  const onExpandedIndexChangeRef = useRef(onExpandedIndexChange);
+  onExpandedIndexChangeRef.current = onExpandedIndexChange;
+  useEffect(() => {
+    onExpandedIndexChangeRef.current?.(expandedIndex);
+  }, [expandedIndex]);
   const [allNeighborhoods, setAllNeighborhoods] = useState<Neighborhood[]>([]);
   const [allZips, setAllZips] = useState<Neighborhood[]>([]);
   const [radiusScoreSamples, setRadiusScoreSamples] = useState<Record<string, number[]>>({});
@@ -322,7 +348,49 @@ export default function NeighborhoodSidebar({ district, onSelectDistrict, granul
                       </div>
                     );
                   })}
-                  <div style={{ fontSize: '11px', color: '#ccc', fontStyle: 'italic' }}>
+                  {districtAffordability.gini_index != null && (() => {
+                    const value = districtAffordability.gini_index!;
+                    const avg = district.is_radius ? null : districtAverageAffordability('gini_index');
+                    const diffPct = avg != null && avg !== 0 ? ((value - avg) / avg) * 100 : null;
+                    const isGood = diffPct != null && diffPct < 0; // lower Gini = more equal = better
+                    return (
+                      <div style={{ marginBottom: '10px' }}>
+                        <div className="metric-row">
+                          <span style={{ fontSize: '12px', color: '#999' }}>Income Inequality (Gini Index)</span>
+                          <span className="metric-value">{value.toFixed(3)}</span>
+                        </div>
+                        <div style={{ fontSize: '11px', color: '#999', marginTop: '2px' }}>
+                          0 = perfect equality, 1 = maximum inequality
+                        </div>
+                        {avg != null && (
+                          <div style={{ fontSize: '11px', color: '#999', marginTop: '2px' }}>
+                            {district.is_zip ? 'All-zip' : 'Citywide'} avg: {avg.toFixed(3)}
+                            {diffPct != null && (
+                              <span style={{ color: diffColor(diffPct, isGood) }}>
+                                {' '}({diffPct >= 0 ? '+' : ''}{diffPct.toFixed(0)}%)
+                              </span>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })()}
+                  {districtAffordability.vacancy_rate != null && (
+                    <div style={{ marginTop: '14px', paddingTop: '10px', borderTop: '1px solid #e5e5e8' }}>
+                      <div style={{ fontSize: '11px', color: '#999', marginBottom: '8px' }}>
+                        Additional context (not part of the score):
+                      </div>
+                      {districtAffordability.vacancy_rate != null && (
+                        <div>
+                          <div className="metric-row">
+                            <span style={{ fontSize: '12px', color: '#999' }}>Housing Vacancy Rate</span>
+                            <span className="metric-value">{districtAffordability.vacancy_rate}%</span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  <div style={{ fontSize: '11px', color: '#ccc', fontStyle: 'italic', marginTop: '10px' }}>
                     Source: Census ACS 5-Year Estimates{acsYear ? ` (${acsYear})` : ''}
                     {district.is_radius ? ' (surrounding district)' : ''}
                   </div>

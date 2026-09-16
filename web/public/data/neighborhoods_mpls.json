@@ -67,7 +67,7 @@
         "opportunity": 64,
         "amenities": 57,
         "transportation": 59,
-        "affordability": 47,
+        "affordability": 44,
         "walkability_score": 58,
         "broadband_score": 72
       },
@@ -140,11 +140,11 @@
         "opportunity": 29,
         "amenities": 30,
         "transportation": 53,
-        "affordability": 51,
+        "affordability": 54,
         "walkability_score": 47,
         "broadband_score": 27
       },
-      "health_score": 42
+      "health_score": 43
     },
     {
       "district_id": 103,
@@ -213,7 +213,7 @@
         "opportunity": 41,
         "amenities": 49,
         "transportation": 60,
-        "affordability": 40,
+        "affordability": 38,
         "walkability_score": 64,
         "broadband_score": 44
       },
@@ -286,7 +286,7 @@
         "opportunity": 52,
         "amenities": 61,
         "transportation": 58,
-        "affordability": 58,
+        "affordability": 59,
         "walkability_score": 56,
         "broadband_score": 54
       },
@@ -432,7 +432,7 @@
         "opportunity": 36,
         "amenities": 41,
         "transportation": 49,
-        "affordability": 65,
+        "affordability": 68,
         "walkability_score": 49,
         "broadband_score": 63
       },
@@ -505,7 +505,7 @@
         "opportunity": 54,
         "amenities": 44,
         "transportation": 63,
-        "affordability": 58,
+        "affordability": 59,
         "walkability_score": 57,
         "broadband_score": 44
       },
@@ -578,7 +578,7 @@
         "opportunity": 33,
         "amenities": 47,
         "transportation": 42,
-        "affordability": 36,
+        "affordability": 35,
         "walkability_score": 60,
         "broadband_score": 4
       },
@@ -651,7 +651,7 @@
         "opportunity": 38,
         "amenities": 58,
         "transportation": 48,
-        "affordability": 45,
+        "affordability": 47,
         "walkability_score": 58,
         "broadband_score": 72
       },
@@ -724,7 +724,7 @@
         "opportunity": 35,
         "amenities": 46,
         "transportation": 52,
-        "affordability": 60,
+        "affordability": 59,
         "walkability_score": 46,
         "broadband_score": 79
       },
@@ -797,7 +797,7 @@
         "opportunity": 33,
         "amenities": 48,
         "transportation": 48,
-        "affordability": 24,
+        "affordability": 25,
         "walkability_score": 54,
         "broadband_score": 63
       },

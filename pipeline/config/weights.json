@@ -31,8 +31,8 @@
     },
     "affordability": {
       "sources": ["housing_price"],
-      "formula": "average(100 - normalize(median_home_value), 100 - normalize(median_gross_rent), normalize(median_household_income), 100 - normalize(poverty_rate), 100 - normalize(housing_cost_burden_rate), normalize(homeownership_rate))",
-      "description": "Census ACS housing cost burden: lower home values/rent/poverty/cost-burden and higher household income/homeownership relative to other districts raise this index"
+      "formula": "average(100 - normalize(median_home_value), 100 - normalize(median_gross_rent), normalize(median_household_income), 100 - normalize(poverty_rate), 100 - normalize(housing_cost_burden_rate), normalize(homeownership_rate), 100 - normalize(gini_index))",
+      "description": "Census ACS housing cost burden: lower home values/rent/poverty/cost-burden/income-inequality (Gini index) and higher household income/homeownership relative to other districts raise this index. Gini added 2026-09-15 (see core/health_score.py's _affordability_index_from_df) — vacancy rate was also added to the pipeline around the same time but deliberately left out of the score since, unlike the other fields here, its 'good' direction is ambiguous (high vacancy can mean disinvestment or just a loose rental market); it's exposed in the sidebar as context only."
     }
   },
   "normalization": {

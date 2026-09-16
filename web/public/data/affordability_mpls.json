@@ -7,7 +7,9 @@
       "median_household_income": 95790,
       "poverty_rate": 8.0,
       "housing_cost_burden_rate": 39.0,
-      "homeownership_rate": 39.0
+      "homeownership_rate": 39.0,
+      "gini_index": 0.476,
+      "vacancy_rate": 6.4
     },
     "102": {
       "median_home_value": 234549,
@@ -15,7 +17,9 @@
       "median_household_income": 74539,
       "poverty_rate": 16.0,
       "housing_cost_burden_rate": 55.0,
-      "homeownership_rate": 76.0
+      "homeownership_rate": 76.0,
+      "gini_index": 0.404,
+      "vacancy_rate": 6.2
     },
     "103": {
       "median_home_value": 380721,
@@ -23,7 +27,9 @@
       "median_household_income": 84060,
       "poverty_rate": 16.0,
       "housing_cost_burden_rate": 44.0,
-      "homeownership_rate": 24.0
+      "homeownership_rate": 24.0,
+      "gini_index": 0.49,
+      "vacancy_rate": 11.5
     },
     "104": {
       "median_home_value": 355303,
@@ -31,7 +37,9 @@
       "median_household_income": 88971,
       "poverty_rate": 14.0,
       "housing_cost_burden_rate": 41.0,
-      "homeownership_rate": 58.0
+      "homeownership_rate": 58.0,
+      "gini_index": 0.425,
+      "vacancy_rate": 5.6
     },
     "105": {
       "median_home_value": 263087,
@@ -39,7 +47,9 @@
       "median_household_income": 63310,
       "poverty_rate": 24.0,
       "housing_cost_burden_rate": 57.0,
-      "homeownership_rate": 50.0
+      "homeownership_rate": 50.0,
+      "gini_index": 0.457,
+      "vacancy_rate": 10.8
     },
     "106": {
       "median_home_value": 394488,
@@ -47,7 +57,9 @@
       "median_household_income": 125288,
       "poverty_rate": 5.0,
       "housing_cost_burden_rate": 34.0,
-      "homeownership_rate": 85.0
+      "homeownership_rate": 85.0,
+      "gini_index": 0.371,
+      "vacancy_rate": 5.2
     },
     "107": {
       "median_home_value": 357020,
@@ -55,7 +67,9 @@
       "median_household_income": 93895,
       "poverty_rate": 7.0,
       "housing_cost_burden_rate": 38.0,
-      "homeownership_rate": 55.0
+      "homeownership_rate": 55.0,
+      "gini_index": 0.411,
+      "vacancy_rate": 7.0
     },
     "108": {
       "median_home_value": 252212,
@@ -63,7 +77,9 @@
       "median_household_income": 46178,
       "poverty_rate": 32.0,
       "housing_cost_burden_rate": 59.0,
-      "homeownership_rate": 26.0
+      "homeownership_rate": 26.0,
+      "gini_index": 0.474,
+      "vacancy_rate": 11.1
     },
     "109": {
       "median_home_value": 336558,
@@ -71,7 +87,9 @@
       "median_household_income": 74692,
       "poverty_rate": 18.0,
       "housing_cost_burden_rate": 48.0,
-      "homeownership_rate": 43.0
+      "homeownership_rate": 43.0,
+      "gini_index": 0.423,
+      "vacancy_rate": 7.5
     },
     "110": {
       "median_home_value": 541722,
@@ -79,7 +97,9 @@
       "median_household_income": 145006,
       "poverty_rate": 4.0,
       "housing_cost_burden_rate": 34.0,
-      "homeownership_rate": 77.0
+      "homeownership_rate": 77.0,
+      "gini_index": 0.433,
+      "vacancy_rate": 3.9
     },
     "111": {
       "median_home_value": 390942,
@@ -87,7 +107,9 @@
       "median_household_income": 49460,
       "poverty_rate": 40.0,
       "housing_cost_burden_rate": 55.0,
-      "homeownership_rate": 15.0
+      "homeownership_rate": 15.0,
+      "gini_index": 0.476,
+      "vacancy_rate": 9.5
     }
   }
 }
