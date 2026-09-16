@@ -6,8 +6,8 @@
       "population": 8755,
       "metrics": {
         "crime_rate_pc": {
-          "raw_count": 12833,
-          "rate_per_1000": 1465.79
+          "raw_count": 13127,
+          "rate_per_1000": 1499.37
         },
         "permit_rate_pc": {
           "raw_count": 1350,
@@ -26,8 +26,8 @@
           "rate_per_1000": 6.4
         },
         "transit_stops_pc": {
-          "raw_count": 192,
-          "rate_per_1000": 21.93
+          "raw_count": 208,
+          "rate_per_1000": 23.76
         },
         "schools_pc": {
           "raw_count": 2,
@@ -83,8 +83,8 @@
       "population": 20967,
       "metrics": {
         "crime_rate_pc": {
-          "raw_count": 13830,
-          "rate_per_1000": 659.61
+          "raw_count": 13845,
+          "rate_per_1000": 660.32
         },
         "permit_rate_pc": {
           "raw_count": 5442,
@@ -144,7 +144,7 @@
         }
       },
       "indices": {
-        "safety": 54,
+        "safety": 55,
         "opportunity": 55,
         "amenities": 49,
         "transportation": 47,
@@ -160,8 +160,8 @@
       "population": 12052,
       "metrics": {
         "crime_rate_pc": {
-          "raw_count": 6123,
-          "rate_per_1000": 508.05
+          "raw_count": 7816,
+          "rate_per_1000": 648.52
         },
         "permit_rate_pc": {
           "raw_count": 2756,
@@ -180,8 +180,8 @@
           "rate_per_1000": 3.95
         },
         "transit_stops_pc": {
-          "raw_count": 196,
-          "rate_per_1000": 16.26
+          "raw_count": 204,
+          "rate_per_1000": 16.93
         },
         "schools_pc": {
           "raw_count": 14,
@@ -221,7 +221,7 @@
         }
       },
       "indices": {
-        "safety": 49,
+        "safety": 47,
         "opportunity": 62,
         "amenities": 45,
         "transportation": 54,
@@ -237,8 +237,8 @@
       "population": 41975,
       "metrics": {
         "crime_rate_pc": {
-          "raw_count": 16830,
-          "rate_per_1000": 400.95
+          "raw_count": 15348,
+          "rate_per_1000": 365.65
         },
         "permit_rate_pc": {
           "raw_count": 13375,
@@ -257,8 +257,8 @@
           "rate_per_1000": 2.47
         },
         "transit_stops_pc": {
-          "raw_count": 374,
-          "rate_per_1000": 8.91
+          "raw_count": 394,
+          "rate_per_1000": 9.39
         },
         "schools_pc": {
           "raw_count": 42,
@@ -314,8 +314,8 @@
       "population": 26046,
       "metrics": {
         "crime_rate_pc": {
-          "raw_count": 5369,
-          "rate_per_1000": 206.14
+          "raw_count": 6675,
+          "rate_per_1000": 256.28
         },
         "permit_rate_pc": {
           "raw_count": 12496,
@@ -391,8 +391,8 @@
       "population": 62114,
       "metrics": {
         "crime_rate_pc": {
-          "raw_count": 10088,
-          "rate_per_1000": 162.41
+          "raw_count": 10574,
+          "rate_per_1000": 170.24
         },
         "permit_rate_pc": {
           "raw_count": 11389,
@@ -468,8 +468,8 @@
       "population": 15728,
       "metrics": {
         "crime_rate_pc": {
-          "raw_count": 7849,
-          "rate_per_1000": 499.05
+          "raw_count": 7868,
+          "rate_per_1000": 500.25
         },
         "permit_rate_pc": {
           "raw_count": 3947,
@@ -532,7 +532,7 @@
         "safety": 50,
         "opportunity": 55,
         "amenities": 38,
-        "transportation": 57,
+        "transportation": 56,
         "affordability": 57,
         "walkability_score": 49,
         "broadband_score": 31
@@ -545,8 +545,8 @@
       "population": 7574,
       "metrics": {
         "crime_rate_pc": {
-          "raw_count": 2820,
-          "rate_per_1000": 372.33
+          "raw_count": 2461,
+          "rate_per_1000": 324.93
         },
         "permit_rate_pc": {
           "raw_count": 1379,
@@ -565,8 +565,8 @@
           "rate_per_1000": 1.95
         },
         "transit_stops_pc": {
-          "raw_count": 42,
-          "rate_per_1000": 5.55
+          "raw_count": 50,
+          "rate_per_1000": 6.6
         },
         "schools_pc": {
           "raw_count": 12,
@@ -606,10 +606,10 @@
         }
       },
       "indices": {
-        "safety": 52,
+        "safety": 53,
         "opportunity": 61,
         "amenities": 73,
-        "transportation": 37,
+        "transportation": 38,
         "affordability": 40,
         "walkability_score": 56,
         "broadband_score": 52
@@ -622,8 +622,8 @@
       "population": 27325,
       "metrics": {
         "crime_rate_pc": {
-          "raw_count": 2380,
-          "rate_per_1000": 87.1
+          "raw_count": 2514,
+          "rate_per_1000": 92.0
         },
         "permit_rate_pc": {
           "raw_count": 10219,
@@ -699,8 +699,8 @@
       "population": 14659,
       "metrics": {
         "crime_rate_pc": {
-          "raw_count": 6528,
-          "rate_per_1000": 445.32
+          "raw_count": 6550,
+          "rate_per_1000": 446.82
         },
         "permit_rate_pc": {
           "raw_count": 2704,
@@ -768,7 +768,7 @@
         "walkability_score": 51,
         "broadband_score": 16
       },
-      "health_score": 49
+      "health_score": 48
     },
     {
       "district_id": 55155,
@@ -776,8 +776,8 @@
       "population": 2911,
       "metrics": {
         "crime_rate_pc": {
-          "raw_count": 11154,
-          "rate_per_1000": 3831.67
+          "raw_count": 11243,
+          "rate_per_1000": 3862.25
         },
         "permit_rate_pc": {
           "raw_count": 252,
@@ -792,8 +792,8 @@
           "rate_per_1000": 5.39
         },
         "transit_stops_pc": {
-          "raw_count": 32,
-          "rate_per_1000": 10.99
+          "raw_count": 40,
+          "rate_per_1000": 13.74
         },
         "schools_pc": {
           "raw_count": 0,
@@ -836,7 +836,7 @@
         "safety": 27,
         "opportunity": 46,
         "amenities": 29,
-        "transportation": 57,
+        "transportation": 59,
         "affordability": 55,
         "walkability_score": 56,
         "broadband_score": 52
@@ -869,8 +869,8 @@
           "rate_per_1000": 7.04
         },
         "transit_stops_pc": {
-          "raw_count": 216,
-          "rate_per_1000": 29.93
+          "raw_count": 228,
+          "rate_per_1000": 31.6
         },
         "schools_pc": {
           "raw_count": 2,
@@ -910,7 +910,7 @@
         }
       },
       "indices": {
-        "safety": 39,
+        "safety": 40,
         "opportunity": 47,
         "amenities": 65,
         "transportation": 74,
@@ -946,8 +946,8 @@
           "rate_per_1000": 3.87
         },
         "transit_stops_pc": {
-          "raw_count": 210,
-          "rate_per_1000": 8.9
+          "raw_count": 218,
+          "rate_per_1000": 9.24
         },
         "schools_pc": {
           "raw_count": 12,
@@ -1023,8 +1023,8 @@
           "rate_per_1000": 1.76
         },
         "transit_stops_pc": {
-          "raw_count": 308,
-          "rate_per_1000": 10.62
+          "raw_count": 312,
+          "rate_per_1000": 10.75
         },
         "schools_pc": {
           "raw_count": 18,
@@ -1064,7 +1064,7 @@
         }
       },
       "indices": {
-        "safety": 36,
+        "safety": 37,
         "opportunity": 37,
         "amenities": 47,
         "transportation": 42,
@@ -1100,8 +1100,8 @@
           "rate_per_1000": 8.16
         },
         "transit_stops_pc": {
-          "raw_count": 210,
-          "rate_per_1000": 10.95
+          "raw_count": 226,
+          "rate_per_1000": 11.79
         },
         "schools_pc": {
           "raw_count": 14,
@@ -1177,8 +1177,8 @@
           "rate_per_1000": 3.71
         },
         "transit_stops_pc": {
-          "raw_count": 532,
-          "rate_per_1000": 15.53
+          "raw_count": 544,
+          "rate_per_1000": 15.88
         },
         "schools_pc": {
           "raw_count": 40,
@@ -1218,7 +1218,7 @@
         }
       },
       "indices": {
-        "safety": 63,
+        "safety": 64,
         "opportunity": 58,
         "amenities": 53,
         "transportation": 58,
@@ -1298,7 +1298,7 @@
         "safety": 54,
         "opportunity": 44,
         "amenities": 45,
-        "transportation": 53,
+        "transportation": 52,
         "affordability": 59,
         "walkability_score": 55,
         "broadband_score": 31
@@ -1331,8 +1331,8 @@
           "rate_per_1000": 2.2
         },
         "transit_stops_pc": {
-          "raw_count": 282,
-          "rate_per_1000": 7.6
+          "raw_count": 286,
+          "rate_per_1000": 7.71
         },
         "schools_pc": {
           "raw_count": 8,
@@ -1452,7 +1452,7 @@
         "safety": 61,
         "opportunity": 32,
         "amenities": 70,
-        "transportation": 54,
+        "transportation": 53,
         "affordability": 57,
         "walkability_score": 56,
         "broadband_score": 91
@@ -1529,7 +1529,7 @@
         "safety": 41,
         "opportunity": 55,
         "amenities": 41,
-        "transportation": 51,
+        "transportation": 50,
         "affordability": 48,
         "walkability_score": 50,
         "broadband_score": 31
@@ -1696,8 +1696,8 @@
       "population": 26902,
       "metrics": {
         "crime_rate_pc": {
-          "raw_count": 10656,
-          "rate_per_1000": 396.1
+          "raw_count": 10646,
+          "rate_per_1000": 395.73
         },
         "permit_rate_pc": {
           "raw_count": 2543,
@@ -1716,8 +1716,8 @@
           "rate_per_1000": 3.79
         },
         "transit_stops_pc": {
-          "raw_count": 286,
-          "rate_per_1000": 10.63
+          "raw_count": 294,
+          "rate_per_1000": 10.93
         },
         "schools_pc": {
           "raw_count": 8,
@@ -1760,7 +1760,7 @@
         "safety": 53,
         "opportunity": 37,
         "amenities": 53,
-        "transportation": 48,
+        "transportation": 47,
         "affordability": 29,
         "walkability_score": 52,
         "broadband_score": 63
@@ -1793,8 +1793,8 @@
           "rate_per_1000": 6.24
         },
         "transit_stops_pc": {
-          "raw_count": 88,
-          "rate_per_1000": 11.34
+          "raw_count": 96,
+          "rate_per_1000": 12.38
         },
         "schools_pc": {
           "raw_count": 2,
@@ -1837,12 +1837,12 @@
         "safety": 43,
         "opportunity": 37,
         "amenities": 54,
-        "transportation": 64,
+        "transportation": 65,
         "affordability": 44,
         "walkability_score": 68,
         "broadband_score": 81
       },
-      "health_score": 48
+      "health_score": 49
     },
     {
       "district_id": 55419,
@@ -1850,8 +1850,8 @@
       "population": 34937,
       "metrics": {
         "crime_rate_pc": {
-          "raw_count": 4915,
-          "rate_per_1000": 140.68
+          "raw_count": 4913,
+          "rate_per_1000": 140.62
         },
         "permit_rate_pc": {
           "raw_count": 1271,
@@ -1947,8 +1947,8 @@
           "rate_per_1000": 9.08
         },
         "transit_stops_pc": {
-          "raw_count": 58,
-          "rate_per_1000": 11.7
+          "raw_count": 66,
+          "rate_per_1000": 13.31
         },
         "schools_pc": {
           "raw_count": 0,
@@ -1991,7 +1991,7 @@
         "safety": 38,
         "opportunity": 43,
         "amenities": 56,
-        "transportation": 55,
+        "transportation": 56,
         "affordability": 30,
         "walkability_score": 64,
         "broadband_score": 23
@@ -2020,8 +2020,8 @@
           "rate_per_1000": 5.36
         },
         "transit_stops_pc": {
-          "raw_count": 74,
-          "rate_per_1000": 5.95
+          "raw_count": 78,
+          "rate_per_1000": 6.27
         },
         "schools_pc": {
           "raw_count": 2,
@@ -2074,7 +2074,7 @@
   ],
   "metadata": {
     "total_districts": 27,
-    "data_generated": "2026-09-14T19:21:38.992859",
+    "data_generated": "2026-09-15T22:40:39.116362",
     "note": "Zip-level snapshot: every ZIP in the metro normalized in one pool against every other ZIP, finer-grained than the district-level map"
   }
 }
