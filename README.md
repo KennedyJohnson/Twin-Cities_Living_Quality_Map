@@ -2,6 +2,8 @@
 
 [![CI](https://github.com/KennedyJohnson/Twin-Cities_Living_Quality_Map/actions/workflows/ci.yml/badge.svg)](https://github.com/KennedyJohnson/Twin-Cities_Living_Quality_Map/actions/workflows/ci.yml) [![Live site](https://img.shields.io/badge/live-vercel-black)](https://twin-cities-living-quality-map.vercel.app/) [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
+![Twin Cities Living Quality Map showing the Southwest district colored by average commute time](docs/screenshot.png)
+
 An interactive map comparing quality of life across St. Paul's 17 District Councils and Minneapolis's 11 Communities, built from city open data, OpenStreetMap, the U.S. Census, MnDOT, and CDC.
 
 **Live Dashboard:** deployed on Vercel (Next.js frontend in `web/`).
