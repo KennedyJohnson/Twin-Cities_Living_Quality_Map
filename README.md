@@ -1,5 +1,7 @@
 # Twin Cities Living Quality Map
 
+[![CI](https://github.com/KennedyJohnson/Twin-Cities_Living_Quality_Map/actions/workflows/ci.yml/badge.svg)](https://github.com/KennedyJohnson/Twin-Cities_Living_Quality_Map/actions/workflows/ci.yml) [![Live site](https://img.shields.io/badge/live-vercel-black)](https://twin-cities-living-quality-map.vercel.app/) [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
 An interactive map comparing quality of life across St. Paul's 17 District Councils and Minneapolis's 11 Communities, built from city open data, OpenStreetMap, the U.S. Census, MnDOT, and CDC.
 
 **Live Dashboard:** deployed on Vercel (Next.js frontend in `web/`).
@@ -177,6 +179,14 @@ Health score component weights (currently 20% Safety / 20% Opportunity / 20% Ame
 
 ---
 
-## License
+## Data Attribution & Licenses
 
-Data is governed by each source's own terms (City of St. Paul, City of Minneapolis, OpenStreetMap, U.S. Census Bureau, MnDOT, CDC). Code in this repository is available under the MIT License.
+Code is released under the [MIT License](LICENSE). Data is **not** covered by that license; each source keeps its own terms:
+
+- **OpenStreetMap** — © OpenStreetMap contributors, available under the [Open Database License (ODbL)](https://www.openstreetmap.org/copyright). Derived layers here (trails, transit, amenities, buildings, street network) must keep this attribution, which the map displays.
+- **City of St. Paul / City of Minneapolis** — open data portals; crime and permit records are used under each city's open data terms.
+- **U.S. Census Bureau (ACS)** and **CDC PLACES** — U.S. government public-domain data. This product uses the Census Bureau Data API but is not endorsed or certified by the Census Bureau.
+- **MnDOT** (traffic counts, crash locations) and **FEMA** (National Risk Index) — public government data.
+- **Zillow Research** — for-sale inventory from [Zillow's public research data](https://www.zillow.com/research/data/), subject to Zillow's terms of use.
+
+Scores are analytical estimates from these sources for exploration only, not official ratings.
