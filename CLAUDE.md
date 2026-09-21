@@ -8,21 +8,22 @@
 #### Datasets (100% API-Based Automation)
 All data is fetched automatically from official APIs with no manual downloads:
 - **City Data** (ArcGIS FeatureServers): Crime, Building Permits (Service Requests and Housing Production are still fetched/cleaned but no longer feed the score — see note below)
-- **Census Data** (Census Bureau API): Population, Unemployment, Median home value/rent/income, poverty rate, housing cost burden, homeownership rate
+- **Census Data** (Census Bureau API): Population, unemployment, median home value/rent/income, poverty rate, housing cost burden, homeownership rate, Gini, vacancy rate, bachelor's+ rate, broadband, commute
 - **Geographic** (ArcGIS FeatureServers): District boundaries, neighborhood→district crosswalks (generated dynamically)
 - **Mapping** (OpenStreetMap, queried locally via `pyosmium` against a monthly-refreshed Geofabrik Minnesota `.pbf` extract — see `pipeline/core/osm_extract.py` — instead of the public Overpass API): Trails, transit stops, schools, grocery stores, restaurants/bars, healthcare facilities, entertainment venues, apartment buildings, street network (Walk/Bike Score), named-place search index
 - **Traffic** (MnDOT ArcGIS): Annual Average Daily Traffic (AADT), pedestrian/cyclist crash locations
 - **Health** (CDC Socrata): Obesity/diabetes prevalence by census tract
+- **Other**: FEMA natural hazard risk, Zillow for-sale inventory
 
-**Setup:** Only requires `CENSUS_API_KEY` environment variable (free from census.gov). See [SETUP_API.md](SETUP_API.md).
+**Setup:** Only requires `CENSUS_API_KEY` environment variable (free from census.gov). See `pipeline/.env.example` and README.md.
 
 #### Key Metrics Being Developed
 - **Living Quality Score** - Composite metric (0-100) combining five equally-weighted (20% each) components:
   - Safety: crime rate, pedestrian/cyclist crash rate, natural hazard risk, chronic disease burden (all inverted)
-  - Opportunity: permit rate, unemployment rate (inverted), Zillow housing-market tightness
+  - Opportunity: permit rate, unemployment rate (inverted), Zillow housing-market tightness (fewer listings = higher), blended 85/15 with Census bachelor's+ rate
   - Amenities & Services: schools, groceries, restaurants, healthcare access, entertainment venues (movie theaters, performing-arts venues, museums/galleries, nightlife, bowling/arcades — OpenStreetMap), blended 85/15 with a Census broadband/internet-access rate
-  - Transportation: trail/transit rate minus traffic volume, blended 70/30 with a Zillow-style Walk/Bike Score
-  - Economic Profile (formerly labeled "Affordability" — renamed 2026-09-14 since it blends housing cost, lower=better, with income/homeownership, higher=better, so a high-income area with expensive housing like Summit Hill can still score well here, which "affordability" alone would misleadingly suggest): home value, rent, poverty rate, housing cost burden (inverted), plus household income and homeownership rate
+  - Transportation: trail/transit rate minus traffic volume, blended 60/25/15 with a Zillow-style Walk/Bike Score and a Census commute score (commute time + transit/walk/bike share)
+  - Economic Profile (formerly labeled "Affordability" — renamed 2026-09-14 since it blends housing cost, lower=better, with income/homeownership, higher=better, so a high-income area with expensive housing like Summit Hill can still score well here, which "affordability" alone would misleadingly suggest): home value, rent, poverty rate, housing cost burden (inverted), plus household income and homeownership rate, income inequality (Gini, inverted), and vacancy rate (inverted; added 2026-09-21). The weights.json/pipeline key is still `affordability`.
 - Each metric is z-score-normalized (then logistic-squashed to 0-100) INDEPENDENTLY before being weight-blended into its component — not pooled with other metrics first. Normalization is pooled across ALL 28 districts of BOTH cities together, not per-city, so St. Paul and Minneapolis scores are directly comparable (see `pipeline/core/health_score.py`'s `compute_health_scores_combined`).
 - Crime/permits counts are restricted to a shared trailing recent-years window (`pipeline/core/date_window.py`) so the two cities' differing data-history lengths don't skew the comparison.
 - Multi-year trend charts for crime/permits and Census affordability figures
@@ -62,7 +63,7 @@ python build.py
 
 #### Automated Refreshes
 - **Local:** Run `python build.py` anytime
-- **GitHub Actions:** Auto-runs weekly, every Monday at 8am UTC (`.github/workflows/refresh-data.yml`'s `cron: '0 8 * * 1'`; requires `CENSUS_API_KEY` secret)
+- **GitHub Actions:** Auto-runs monthly, 8am UTC on the 1st (`.github/workflows/refresh-data.yml`'s `cron: '0 8 1 * *'`, matching the 30-day OSM extract refresh; requires `CENSUS_API_KEY` secret)
 
 #### Geographic Identifiers
 - **St. Paul:** District Council (1-17)
@@ -88,7 +89,7 @@ python build.py
     1. Pipeline: add the house-type Overpass query alongside the apartments one, tag `building_type: 'house'`, expect materially longer build time (bigger fetch + more reverse-geocode fallback calls) and watch for Overpass timeouts at this volume (may need to tile the bbox into sub-queries).
     2. Frontend: houses should NOT reuse the always-on apartment-buildings canvas layer as-is — at 85K+ points a static always-rendered layer would paint the map solid at city zoom. Gate it to only render below some zoom threshold (unlike apartments' current always-on behavior), and give it its own legend toggle, off by default.
     3. `MatchFinder`/`matchRegions.ts`'s region-anchor logic already works on "any building record," so once the data exists it picks up houses for free — no ranking-logic changes needed, just the data source and a `building_type` filter control.
-    4. **Refresh cadence**: the weekly Monday pipeline run (see Automated Refreshes above) is too frequent for building footprints — individual houses/apartment buildings don't change week to week the way crime/permits data does. Rather than have this new house query (or the existing apartments one) re-fetch ~85K+ Overpass ways every single week, cache/skip building-location fetches so they only actually re-run on a monthly-or-slower cadence (e.g. a separate, less-frequent GitHub Actions schedule for building layers, or a date-stamped cache file in the pipeline that the weekly run reuses unless it's stale) — needs a small amount of dedicated scheduling/caching work in `build.py` and `.github/workflows/refresh-data.yml`, not just the Overpass query itself.
+    4. **Refresh cadence**: the pipeline now runs monthly (see Automated Refreshes), already a fine cadence for building footprints, so no separate schedule is needed. OSM is now queried locally via `pyosmium` (`pipeline/core/osm_extract.py`) rather than Overpass, so the volume/timeout concerns above came from Overpass-era testing; a house query would run against the local extract instead.
   - Still deferred (not started) — this is a scoping note for whoever picks it up next, not an in-progress task.
 
 #### Known Cross-City Comparability Gaps (accepted, no fix available)
