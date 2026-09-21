@@ -171,6 +171,7 @@ def _affordability_index_from_df(df):
     cost_burden_rates = df["housing_cost_burden_rate"].tolist()
     homeownership_rates = df["homeownership_rate"].tolist()
     gini_indices = df["gini_index"].tolist()
+    vacancy_rates = df["vacancy_rate"].tolist()
 
     def normalized_or_none(values):
         valid_idx = [i for i, v in enumerate(values) if v is not None and not pd.isna(v)]
@@ -186,6 +187,7 @@ def _affordability_index_from_df(df):
     cost_burden_norm = normalized_or_none(cost_burden_rates)
     homeownership_norm = normalized_or_none(homeownership_rates)
     gini_norm = normalized_or_none(gini_indices)
+    vacancy_norm = normalized_or_none(vacancy_rates)
 
     affordability_index = {}
     for i, district_id in enumerate(df["district_id"]):
@@ -204,6 +206,8 @@ def _affordability_index_from_df(df):
             parts.append(homeownership_norm[i])
         if i in gini_norm:
             parts.append(100 - gini_norm[i])
+        if i in vacancy_norm:
+            parts.append(100 - vacancy_norm[i])
         if parts:
             affordability_index[int(district_id)] = sum(parts) / len(parts)
 
@@ -334,6 +338,45 @@ def compute_commute_index_zip():
     return _commute_index_from_df(df)
 
 
+def _education_index_from_df(df):
+    """Educational-attainment index (0-100): normalized share of adults 25+ with a bachelor's degree or higher."""
+    if df.empty or "bachelors_rate" not in df:
+        return {}
+    rates = df["bachelors_rate"].tolist()
+    valid_idx = [i for i, v in enumerate(rates) if v is not None and not pd.isna(v)]
+    if not valid_idx:
+        return {}
+    normalized = min_max_normalize([rates[i] for i in valid_idx])
+    return {int(df["district_id"].iloc[i]): n for i, n in zip(valid_idx, normalized)}
+
+
+def compute_education_index(city="stpaul"):
+    from cleaners.clean_housing_price import clean_housing_price
+    return _education_index_from_df(clean_housing_price(city=city))
+
+
+def compute_education_index_combined():
+    """Pools both cities' districts into one normalization."""
+    from cleaners.clean_housing_price import clean_housing_price
+    df = pd.concat(
+        [clean_housing_price(city="stpaul"), clean_housing_price(city="mpls")],
+        ignore_index=True,
+    )
+    return _education_index_from_df(df)
+
+
+def compute_education_index_zip():
+    """Pooled across every zip in the metro."""
+    from cleaners.clean_housing_price import clean_housing_price
+    df = pd.concat(
+        [clean_housing_price(city="stpaul", granularity="zip"),
+         clean_housing_price(city="mpls", granularity="zip")],
+        ignore_index=True,
+    )
+    df = df.groupby("district_id", as_index=False).mean(numeric_only=True)
+    return _education_index_from_df(df)
+
+
 def compute_health_scores(aggregated_metrics, city="stpaul"):
     """
     Compute health scores for all districts of a SINGLE city, normalized
@@ -383,9 +426,15 @@ def compute_health_scores(aggregated_metrics, city="stpaul"):
         print(f"  [WARNING] Commute index unavailable ({e}); Transportation will exclude it")
         commute_index = {}
 
+    try:
+        education_index = compute_education_index(city=city)
+    except Exception as e:
+        print(f"  [WARNING] Education index unavailable ({e}); Opportunity will exclude it")
+        education_index = {}
+
     return _assemble_health_scores(
         safety_index, opportunity_index, qol_index, transportation_index,
-        affordability_index, walk_score_index, broadband_index, commute_index
+        affordability_index, walk_score_index, broadband_index, commute_index, education_index
     )
 
 
@@ -437,9 +486,15 @@ def compute_health_scores_combined(aggregated_metrics_combined):
         print(f"  [WARNING] Commute index unavailable ({e}); Transportation will exclude it")
         commute_index = {}
 
+    try:
+        education_index = compute_education_index_combined()
+    except Exception as e:
+        print(f"  [WARNING] Education index unavailable ({e}); Opportunity will exclude it")
+        education_index = {}
+
     return _assemble_health_scores(
         safety_index, opportunity_index, qol_index, transportation_index,
-        affordability_index, walk_score_index, broadband_index, commute_index
+        affordability_index, walk_score_index, broadband_index, commute_index, education_index
     )
 
 
@@ -488,14 +543,20 @@ def compute_health_scores_zip(aggregated_metrics_zip):
         print(f"  [WARNING] Commute index unavailable ({e}); Transportation will exclude it")
         commute_index = {}
 
+    try:
+        education_index = compute_education_index_zip()
+    except Exception as e:
+        print(f"  [WARNING] Education index unavailable ({e}); Opportunity will exclude it")
+        education_index = {}
+
     return _assemble_health_scores(
         safety_index, opportunity_index, qol_index, transportation_index,
-        affordability_index, walk_score_index, broadband_index, commute_index
+        affordability_index, walk_score_index, broadband_index, commute_index, education_index
     )
 
 
 def _assemble_health_scores(safety_index, opportunity_index, qol_index, transportation_index,
-                             affordability_index, walk_score_index, broadband_index=None, commute_index=None):
+                             affordability_index, walk_score_index, broadband_index=None, commute_index=None, education_index=None):
     weights = load_weights()
 
     # Walk/Bike Score: distance-decay amenity proximity + street-intersection
@@ -521,6 +582,21 @@ def _assemble_health_scores(safety_index, opportunity_index, qol_index, transpor
             total_w = sum(w for w, _ in present)
             blended_transportation[district_id] = sum(w * v for w, v in present) / total_w
         transportation_index = blended_transportation
+
+    # Educational attainment (Census ACS bachelor's+ share) is blended into
+    # Opportunity at 15%, the same pattern as broadband -> Amenities.
+    if education_index:
+        blended_opportunity = {}
+        for district_id in set(opportunity_index) | set(education_index):
+            base = opportunity_index.get(district_id)
+            edu = education_index.get(district_id)
+            if base is not None and edu is not None:
+                blended_opportunity[district_id] = 0.85 * base + 0.15 * edu
+            elif edu is not None:
+                blended_opportunity[district_id] = edu
+            else:
+                blended_opportunity[district_id] = base
+        opportunity_index = blended_opportunity
 
     # Broadband/internet access: blended into Amenities at a minor weight
     # (0.15) alongside the existing service-request/housing/OSM-amenity
@@ -590,6 +666,8 @@ def _assemble_health_scores(safety_index, opportunity_index, qol_index, transpor
             indices["affordability"] = round(affordability)
         if district_id in walk_score_index:
             indices["walkability_score"] = round(walk_score_index[district_id])
+        if education_index and district_id in education_index:
+            indices["education_score"] = round(education_index[district_id])
         if commute_index and district_id in commute_index:
             indices["commute_score"] = round(commute_index[district_id])
         if broadband_index and district_id in broadband_index:

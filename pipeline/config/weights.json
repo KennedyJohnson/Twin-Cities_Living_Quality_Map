@@ -16,8 +16,8 @@
     },
     "opportunity": {
       "sources": ["permits", "employment", "housing_market"],
-      "formula": "average(normalize(permit_rate_pc), 100 - normalize(unemployment_rate_pc), 100 - normalize(housing_inventory_pc))",
-      "description": "Blend of permit rate (more development = higher opportunity), unemployment rate (more unemployment = lower opportunity), and Zillow for-sale housing inventory per capita. NOTE: housing_market's direction is a deliberate but debatable modeling choice — fewer listings is treated as a 'tighter, more in-demand market' (higher Opportunity), the seller's-market reading. An equally defensible buyer's-market reading would treat fewer listings as LESS opportunity (harder to find a home to buy into). Revisit if this doesn't match the intended meaning of Opportunity."
+      "formula": "0.85 * average(normalize(permit_rate_pc), 100 - normalize(unemployment_rate_pc), 100 - normalize(housing_inventory_pc)) + 0.15 * normalize(bachelors_rate)",
+      "description": "Blended 85/15 with a Census ACS educational-attainment score (share of adults with a bachelor's+; district-level only, like broadband). Base blend of permit rate (more development = higher opportunity), unemployment rate (more unemployment = lower opportunity), and Zillow for-sale housing inventory per capita. NOTE: housing_market's direction is a deliberate but debatable modeling choice — fewer listings is treated as a 'tighter, more in-demand market' (higher Opportunity), the seller's-market reading. An equally defensible buyer's-market reading would treat fewer listings as LESS opportunity (harder to find a home to buy into). Revisit if this doesn't match the intended meaning of Opportunity."
     },
     "amenities": {
       "sources": ["schools", "groceries", "restaurants", "healthcare", "entertainment", "broadband"],
@@ -31,8 +31,8 @@
     },
     "affordability": {
       "sources": ["housing_price"],
-      "formula": "average(100 - normalize(median_home_value), 100 - normalize(median_gross_rent), normalize(median_household_income), 100 - normalize(poverty_rate), 100 - normalize(housing_cost_burden_rate), normalize(homeownership_rate), 100 - normalize(gini_index))",
-      "description": "Census ACS housing cost burden: lower home values/rent/poverty/cost-burden/income-inequality (Gini index) and higher household income/homeownership relative to other districts raise this index. Gini added 2026-09-15 (see core/health_score.py's _affordability_index_from_df) — vacancy rate was also added to the pipeline around the same time but deliberately left out of the score since, unlike the other fields here, its 'good' direction is ambiguous (high vacancy can mean disinvestment or just a loose rental market); it's exposed in the sidebar as context only."
+      "formula": "average(100 - normalize(median_home_value), 100 - normalize(median_gross_rent), normalize(median_household_income), 100 - normalize(poverty_rate), 100 - normalize(housing_cost_burden_rate), normalize(homeownership_rate), 100 - normalize(gini_index), 100 - normalize(vacancy_rate))",
+      "description": "Census ACS housing cost burden (2026-09-21: vacancy rate now included, lower = better, treated as a blight/disinvestment signal despite the ambiguity noted below): lower home values/rent/poverty/cost-burden/income-inequality (Gini index) and higher household income/homeownership relative to other districts raise this index. Gini added 2026-09-15 (see core/health_score.py's _affordability_index_from_df) — vacancy rate was also added to the pipeline around the same time but deliberately left out of the score since, unlike the other fields here, its 'good' direction is ambiguous (high vacancy can mean disinvestment or just a loose rental market); it's exposed in the sidebar as context only."
     }
   },
   "normalization": {

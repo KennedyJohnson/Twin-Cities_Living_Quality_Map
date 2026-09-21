@@ -11,6 +11,7 @@ export interface Indices {
   affordability?: number;
   walkability_score?: number;
   commute_score?: number;
+  education_score?: number;
   broadband_score?: number;
   // A future health-score component (see pipeline/config/weights.json)
   // shows up here under its own key without needing a type change.

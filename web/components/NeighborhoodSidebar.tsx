@@ -79,16 +79,26 @@ interface Affordability {
   diversity_index?: number | null;
 }
 
+const fmtPct = (v: number) => `${v}%`;
+
+// Raw Census figures behind each scored sub-index, shown in that
+// component's panel.
+const RAW_ROWS: Record<string, { key: keyof Affordability; label: string; fmt: (v: number) => string }[]> = {
+  opportunity: [{ key: 'bachelors_rate', label: "Adults with Bachelor's+", fmt: fmtPct }],
+  transportation: [
+    { key: 'avg_commute_min', label: 'Avg Commute (non-remote)', fmt: (v) => `${v} min` },
+    { key: 'transit_commute_rate', label: 'Commute by Transit', fmt: fmtPct },
+    { key: 'walk_commute_rate', label: 'Commute on Foot', fmt: fmtPct },
+    { key: 'bike_commute_rate', label: 'Commute by Bike', fmt: fmtPct },
+    { key: 'wfh_rate', label: 'Work from Home (not used in scoring)', fmt: fmtPct },
+  ],
+};
+
+// Demographics with no scoring category — shown under Economic Profile,
+// labeled as not used in scoring.
 const CONTEXT_ROWS: { key: keyof Affordability; label: string; fmt: (v: number) => string }[] = [
-  { key: 'vacancy_rate', label: 'Housing Vacancy Rate', fmt: (v) => `${v}%` },
-  { key: 'bachelors_rate', label: "Adults with Bachelor's+", fmt: (v) => `${v}%` },
   { key: 'median_age', label: 'Median Age', fmt: (v) => `${v}` },
   { key: 'diversity_index', label: 'Diversity Index (0-1)', fmt: (v) => v.toFixed(2) },
-  { key: 'avg_commute_min', label: 'Avg Commute (non-remote)', fmt: (v) => `${v} min` },
-  { key: 'transit_commute_rate', label: 'Commute by Transit', fmt: (v) => `${v}%` },
-  { key: 'walk_commute_rate', label: 'Commute on Foot', fmt: (v) => `${v}%` },
-  { key: 'bike_commute_rate', label: 'Commute by Bike', fmt: (v) => `${v}%` },
-  { key: 'wfh_rate', label: 'Work from Home', fmt: (v) => `${v}%` },
 ];
 
 interface AffordabilityFile {
@@ -422,22 +432,21 @@ export default function NeighborhoodSidebar({ district, onSelectDistrict, granul
                       </div>
                     );
                   })()}
-                  {CONTEXT_ROWS.some((r) => districtAffordability[r.key] != null) && (
-                    <div style={{ marginTop: '14px', paddingTop: '10px', borderTop: '1px solid #e5e5e8' }}>
-                      <div style={{ fontSize: '11px', color: '#999', marginBottom: '8px' }}>
-                        Additional context (not part of the score):
-                      </div>
-                      {CONTEXT_ROWS.map((r) => {
-                        const v = districtAffordability[r.key];
-                        return v != null ? (
-                          <div key={r.key} className="metric-row">
-                            <span style={{ fontSize: '12px', color: '#999' }}>{r.label}</span>
-                            <span className="metric-value">{r.fmt(v as number)}</span>
-                          </div>
-                        ) : null;
-                      })}
+                  {districtAffordability.vacancy_rate != null && (
+                    <div className="metric-row" style={{ marginBottom: '10px' }}>
+                      <span style={{ fontSize: '12px', color: '#999' }}>Housing Vacancy Rate (lower = better)</span>
+                      <span className="metric-value">{districtAffordability.vacancy_rate}%</span>
                     </div>
                   )}
+                  {CONTEXT_ROWS.map((r) => {
+                    const v = districtAffordability[r.key];
+                    return v != null ? (
+                      <div key={r.key} className="metric-row" style={{ marginBottom: '6px' }}>
+                        <span style={{ fontSize: '12px', color: '#999' }}>{r.label} (not used in scoring)</span>
+                        <span className="metric-value">{r.fmt(v as number)}</span>
+                      </div>
+                    ) : null;
+                  })}
                   <div style={{ fontSize: '11px', color: '#ccc', fontStyle: 'italic', marginTop: '10px' }}>
                     Source: Census ACS 5-Year Estimates{acsYear ? ` (${acsYear})` : ''}
                     {district.is_radius ? ' (surrounding district)' : ''}
@@ -452,7 +461,7 @@ export default function NeighborhoodSidebar({ district, onSelectDistrict, granul
                 // sub-scores folded into amenities (85/15) and transportation (60/25/15)
                 // respectively, so they're shown nested under those two instead of getting
                 // their own top-level card.
-                const renderSubScore = (key: 'walkability_score' | 'broadband_score' | 'commute_score') => {
+                const renderSubScore = (key: 'walkability_score' | 'broadband_score' | 'commute_score' | 'education_score') => {
                   const value = district.indices[key];
                   if (value == null) return null;
                   const avg = district.is_radius ? null : districtAverageIndex(key);
@@ -539,6 +548,16 @@ export default function NeighborhoodSidebar({ district, onSelectDistrict, granul
                     </div>
                   );
                 })}
+                    {expandedIndex === 'opportunity' && renderSubScore('education_score')}
+                    {(RAW_ROWS[expandedIndex ?? ''] ?? []).map((r) => {
+                      const v = districtAffordability?.[r.key];
+                      return v != null ? (
+                        <div key={r.key} className="metric-row">
+                          <span style={{ fontSize: '12px', color: '#999' }}>{r.label}</span>
+                          <span className="metric-value">{r.fmt(v as number)}</span>
+                        </div>
+                      ) : null;
+                    })}
                     {expandedIndex === 'amenities' && renderSubScore('broadband_score')}
                     {expandedIndex === 'transportation' && renderSubScore('walkability_score')}
                     {expandedIndex === 'transportation' && renderSubScore('commute_score')}

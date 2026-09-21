@@ -68,11 +68,12 @@
       },
       "indices": {
         "safety": 31,
-        "opportunity": 33,
+        "opportunity": 35,
         "amenities": 45,
         "transportation": 55,
-        "affordability": 41,
+        "affordability": 38,
         "walkability_score": 54,
+        "education_score": 51,
         "commute_score": 56,
         "broadband_score": 23
       },
@@ -146,15 +147,16 @@
       },
       "indices": {
         "safety": 56,
-        "opportunity": 55,
+        "opportunity": 56,
         "amenities": 49,
         "transportation": 47,
-        "affordability": 55,
+        "affordability": 56,
         "walkability_score": 57,
+        "education_score": 63,
         "commute_score": 45,
         "broadband_score": 42
       },
-      "health_score": 52
+      "health_score": 53
     },
     {
       "district_id": 55103,
@@ -224,15 +226,16 @@
       },
       "indices": {
         "safety": 47,
-        "opportunity": 62,
+        "opportunity": 55,
         "amenities": 45,
         "transportation": 54,
         "affordability": 50,
         "walkability_score": 55,
+        "education_score": 20,
         "commute_score": 50,
         "broadband_score": 23
       },
-      "health_score": 51
+      "health_score": 50
     },
     {
       "district_id": 55104,
@@ -302,11 +305,12 @@
       },
       "indices": {
         "safety": 55,
-        "opportunity": 60,
+        "opportunity": 59,
         "amenities": 54,
         "transportation": 42,
-        "affordability": 57,
+        "affordability": 58,
         "walkability_score": 54,
+        "education_score": 55,
         "commute_score": 47,
         "broadband_score": 52
       },
@@ -383,8 +387,9 @@
         "opportunity": 78,
         "amenities": 52,
         "transportation": 51,
-        "affordability": 56,
+        "affordability": 54,
         "walkability_score": 59,
+        "education_score": 78,
         "commute_score": 59,
         "broadband_score": 81
       },
@@ -458,15 +463,16 @@
       },
       "indices": {
         "safety": 56,
-        "opportunity": 53,
+        "opportunity": 48,
         "amenities": 41,
         "transportation": 42,
-        "affordability": 60,
+        "affordability": 61,
         "walkability_score": 47,
+        "education_score": 21,
         "commute_score": 30,
         "broadband_score": 63
       },
-      "health_score": 50
+      "health_score": 49
     },
     {
       "district_id": 55107,
@@ -536,11 +542,12 @@
       },
       "indices": {
         "safety": 51,
-        "opportunity": 55,
+        "opportunity": 51,
         "amenities": 38,
         "transportation": 55,
-        "affordability": 57,
+        "affordability": 61,
         "walkability_score": 49,
+        "education_score": 27,
         "commute_score": 46,
         "broadband_score": 31
       },
@@ -614,15 +621,16 @@
       },
       "indices": {
         "safety": 53,
-        "opportunity": 61,
+        "opportunity": 60,
         "amenities": 73,
         "transportation": 40,
-        "affordability": 40,
+        "affordability": 38,
         "walkability_score": 56,
+        "education_score": 58,
         "commute_score": 54,
         "broadband_score": 52
       },
-      "health_score": 54
+      "health_score": 53
     },
     {
       "district_id": 55116,
@@ -692,15 +700,16 @@
       },
       "indices": {
         "safety": 64,
-        "opportunity": 77,
+        "opportunity": 76,
         "amenities": 50,
         "transportation": 57,
-        "affordability": 53,
+        "affordability": 56,
         "walkability_score": 53,
+        "education_score": 69,
         "commute_score": 51,
         "broadband_score": 63
       },
-      "health_score": 60
+      "health_score": 61
     },
     {
       "district_id": 55130,
@@ -770,15 +779,16 @@
       },
       "indices": {
         "safety": 50,
-        "opportunity": 58,
+        "opportunity": 52,
         "amenities": 41,
         "transportation": 41,
-        "affordability": 52,
+        "affordability": 54,
         "walkability_score": 51,
+        "education_score": 19,
         "commute_score": 36,
         "broadband_score": 16
       },
-      "health_score": 48
+      "health_score": 47
     },
     {
       "district_id": 55155,
@@ -844,15 +854,16 @@
       },
       "indices": {
         "safety": 27,
-        "opportunity": 46,
+        "opportunity": 43,
         "amenities": 29,
         "transportation": 58,
-        "affordability": 55,
+        "affordability": 56,
         "walkability_score": 56,
+        "education_score": 23,
         "commute_score": 51,
         "broadband_score": 52
       },
-      "health_score": 43
+      "health_score": 42
     },
     {
       "district_id": 55401,
@@ -922,15 +933,16 @@
       },
       "indices": {
         "safety": 40,
-        "opportunity": 47,
+        "opportunity": 52,
         "amenities": 65,
         "transportation": 73,
-        "affordability": 60,
+        "affordability": 59,
         "walkability_score": 67,
+        "education_score": 84,
         "commute_score": 68,
         "broadband_score": 63
       },
-      "health_score": 57
+      "health_score": 58
     },
     {
       "district_id": 55403,
@@ -1000,11 +1012,12 @@
       },
       "indices": {
         "safety": 52,
-        "opportunity": 67,
+        "opportunity": 66,
         "amenities": 44,
         "transportation": 47,
-        "affordability": 43,
+        "affordability": 40,
         "walkability_score": 60,
+        "education_score": 61,
         "commute_score": 53,
         "broadband_score": 42
       },
@@ -1078,15 +1091,16 @@
       },
       "indices": {
         "safety": 36,
-        "opportunity": 37,
+        "opportunity": 36,
         "amenities": 47,
         "transportation": 44,
-        "affordability": 38,
+        "affordability": 35,
         "walkability_score": 60,
+        "education_score": 35,
         "commute_score": 57,
         "broadband_score": 16
       },
-      "health_score": 40
+      "health_score": 39
     },
     {
       "district_id": 55405,
@@ -1156,11 +1170,12 @@
       },
       "indices": {
         "safety": 63,
-        "opportunity": 62,
+        "opportunity": 63,
         "amenities": 51,
         "transportation": 59,
         "affordability": 53,
         "walkability_score": 59,
+        "education_score": 70,
         "commute_score": 49,
         "broadband_score": 63
       },
@@ -1239,6 +1254,7 @@
         "transportation": 55,
         "affordability": 66,
         "walkability_score": 58,
+        "education_score": 61,
         "commute_score": 40,
         "broadband_score": 52
       },
@@ -1312,11 +1328,12 @@
       },
       "indices": {
         "safety": 54,
-        "opportunity": 44,
+        "opportunity": 45,
         "amenities": 45,
         "transportation": 51,
-        "affordability": 59,
+        "affordability": 58,
         "walkability_score": 55,
+        "education_score": 49,
         "commute_score": 45,
         "broadband_score": 31
       },
@@ -1390,11 +1407,12 @@
       },
       "indices": {
         "safety": 54,
-        "opportunity": 45,
+        "opportunity": 47,
         "amenities": 56,
         "transportation": 43,
-        "affordability": 50,
+        "affordability": 51,
         "walkability_score": 53,
+        "education_score": 59,
         "commute_score": 34,
         "broadband_score": 73
       },
@@ -1468,15 +1486,16 @@
       },
       "indices": {
         "safety": 61,
-        "opportunity": 32,
+        "opportunity": 37,
         "amenities": 70,
         "transportation": 51,
-        "affordability": 57,
+        "affordability": 54,
         "walkability_score": 56,
+        "education_score": 61,
         "commute_score": 37,
         "broadband_score": 91
       },
-      "health_score": 54
+      "health_score": 55
     },
     {
       "district_id": 55411,
@@ -1546,15 +1565,16 @@
       },
       "indices": {
         "safety": 40,
-        "opportunity": 55,
+        "opportunity": 50,
         "amenities": 41,
         "transportation": 48,
-        "affordability": 48,
+        "affordability": 45,
         "walkability_score": 50,
+        "education_score": 23,
         "commute_score": 36,
         "broadband_score": 31
       },
-      "health_score": 46
+      "health_score": 45
     },
     {
       "district_id": 55412,
@@ -1624,11 +1644,12 @@
       },
       "indices": {
         "safety": 51,
-        "opportunity": 37,
+        "opportunity": 35,
         "amenities": 32,
         "transportation": 46,
         "affordability": 58,
         "walkability_score": 48,
+        "education_score": 28,
         "commute_score": 27,
         "broadband_score": 23
       },
@@ -1702,11 +1723,12 @@
       },
       "indices": {
         "safety": 65,
-        "opportunity": 49,
+        "opportunity": 51,
         "amenities": 47,
         "transportation": 48,
-        "affordability": 53,
+        "affordability": 51,
         "walkability_score": 55,
+        "education_score": 67,
         "commute_score": 51,
         "broadband_score": 63
       },
@@ -1780,15 +1802,16 @@
       },
       "indices": {
         "safety": 51,
-        "opportunity": 37,
+        "opportunity": 42,
         "amenities": 53,
         "transportation": 50,
-        "affordability": 29,
+        "affordability": 27,
         "walkability_score": 52,
+        "education_score": 72,
         "commute_score": 66,
         "broadband_score": 63
       },
-      "health_score": 44
+      "health_score": 45
     },
     {
       "district_id": 55415,
@@ -1858,15 +1881,16 @@
       },
       "indices": {
         "safety": 44,
-        "opportunity": 37,
+        "opportunity": 43,
         "amenities": 54,
         "transportation": 68,
-        "affordability": 44,
+        "affordability": 46,
         "walkability_score": 68,
+        "education_score": 75,
         "commute_score": 84,
         "broadband_score": 81
       },
-      "health_score": 49
+      "health_score": 51
     },
     {
       "district_id": 55419,
@@ -1936,15 +1960,16 @@
       },
       "indices": {
         "safety": 66,
-        "opportunity": 41,
+        "opportunity": 47,
         "amenities": 39,
         "transportation": 41,
-        "affordability": 65,
+        "affordability": 66,
         "walkability_score": 47,
+        "education_score": 78,
         "commute_score": 38,
         "broadband_score": 63
       },
-      "health_score": 50
+      "health_score": 52
     },
     {
       "district_id": 55454,
@@ -2014,11 +2039,12 @@
       },
       "indices": {
         "safety": 38,
-        "opportunity": 43,
+        "opportunity": 38,
         "amenities": 56,
         "transportation": 55,
-        "affordability": 30,
+        "affordability": 36,
         "walkability_score": 64,
+        "education_score": 10,
         "commute_score": 46,
         "broadband_score": 23
       },
@@ -2088,20 +2114,21 @@
       },
       "indices": {
         "safety": 59,
-        "opportunity": 17,
+        "opportunity": 21,
         "amenities": 46,
         "transportation": 62,
-        "affordability": 30,
+        "affordability": 34,
         "walkability_score": 59,
+        "education_score": 48,
         "commute_score": 89,
         "broadband_score": 73
       },
-      "health_score": 43
+      "health_score": 44
     }
   ],
   "metadata": {
     "total_districts": 27,
-    "data_generated": "2026-09-21T14:10:19.614871",
+    "data_generated": "2026-09-21T14:47:38.620742",
     "note": "Zip-level snapshot: every ZIP in the metro normalized in one pool against every other ZIP, finer-grained than the district-level map"
   }
 }
