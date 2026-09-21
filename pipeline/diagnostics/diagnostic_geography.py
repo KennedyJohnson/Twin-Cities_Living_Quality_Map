@@ -39,9 +39,9 @@ def diagnose_requests():
         print(f"  District {district_id}: lat [{bounds[1]:.4f}, {bounds[3]:.4f}], lon [{bounds[0]:.4f}, {bounds[2]:.4f}]")
 
     print()
-    print("Sample request coordinates (first 5):")
-    for idx, row in valid_requests.head().iterrows():
-        print(f"  Lat: {row['Latitude']:.4f}, Lon: {row['Longtitude']:.4f}")
+    print("Request coordinate ranges:")
+    print(f"  Lat: [{valid_requests['Latitude'].min():.4f}, {valid_requests['Latitude'].max():.4f}], "
+          f"Lon: [{valid_requests['Longtitude'].min():.4f}, {valid_requests['Longtitude'].max():.4f}]")
 
     print()
 
