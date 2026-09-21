@@ -4,7 +4,7 @@ Canonical formula:
   Safety_Index = avg(100 - normalize(crime_rate_pc), 100 - normalize(crash_rate_pc), 100 - normalize(disaster_risk_pc), 100 - normalize(chronic_disease_pc))
   Opportunity_Index = avg(normalize(permit_rate_pc), 100 - normalize(unemployment_rate_pc), 100 - normalize(housing_inventory_pc))
   Amenities_Index = 0.85 * [100 - normalize(request_rate_pc) + normalize(housing_rate_pc + schools_pc + grocery_pc + restaurants_pc + healthcare_pc + entertainment_pc)] + 0.15 * normalize(broadband_rate)
-  Transportation_Index = 0.7 * [normalize(trail_km_pc + transit_stops_pc) - normalize(traffic_vkm_pc)] + 0.3 * walk_score
+  Transportation_Index = 0.6 * [normalize(trail_km_pc + transit_stops_pc) - normalize(traffic_vkm_pc)] + 0.25 * walk_score + 0.15 * commute_score
   Affordability_Index = avg(100 - normalize(median_home_value), 100 - normalize(median_gross_rent), normalize(median_household_income), 100 - normalize(poverty_rate), 100 - normalize(housing_cost_burden_rate), normalize(homeownership_rate), 100 - normalize(gini_index))
   Health_Score = 0.20*Safety + 0.20*Opportunity + 0.20*Amenities + 0.20*Transportation + 0.20*Affordability
 """
@@ -280,6 +280,60 @@ def compute_broadband_index_zip():
     return _broadband_index_from_df(df)
 
 
+def _commute_index_from_df(df):
+    """
+    Commute-quality index (0-100) per district from Census ACS: average of
+    (100 - normalized average commute minutes) and normalized share of
+    workers commuting by transit/walk/bike. Higher = shorter, more
+    sustainable commutes.
+    """
+    if df.empty or "avg_commute_min" not in df:
+        return {}
+
+    sustainable = df["transit_commute_rate"] + df["walk_commute_rate"] + df["bike_commute_rate"]
+    commute = df["avg_commute_min"].tolist()
+    share = sustainable.tolist()
+    valid_idx = [
+        i for i in range(len(df))
+        if not pd.isna(commute[i]) and not pd.isna(share[i])
+    ]
+    if not valid_idx:
+        return {}
+    time_norm = min_max_normalize([commute[i] for i in valid_idx])
+    share_norm = min_max_normalize([share[i] for i in valid_idx])
+    return {
+        int(df["district_id"].iloc[i]): ((100 - t) + s) / 2
+        for i, t, s in zip(valid_idx, time_norm, share_norm)
+    }
+
+
+def compute_commute_index(city="stpaul"):
+    from cleaners.clean_housing_price import clean_housing_price
+    return _commute_index_from_df(clean_housing_price(city=city))
+
+
+def compute_commute_index_combined():
+    """Pools both cities' districts into one normalization."""
+    from cleaners.clean_housing_price import clean_housing_price
+    df = pd.concat(
+        [clean_housing_price(city="stpaul"), clean_housing_price(city="mpls")],
+        ignore_index=True,
+    )
+    return _commute_index_from_df(df)
+
+
+def compute_commute_index_zip():
+    """Pooled across every zip in the metro."""
+    from cleaners.clean_housing_price import clean_housing_price
+    df = pd.concat(
+        [clean_housing_price(city="stpaul", granularity="zip"),
+         clean_housing_price(city="mpls", granularity="zip")],
+        ignore_index=True,
+    )
+    df = df.groupby("district_id", as_index=False).mean(numeric_only=True)
+    return _commute_index_from_df(df)
+
+
 def compute_health_scores(aggregated_metrics, city="stpaul"):
     """
     Compute health scores for all districts of a SINGLE city, normalized
@@ -323,9 +377,15 @@ def compute_health_scores(aggregated_metrics, city="stpaul"):
         print(f"  [WARNING] Broadband index unavailable ({e}); Amenities will exclude it")
         broadband_index = {}
 
+    try:
+        commute_index = compute_commute_index(city=city)
+    except Exception as e:
+        print(f"  [WARNING] Commute index unavailable ({e}); Transportation will exclude it")
+        commute_index = {}
+
     return _assemble_health_scores(
         safety_index, opportunity_index, qol_index, transportation_index,
-        affordability_index, walk_score_index, broadband_index
+        affordability_index, walk_score_index, broadband_index, commute_index
     )
 
 
@@ -371,9 +431,15 @@ def compute_health_scores_combined(aggregated_metrics_combined):
         print(f"  [WARNING] Broadband index unavailable ({e}); Amenities will exclude it")
         broadband_index = {}
 
+    try:
+        commute_index = compute_commute_index_combined()
+    except Exception as e:
+        print(f"  [WARNING] Commute index unavailable ({e}); Transportation will exclude it")
+        commute_index = {}
+
     return _assemble_health_scores(
         safety_index, opportunity_index, qol_index, transportation_index,
-        affordability_index, walk_score_index, broadband_index
+        affordability_index, walk_score_index, broadband_index, commute_index
     )
 
 
@@ -416,14 +482,20 @@ def compute_health_scores_zip(aggregated_metrics_zip):
         print(f"  [WARNING] Broadband index unavailable ({e}); Amenities will exclude it")
         broadband_index = {}
 
+    try:
+        commute_index = compute_commute_index_zip()
+    except Exception as e:
+        print(f"  [WARNING] Commute index unavailable ({e}); Transportation will exclude it")
+        commute_index = {}
+
     return _assemble_health_scores(
         safety_index, opportunity_index, qol_index, transportation_index,
-        affordability_index, walk_score_index, broadband_index
+        affordability_index, walk_score_index, broadband_index, commute_index
     )
 
 
 def _assemble_health_scores(safety_index, opportunity_index, qol_index, transportation_index,
-                             affordability_index, walk_score_index, broadband_index=None):
+                             affordability_index, walk_score_index, broadband_index=None, commute_index=None):
     weights = load_weights()
 
     # Walk/Bike Score: distance-decay amenity proximity + street-intersection
@@ -432,17 +504,22 @@ def _assemble_health_scores(safety_index, opportunity_index, qol_index, transpor
     # Blended into Transportation (70% trail/transit/traffic-based index /
     # 30% walk score) and also surfaced standalone in `indices` so it can be
     # shown like a Zillow-style Walk Score badge.
-    if walk_score_index:
+    # Commute quality (Census ACS: shorter average commute + higher
+    # transit/walk/bike mode share) is blended in the same way. Weights:
+    # 60% base / 25% walk score / 15% commute; a missing component's weight
+    # is redistributed across whichever components exist for that district.
+    if walk_score_index or commute_index:
+        commute_index = commute_index or {}
         blended_transportation = {}
-        for district_id in set(transportation_index) | set(walk_score_index):
-            base = transportation_index.get(district_id)
-            walk = walk_score_index.get(district_id)
-            if base is not None and walk is not None:
-                blended_transportation[district_id] = 0.7 * base + 0.3 * walk
-            elif walk is not None:
-                blended_transportation[district_id] = walk
-            else:
-                blended_transportation[district_id] = base
+        for district_id in set(transportation_index) | set(walk_score_index) | set(commute_index):
+            parts = [
+                (0.60, transportation_index.get(district_id)),
+                (0.25, walk_score_index.get(district_id)),
+                (0.15, commute_index.get(district_id)),
+            ]
+            present = [(w, v) for w, v in parts if v is not None]
+            total_w = sum(w for w, _ in present)
+            blended_transportation[district_id] = sum(w * v for w, v in present) / total_w
         transportation_index = blended_transportation
 
     # Broadband/internet access: blended into Amenities at a minor weight
@@ -513,6 +590,8 @@ def _assemble_health_scores(safety_index, opportunity_index, qol_index, transpor
             indices["affordability"] = round(affordability)
         if district_id in walk_score_index:
             indices["walkability_score"] = round(walk_score_index[district_id])
+        if commute_index and district_id in commute_index:
+            indices["commute_score"] = round(commute_index[district_id])
         if broadband_index and district_id in broadband_index:
             indices["broadband_score"] = round(broadband_index[district_id])
 

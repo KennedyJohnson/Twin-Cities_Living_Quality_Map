@@ -9,7 +9,15 @@
       "housing_cost_burden_rate": 52.0,
       "homeownership_rate": 23.0,
       "gini_index": 0.507,
-      "vacancy_rate": 12.4
+      "vacancy_rate": 12.4,
+      "bachelors_rate": 49.9,
+      "median_age": 42.0,
+      "avg_commute_min": 19.8,
+      "transit_commute_rate": 3.8,
+      "walk_commute_rate": 10.6,
+      "bike_commute_rate": 2.0,
+      "wfh_rate": 29.7,
+      "diversity_index": 0.525
     },
     "55102": {
       "median_home_value": 338928,
@@ -19,7 +27,15 @@
       "housing_cost_burden_rate": 38.0,
       "homeownership_rate": 49.0,
       "gini_index": 0.479,
-      "vacancy_rate": 6.1
+      "vacancy_rate": 6.1,
+      "bachelors_rate": 59.7,
+      "median_age": 39.7,
+      "avg_commute_min": 20.2,
+      "transit_commute_rate": 4.3,
+      "walk_commute_rate": 4.3,
+      "bike_commute_rate": 1.2,
+      "wfh_rate": 27.4,
+      "diversity_index": 0.412
     },
     "55103": {
       "median_home_value": 261857,
@@ -29,7 +45,15 @@
       "housing_cost_burden_rate": 52.0,
       "homeownership_rate": 41.0,
       "gini_index": 0.446,
-      "vacancy_rate": 7.2
+      "vacancy_rate": 7.2,
+      "bachelors_rate": 23.0,
+      "median_age": 30.3,
+      "avg_commute_min": 21.0,
+      "transit_commute_rate": 13.3,
+      "walk_commute_rate": 1.8,
+      "bike_commute_rate": 1.1,
+      "wfh_rate": 12.8,
+      "diversity_index": 0.605
     },
     "55104": {
       "median_home_value": 346390,
@@ -39,7 +63,15 @@
       "housing_cost_burden_rate": 45.0,
       "homeownership_rate": 54.0,
       "gini_index": 0.449,
-      "vacancy_rate": 6.1
+      "vacancy_rate": 6.1,
+      "bachelors_rate": 53.2,
+      "median_age": 32.7,
+      "avg_commute_min": 21.0,
+      "transit_commute_rate": 8.3,
+      "walk_commute_rate": 4.2,
+      "bike_commute_rate": 0.9,
+      "wfh_rate": 20.9,
+      "diversity_index": 0.527
     },
     "55105": {
       "median_home_value": 504006,
@@ -49,7 +81,15 @@
       "housing_cost_burden_rate": 44.0,
       "homeownership_rate": 63.0,
       "gini_index": 0.469,
-      "vacancy_rate": 8.0
+      "vacancy_rate": 8.0,
+      "bachelors_rate": 73.8,
+      "median_age": 33.3,
+      "avg_commute_min": 18.7,
+      "transit_commute_rate": 3.3,
+      "walk_commute_rate": 11.1,
+      "bike_commute_rate": 1.5,
+      "wfh_rate": 25.8,
+      "diversity_index": 0.343
     },
     "55106": {
       "median_home_value": 239169,
@@ -59,7 +99,15 @@
       "housing_cost_burden_rate": 50.0,
       "homeownership_rate": 57.0,
       "gini_index": 0.412,
-      "vacancy_rate": 5.7
+      "vacancy_rate": 5.7,
+      "bachelors_rate": 23.5,
+      "median_age": 32.0,
+      "avg_commute_min": 23.3,
+      "transit_commute_rate": 5.4,
+      "walk_commute_rate": 1.4,
+      "bike_commute_rate": 0.5,
+      "wfh_rate": 13.4,
+      "diversity_index": 0.722
     },
     "55107": {
       "median_home_value": 266520,
@@ -69,7 +117,15 @@
       "housing_cost_burden_rate": 54.0,
       "homeownership_rate": 62.0,
       "gini_index": 0.415,
-      "vacancy_rate": 2.2
+      "vacancy_rate": 2.2,
+      "bachelors_rate": 30.6,
+      "median_age": 36.6,
+      "avg_commute_min": 18.9,
+      "transit_commute_rate": 2.6,
+      "walk_commute_rate": 2.8,
+      "bike_commute_rate": 0.7,
+      "wfh_rate": 19.4,
+      "diversity_index": 0.658
     },
     "55114": {
       "median_home_value": 333720,
@@ -79,7 +135,15 @@
       "housing_cost_burden_rate": 49.0,
       "homeownership_rate": 21.0,
       "gini_index": 0.499,
-      "vacancy_rate": 11.0
+      "vacancy_rate": 11.0,
+      "bachelors_rate": 55.5,
+      "median_age": 33.2,
+      "avg_commute_min": 20.2,
+      "transit_commute_rate": 12.6,
+      "walk_commute_rate": 3.1,
+      "bike_commute_rate": 0.7,
+      "wfh_rate": 22.8,
+      "diversity_index": 0.63
     },
     "55116": {
       "median_home_value": 433666,
@@ -89,7 +153,15 @@
       "housing_cost_burden_rate": 53.0,
       "homeownership_rate": 58.0,
       "gini_index": 0.476,
-      "vacancy_rate": 3.4
+      "vacancy_rate": 3.4,
+      "bachelors_rate": 64.1,
+      "median_age": 41.7,
+      "avg_commute_min": 19.0,
+      "transit_commute_rate": 4.7,
+      "walk_commute_rate": 4.1,
+      "bike_commute_rate": 1.6,
+      "wfh_rate": 26.0,
+      "diversity_index": 0.379
     },
     "55130": {
       "median_home_value": 233746,
@@ -99,7 +171,15 @@
       "housing_cost_burden_rate": 53.0,
       "homeownership_rate": 54.0,
       "gini_index": 0.434,
-      "vacancy_rate": 5.5
+      "vacancy_rate": 5.5,
+      "bachelors_rate": 21.9,
+      "median_age": 28.3,
+      "avg_commute_min": 20.7,
+      "transit_commute_rate": 1.7,
+      "walk_commute_rate": 1.0,
+      "bike_commute_rate": 0.2,
+      "wfh_rate": 17.2,
+      "diversity_index": 0.636
     },
     "55155": {
       "median_home_value": 208900,
@@ -109,7 +189,15 @@
       "housing_cost_burden_rate": 50.0,
       "homeownership_rate": 12.0,
       "gini_index": 0.374,
-      "vacancy_rate": 5.6
+      "vacancy_rate": 5.6,
+      "bachelors_rate": 26.3,
+      "median_age": 27.4,
+      "avg_commute_min": 18.0,
+      "transit_commute_rate": 5.8,
+      "walk_commute_rate": 1.6,
+      "bike_commute_rate": 0.0,
+      "wfh_rate": 8.5,
+      "diversity_index": 0.598
     },
     "55401": {
       "median_home_value": 390582,
@@ -119,7 +207,15 @@
       "housing_cost_burden_rate": 33.0,
       "homeownership_rate": 32.0,
       "gini_index": 0.389,
-      "vacancy_rate": 7.2
+      "vacancy_rate": 7.2,
+      "bachelors_rate": 80.8,
+      "median_age": 35.8,
+      "avg_commute_min": 17.4,
+      "transit_commute_rate": 2.0,
+      "walk_commute_rate": 16.6,
+      "bike_commute_rate": 1.0,
+      "wfh_rate": 39.8,
+      "diversity_index": 0.369
     },
     "55403": {
       "median_home_value": 365559,
@@ -129,7 +225,15 @@
       "housing_cost_burden_rate": 46.0,
       "homeownership_rate": 24.0,
       "gini_index": 0.523,
-      "vacancy_rate": 11.9
+      "vacancy_rate": 11.9,
+      "bachelors_rate": 57.5,
+      "median_age": 35.0,
+      "avg_commute_min": 23.1,
+      "transit_commute_rate": 9.3,
+      "walk_commute_rate": 14.4,
+      "bike_commute_rate": 1.8,
+      "wfh_rate": 25.8,
+      "diversity_index": 0.554
     },
     "55404": {
       "median_home_value": 308764,
@@ -139,7 +243,15 @@
       "housing_cost_burden_rate": 55.0,
       "homeownership_rate": 20.0,
       "gini_index": 0.493,
-      "vacancy_rate": 12.6
+      "vacancy_rate": 12.6,
+      "bachelors_rate": 37.0,
+      "median_age": 31.6,
+      "avg_commute_min": 21.6,
+      "transit_commute_rate": 12.7,
+      "walk_commute_rate": 8.4,
+      "bike_commute_rate": 2.3,
+      "wfh_rate": 17.6,
+      "diversity_index": 0.633
     },
     "55405": {
       "median_home_value": 560233,
@@ -149,7 +261,15 @@
       "housing_cost_burden_rate": 37.0,
       "homeownership_rate": 41.0,
       "gini_index": 0.447,
-      "vacancy_rate": 6.8
+      "vacancy_rate": 6.8,
+      "bachelors_rate": 65.4,
+      "median_age": 36.3,
+      "avg_commute_min": 20.0,
+      "transit_commute_rate": 5.6,
+      "walk_commute_rate": 3.2,
+      "bike_commute_rate": 3.4,
+      "wfh_rate": 29.8,
+      "diversity_index": 0.424
     },
     "55406": {
       "median_home_value": 347925,
@@ -159,7 +279,15 @@
       "housing_cost_burden_rate": 41.0,
       "homeownership_rate": 66.0,
       "gini_index": 0.414,
-      "vacancy_rate": 5.7
+      "vacancy_rate": 5.7,
+      "bachelors_rate": 57.4,
+      "median_age": 40.7,
+      "avg_commute_min": 22.1,
+      "transit_commute_rate": 6.1,
+      "walk_commute_rate": 2.3,
+      "bike_commute_rate": 3.5,
+      "wfh_rate": 28.7,
+      "diversity_index": 0.458
     },
     "55407": {
       "median_home_value": 320960,
@@ -169,7 +297,15 @@
       "housing_cost_burden_rate": 48.0,
       "homeownership_rate": 56.0,
       "gini_index": 0.422,
-      "vacancy_rate": 7.1
+      "vacancy_rate": 7.1,
+      "bachelors_rate": 48.3,
+      "median_age": 34.1,
+      "avg_commute_min": 23.0,
+      "transit_commute_rate": 9.6,
+      "walk_commute_rate": 6.4,
+      "bike_commute_rate": 2.0,
+      "wfh_rate": 22.7,
+      "diversity_index": 0.561
     },
     "55408": {
       "median_home_value": 406685,
@@ -179,7 +315,15 @@
       "housing_cost_burden_rate": 42.0,
       "homeownership_rate": 27.0,
       "gini_index": 0.447,
-      "vacancy_rate": 6.5
+      "vacancy_rate": 6.5,
+      "bachelors_rate": 56.2,
+      "median_age": 32.0,
+      "avg_commute_min": 24.2,
+      "transit_commute_rate": 7.8,
+      "walk_commute_rate": 2.6,
+      "bike_commute_rate": 2.6,
+      "wfh_rate": 29.9,
+      "diversity_index": 0.522
     },
     "55409": {
       "median_home_value": 339010,
@@ -189,7 +333,15 @@
       "housing_cost_burden_rate": 52.0,
       "homeownership_rate": 55.0,
       "gini_index": 0.432,
-      "vacancy_rate": 9.4
+      "vacancy_rate": 9.4,
+      "bachelors_rate": 58.0,
+      "median_age": 31.8,
+      "avg_commute_min": 22.9,
+      "transit_commute_rate": 6.5,
+      "walk_commute_rate": 1.2,
+      "bike_commute_rate": 4.0,
+      "wfh_rate": 19.6,
+      "diversity_index": 0.511
     },
     "55411": {
       "median_home_value": 259141,
@@ -199,7 +351,15 @@
       "housing_cost_burden_rate": 61.0,
       "homeownership_rate": 53.0,
       "gini_index": 0.465,
-      "vacancy_rate": 10.6
+      "vacancy_rate": 10.6,
+      "bachelors_rate": 26.3,
+      "median_age": 31.7,
+      "avg_commute_min": 22.9,
+      "transit_commute_rate": 8.8,
+      "walk_commute_rate": 1.6,
+      "bike_commute_rate": 0.5,
+      "wfh_rate": 12.7,
+      "diversity_index": 0.642
     },
     "55412": {
       "median_home_value": 230524,
@@ -209,7 +369,15 @@
       "housing_cost_burden_rate": 56.0,
       "homeownership_rate": 75.0,
       "gini_index": 0.4,
-      "vacancy_rate": 6.4
+      "vacancy_rate": 6.4,
+      "bachelors_rate": 31.4,
+      "median_age": 35.0,
+      "avg_commute_min": 25.4,
+      "transit_commute_rate": 9.4,
+      "walk_commute_rate": 0.6,
+      "bike_commute_rate": 0.2,
+      "wfh_rate": 16.8,
+      "diversity_index": 0.705
     },
     "55413": {
       "median_home_value": 399925,
@@ -219,7 +387,15 @@
       "housing_cost_burden_rate": 37.0,
       "homeownership_rate": 33.0,
       "gini_index": 0.433,
-      "vacancy_rate": 8.9
+      "vacancy_rate": 8.9,
+      "bachelors_rate": 62.6,
+      "median_age": 33.0,
+      "avg_commute_min": 20.0,
+      "transit_commute_rate": 6.7,
+      "walk_commute_rate": 3.3,
+      "bike_commute_rate": 3.9,
+      "wfh_rate": 24.9,
+      "diversity_index": 0.481
     },
     "55414": {
       "median_home_value": 435364,
@@ -229,7 +405,15 @@
       "housing_cost_burden_rate": 58.0,
       "homeownership_rate": 14.0,
       "gini_index": 0.488,
-      "vacancy_rate": 11.8
+      "vacancy_rate": 11.8,
+      "bachelors_rate": 66.9,
+      "median_age": 24.7,
+      "avg_commute_min": 20.6,
+      "transit_commute_rate": 10.3,
+      "walk_commute_rate": 14.6,
+      "bike_commute_rate": 2.8,
+      "wfh_rate": 20.2,
+      "diversity_index": 0.565
     },
     "55415": {
       "median_home_value": 654300,
@@ -239,7 +423,15 @@
       "housing_cost_burden_rate": 38.0,
       "homeownership_rate": 28.0,
       "gini_index": 0.484,
-      "vacancy_rate": 6.5
+      "vacancy_rate": 6.5,
+      "bachelors_rate": 70.0,
+      "median_age": 32.9,
+      "avg_commute_min": 16.3,
+      "transit_commute_rate": 2.9,
+      "walk_commute_rate": 28.1,
+      "bike_commute_rate": 1.3,
+      "wfh_rate": 29.3,
+      "diversity_index": 0.557
     },
     "55419": {
       "median_home_value": 487301,
@@ -249,7 +441,15 @@
       "housing_cost_burden_rate": 36.0,
       "homeownership_rate": 82.0,
       "gini_index": 0.408,
-      "vacancy_rate": 4.2
+      "vacancy_rate": 4.2,
+      "bachelors_rate": 73.4,
+      "median_age": 39.5,
+      "avg_commute_min": 20.6,
+      "transit_commute_rate": 1.5,
+      "walk_commute_rate": 1.8,
+      "bike_commute_rate": 0.9,
+      "wfh_rate": 36.8,
+      "diversity_index": 0.364
     },
     "55454": {
       "median_home_value": null,
@@ -259,7 +459,15 @@
       "housing_cost_burden_rate": 68.0,
       "homeownership_rate": 0.0,
       "gini_index": 0.459,
-      "vacancy_rate": 4.0
+      "vacancy_rate": 4.0,
+      "bachelors_rate": 7.0,
+      "median_age": 33.9,
+      "avg_commute_min": 30.9,
+      "transit_commute_rate": 16.8,
+      "walk_commute_rate": 18.3,
+      "bike_commute_rate": 0.0,
+      "wfh_rate": 14.4,
+      "diversity_index": 0.131
     },
     "55455": {
       "median_home_value": 186600,
@@ -269,7 +477,15 @@
       "housing_cost_burden_rate": 58.0,
       "homeownership_rate": 8.0,
       "gini_index": 0.512,
-      "vacancy_rate": 6.6
+      "vacancy_rate": 6.6,
+      "bachelors_rate": 48.0,
+      "median_age": 20.3,
+      "avg_commute_min": 16.1,
+      "transit_commute_rate": 11.4,
+      "walk_commute_rate": 28.3,
+      "bike_commute_rate": 2.4,
+      "wfh_rate": 21.8,
+      "diversity_index": 0.595
     }
   }
 }

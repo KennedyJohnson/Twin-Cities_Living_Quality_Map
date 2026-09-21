@@ -27,7 +27,7 @@ import json
 import math
 from pathlib import Path
 
-from cleaners.clean_housing_price import clean_housing_price_tracts, ACS_YEAR
+from cleaners.clean_housing_price import clean_housing_price_tracts, ACS_YEAR, INFO_FIELDS
 from cleaners.clean_health import _fetch_places_tracts, CITY_COUNTY_NAME as HEALTH_COUNTY_NAME, MEASURES
 from cleaners.clean_disaster_risk import _fetch_nri_tracts, CITY_COUNTY_NAME as RISK_COUNTY_NAME
 
@@ -37,7 +37,7 @@ OUT_DIR = PIPELINE_DIR.parent / "web" / "public" / "data"
 FIELDS = [
     "median_home_value", "median_gross_rent", "median_household_income",
     "poverty_rate", "housing_cost_burden_rate", "homeownership_rate",
-]
+] + INFO_FIELDS
 
 
 def _chronic_disease_by_geoid(city):

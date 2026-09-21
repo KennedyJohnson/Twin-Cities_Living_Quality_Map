@@ -14,7 +14,7 @@ sys.path.insert(0, str(_BootstrapPath(__file__).resolve().parent.parent))
 import json
 import pandas as pd
 from pathlib import Path
-from cleaners.clean_housing_price import clean_housing_price, ACS_YEAR
+from cleaners.clean_housing_price import clean_housing_price, ACS_YEAR, INFO_FIELDS
 
 PIPELINE_DIR = Path(__file__).resolve().parent.parent
 OUT_DIR = PIPELINE_DIR.parent / "web" / "public" / "data"
@@ -31,6 +31,7 @@ def _rows_to_districts_json(df):
             "homeownership_rate": None if pd.isna(row["homeownership_rate"]) else round(row["homeownership_rate"], 1),
             "gini_index": None if pd.isna(row["gini_index"]) else round(row["gini_index"], 3),
             "vacancy_rate": None if pd.isna(row["vacancy_rate"]) else round(row["vacancy_rate"], 1),
+            **{f: None if pd.isna(row[f]) else round(float(row[f]), 3 if f == "diversity_index" else 1) for f in INFO_FIELDS},
         }
         for _, row in df.iterrows()
     }

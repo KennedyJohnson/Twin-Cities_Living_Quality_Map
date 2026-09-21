@@ -21,6 +21,7 @@ import { loadNeighborhoodData } from '@/lib/loadNeighborhoodData';
 import { cityForDistrictId } from '@/lib/geo';
 import type { Neighborhood } from '@/types/neighborhood';
 import type { ScoreMetricKey } from '@/lib/scoreMetric';
+import { COLOR_METRICS, ColorMetricKey } from '@/lib/colorMetric';
 
 // Below this magnitude a vs-average difference reads as noise rather than a
 // meaningful strength/weakness, so it stays neutral gray instead of
@@ -44,6 +45,7 @@ interface NeighborhoodSidebarProps {
   // below is preselected/expanded to match, instead of requiring a second
   // click to see what's driving the color the user just clicked on.
   scoreMetric?: ScoreMetricKey;
+  colorMetric?: ColorMetricKey | null;
   // Notified whenever the expanded component-score panel changes (including
   // back to null when collapsed or the district changes), so the map can
   // auto-reveal the point layers relevant to whichever component is open.
@@ -67,14 +69,34 @@ interface Affordability {
   homeownership_rate: number | null;
   gini_index: number | null;
   vacancy_rate: number | null;
+  bachelors_rate?: number | null;
+  median_age?: number | null;
+  avg_commute_min?: number | null;
+  transit_commute_rate?: number | null;
+  walk_commute_rate?: number | null;
+  bike_commute_rate?: number | null;
+  wfh_rate?: number | null;
+  diversity_index?: number | null;
 }
+
+const CONTEXT_ROWS: { key: keyof Affordability; label: string; fmt: (v: number) => string }[] = [
+  { key: 'vacancy_rate', label: 'Housing Vacancy Rate', fmt: (v) => `${v}%` },
+  { key: 'bachelors_rate', label: "Adults with Bachelor's+", fmt: (v) => `${v}%` },
+  { key: 'median_age', label: 'Median Age', fmt: (v) => `${v}` },
+  { key: 'diversity_index', label: 'Diversity Index (0-1)', fmt: (v) => v.toFixed(2) },
+  { key: 'avg_commute_min', label: 'Avg Commute (non-remote)', fmt: (v) => `${v} min` },
+  { key: 'transit_commute_rate', label: 'Commute by Transit', fmt: (v) => `${v}%` },
+  { key: 'walk_commute_rate', label: 'Commute on Foot', fmt: (v) => `${v}%` },
+  { key: 'bike_commute_rate', label: 'Commute by Bike', fmt: (v) => `${v}%` },
+  { key: 'wfh_rate', label: 'Work from Home', fmt: (v) => `${v}%` },
+];
 
 interface AffordabilityFile {
   acs_year: number;
   districts: Record<string, Affordability>;
 }
 
-export default function NeighborhoodSidebar({ district, onSelectDistrict, granularity = 'district', reviewsUrl, reviewsLinkIsNamedPlace = false, scoreMetric, onExpandedIndexChange }: NeighborhoodSidebarProps) {
+export default function NeighborhoodSidebar({ district, onSelectDistrict, granularity = 'district', reviewsUrl, reviewsLinkIsNamedPlace = false, scoreMetric, colorMetric = null, onExpandedIndexChange }: NeighborhoodSidebarProps) {
   const [affordability, setAffordability] = useState<Record<string, Affordability>>({});
   const [acsYear, setAcsYear] = useState<number | null>(null);
   const [expandedIndex, setExpandedIndex] = useState<string | null>(null);
@@ -267,6 +289,31 @@ export default function NeighborhoodSidebar({ district, onSelectDistrict, granul
           : `Population: ${district.population.toLocaleString()}`}
       </div>
 
+
+      {colorMetric && (() => {
+        const def = COLOR_METRICS[colorMetric];
+        const raw = districtAffordability?.[colorMetric as keyof Affordability];
+        const vals = Object.values(affordability)
+          .map((a) => a[colorMetric as keyof Affordability])
+          .filter((v): v is number => typeof v === 'number');
+        const avg = vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : null;
+        return (
+          <div style={{ margin: '4px 0 14px', padding: '10px 12px', background: '#f1eef8', border: '2px solid #756bb1', borderRadius: '6px' }}>
+            <div style={{ fontSize: '12px', fontWeight: 600, color: '#666' }}>Map is coloring by</div>
+            <div style={{ fontSize: '13px', fontWeight: 600, color: '#333' }}>{def.label}</div>
+            <div style={{ fontSize: '22px', fontWeight: 700, color: '#333', marginTop: '2px' }}>
+              {typeof raw === 'number' ? def.format(raw) : 'No data'}
+            </div>
+            {avg != null && (
+              <div style={{ fontSize: '11px', color: '#777' }}>
+                {district.is_zip ? 'All-zip' : 'All-district'} avg: {def.format(avg)}
+                {district.is_radius ? ' · value is for the surrounding district' : ''}
+              </div>
+            )}
+          </div>
+        );
+      })()}
+
       <div style={{ fontSize: '13px', fontWeight: 600, color: '#666', marginBottom: '2px' }}>
         Overall Living Quality Score
       </div>
@@ -375,19 +422,20 @@ export default function NeighborhoodSidebar({ district, onSelectDistrict, granul
                       </div>
                     );
                   })()}
-                  {districtAffordability.vacancy_rate != null && (
+                  {CONTEXT_ROWS.some((r) => districtAffordability[r.key] != null) && (
                     <div style={{ marginTop: '14px', paddingTop: '10px', borderTop: '1px solid #e5e5e8' }}>
                       <div style={{ fontSize: '11px', color: '#999', marginBottom: '8px' }}>
                         Additional context (not part of the score):
                       </div>
-                      {districtAffordability.vacancy_rate != null && (
-                        <div>
-                          <div className="metric-row">
-                            <span style={{ fontSize: '12px', color: '#999' }}>Housing Vacancy Rate</span>
-                            <span className="metric-value">{districtAffordability.vacancy_rate}%</span>
+                      {CONTEXT_ROWS.map((r) => {
+                        const v = districtAffordability[r.key];
+                        return v != null ? (
+                          <div key={r.key} className="metric-row">
+                            <span style={{ fontSize: '12px', color: '#999' }}>{r.label}</span>
+                            <span className="metric-value">{r.fmt(v as number)}</span>
                           </div>
-                        </div>
-                      )}
+                        ) : null;
+                      })}
                     </div>
                   )}
                   <div style={{ fontSize: '11px', color: '#ccc', fontStyle: 'italic', marginTop: '10px' }}>
@@ -401,10 +449,10 @@ export default function NeighborhoodSidebar({ district, onSelectDistrict, granul
             ) : (
               (() => {
                 // broadband_score and walkability_score aren't top-level components — they're
-                // sub-scores folded into amenities (85/15) and transportation (70/30)
+                // sub-scores folded into amenities (85/15) and transportation (60/25/15)
                 // respectively, so they're shown nested under those two instead of getting
                 // their own top-level card.
-                const renderSubScore = (key: 'walkability_score' | 'broadband_score') => {
+                const renderSubScore = (key: 'walkability_score' | 'broadband_score' | 'commute_score') => {
                   const value = district.indices[key];
                   if (value == null) return null;
                   const avg = district.is_radius ? null : districtAverageIndex(key);
@@ -493,6 +541,7 @@ export default function NeighborhoodSidebar({ district, onSelectDistrict, granul
                 })}
                     {expandedIndex === 'amenities' && renderSubScore('broadband_score')}
                     {expandedIndex === 'transportation' && renderSubScore('walkability_score')}
+                    {expandedIndex === 'transportation' && renderSubScore('commute_score')}
                   </>
                 );
               })()

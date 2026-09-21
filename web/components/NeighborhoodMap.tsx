@@ -7,6 +7,7 @@ import { percentileRank, getLetterGrade, gradeColor, LetterGrade } from '@/lib/l
 import { loadNeighborhoodData, getNeighborhoodMap } from '@/lib/loadNeighborhoodData';
 import { POINT_LAYER_COLORS, POINT_LAYER_LABELS, POINT_LAYER_ICONS, CANVAS_MARKER_THRESHOLD } from '@/lib/pointLayerColors';
 import { resolveScore, ScoreMetricKey, MatchWeights } from '@/lib/scoreMetric';
+import { ColorMetricKey, ColorMetricData, loadColorMetricData, rankValue } from '@/lib/colorMetric';
 import { findDistrictForPoint, cityForDistrictId, resolveNeighborhoodForPoint } from '@/lib/geo';
 import {
   computeRadiusNeighborhood,
@@ -190,6 +191,9 @@ interface NeighborhoodMapProps {
   onMapClick?: (lat: number, lon: number) => void;
   clickMode?: MapClickMode;
   scoreMetric?: ScoreMetricKey;
+  // When set (and no Find Your Match weighting is active), districts are
+  // colored by this raw Census metric instead of scoreMetric.
+  colorMetric?: ColorMetricKey | null;
   onPlaceScoreComputed?: (neighborhood: Neighborhood) => void;
   hiddenSources?: Set<string>;
   matchWeights?: MatchWeights | null;
@@ -206,6 +210,23 @@ interface NeighborhoodMapProps {
   // Set while the user hovers a letter grade in the legend's scale strip —
   // districts matching that grade get emphasized and all others dimmed.
   highlightedGrade?: LetterGrade | null;
+}
+
+const MISSING_METRIC_COLOR = '#c8c8c8';
+
+// Score used for coloring/ranking a district or zip: the raw Census metric
+// when one is selected (and no Find Your Match weighting is active), else the
+// normal score. null = no data for that district under the raw metric.
+function coloringScore(
+  n: Neighborhood,
+  kind: 'district' | 'zip',
+  scoreMetric: ScoreMetricKey,
+  matchWeights: MatchWeights | null,
+  colorMetric: ColorMetricKey | null,
+  metricData: ColorMetricData | null
+): number | null {
+  if (colorMetric && !matchWeights) return rankValue(metricData, kind, n.district_id, colorMetric);
+  return resolveScore(n, scoreMetric, matchWeights);
 }
 
 function makeSearchMarkerIcon(): L.DivIcon {
@@ -228,6 +249,7 @@ function MapContent({
   onMapClick,
   clickMode = 'district',
   scoreMetric = 'health_score',
+  colorMetric = null,
   onPlaceScoreComputed,
   hiddenSources,
   matchWeights = null,
@@ -333,6 +355,10 @@ function MapContent({
   const onClearSearchMarkerRef = useRef(onClearSearchMarker);
   onClearSearchMarkerRef.current = onClearSearchMarker;
   const neighborhoodMapsRef = useRef<Map<number, Neighborhood>[]>([]);
+  const [colorMetricData, setColorMetricData] = useState<ColorMetricData | null>(null);
+  useEffect(() => {
+    if (colorMetric && !colorMetricData) loadColorMetricData().then(setColorMetricData);
+  }, [colorMetric, colorMetricData]);
   const scoreMetricRef = useRef<ScoreMetricKey>(scoreMetric);
   const matchWeightsRef = useRef<MatchWeights | null>(matchWeights);
   const excludedDistrictIdsRef = useRef<Set<number> | null>(excludedDistrictIds);
@@ -1120,7 +1146,9 @@ function MapContent({
   useEffect(() => {
     for (const pool of layerPoolsRef.current) {
       const poolNeighborhoods = pool.entries.flatMap((e) => Array.from(e.neighborhoodMap.values()));
-      const poolScores = poolNeighborhoods.map((n) => resolveScore(n, scoreMetric, matchWeights));
+      const scoreOf = (n: Neighborhood) =>
+        coloringScore(n, pool.kind, scoreMetric, matchWeights, colorMetric, colorMetricData);
+      const poolScores = poolNeighborhoods.map(scoreOf).filter((v): v is number => v !== null);
 
       for (const { layer: geoJsonLayer, neighborhoodMap } of pool.entries) {
         geoJsonLayer.eachLayer((layer: L.Layer) => {
@@ -1128,18 +1156,21 @@ function MapContent({
             const feature = (layer as any).feature;
             const districtId = (feature?.id || feature?.properties?.district_id) as number;
             const neighborhood = neighborhoodMap.get(districtId);
-            const score = neighborhood ? resolveScore(neighborhood, scoreMetric, matchWeights) : 50;
+            const score = neighborhood ? scoreOf(neighborhood) : 50;
             const isOverBudget = excludedDistrictIds?.has(districtId) ?? false;
-            const percentile = percentileRank(score, poolScores);
+            const fill =
+              score === null
+                ? MISSING_METRIC_COLOR
+                : gradeColor(getLetterGrade(percentileRank(score, poolScores)));
             layer.setStyle({
-              fillColor: isOverBudget ? '#d0d0d0' : gradeColor(getLetterGrade(percentile)),
+              fillColor: isOverBudget ? '#d0d0d0' : fill,
               fillOpacity: isOverBudget ? 0.25 : 0.7,
             });
           }
         });
       }
     }
-  }, [scoreMetric, matchWeights, excludedDistrictIds]);
+  }, [scoreMetric, matchWeights, excludedDistrictIds, colorMetric, colorMetricData]);
 
   // Emphasize districts matching the letter grade the user is hovering in
   // the legend's scale strip (Legend.tsx), and dim everything else. Clearing
@@ -1147,7 +1178,9 @@ function MapContent({
   useEffect(() => {
     for (const pool of layerPoolsRef.current) {
       const poolNeighborhoods = pool.entries.flatMap((e) => Array.from(e.neighborhoodMap.values()));
-      const poolScores = poolNeighborhoods.map((n) => resolveScore(n, scoreMetric, matchWeights));
+      const scoreOf = (n: Neighborhood) =>
+        coloringScore(n, pool.kind, scoreMetric, matchWeights, colorMetric, colorMetricData);
+      const poolScores = poolNeighborhoods.map(scoreOf).filter((v): v is number => v !== null);
 
       for (const { layer: geoJsonLayer, neighborhoodMap } of pool.entries) {
         geoJsonLayer.eachLayer((layer: L.Layer) => {
@@ -1166,9 +1199,9 @@ function MapContent({
             return;
           }
 
-          const score = neighborhood ? resolveScore(neighborhood, scoreMetric, matchWeights) : 50;
-          const percentile = percentileRank(score, poolScores);
-          const matches = !isOverBudget && getLetterGrade(percentile) === highlightedGrade;
+          const score = neighborhood ? scoreOf(neighborhood) : 50;
+          const matches =
+            !isOverBudget && score !== null && getLetterGrade(percentileRank(score, poolScores)) === highlightedGrade;
 
           layer.setStyle({
             fillOpacity: matches ? 0.9 : 0.1,
@@ -1177,7 +1210,7 @@ function MapContent({
         });
       }
     }
-  }, [highlightedGrade, scoreMetric, matchWeights, excludedDistrictIds, selectedDistrict]);
+  }, [highlightedGrade, scoreMetric, matchWeights, excludedDistrictIds, selectedDistrict, colorMetric, colorMetricData]);
 
   // Drop (or move) a labeled marker at the searched address/place so the
   // user can see exactly what location their search resolved to.
@@ -1498,6 +1531,7 @@ export default function NeighborhoodMap({
   onMapClick,
   clickMode,
   scoreMetric,
+  colorMetric,
   onPlaceScoreComputed,
   hiddenSources,
   matchWeights,
@@ -1531,6 +1565,7 @@ export default function NeighborhoodMap({
         onMapClick={onMapClick}
         clickMode={clickMode}
         scoreMetric={scoreMetric}
+        colorMetric={colorMetric}
         onPlaceScoreComputed={onPlaceScoreComputed}
         hiddenSources={hiddenSources}
         matchWeights={matchWeights}

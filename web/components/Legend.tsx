@@ -3,10 +3,12 @@
 import { useEffect, useState } from 'react';
 import { POINT_LAYER_COLORS, POINT_LAYER_LABELS } from '@/lib/pointLayerColors';
 import { SCORE_METRIC_LABELS, ScoreMetricKey } from '@/lib/scoreMetric';
+import { COLOR_METRICS, ColorMetricKey } from '@/lib/colorMetric';
 import { LetterGrade, gradeColor, gradeTextColor } from '@/lib/letterGrade';
 
 interface LegendProps {
   scoreMetric?: ScoreMetricKey;
+  colorMetric?: ColorMetricKey | null;
   hiddenSources?: Set<string>;
   onToggleSource?: (key: string) => void;
   onDeselectAll?: (allKeys: string[]) => void;
@@ -21,6 +23,7 @@ const POINT_LAYER_FILES = ['/data/points_stpaul.json', '/data/points_mpls.json']
 
 export default function Legend({
   scoreMetric = 'health_score',
+  colorMetric = null,
   hiddenSources,
   onToggleSource,
   onDeselectAll,
@@ -57,7 +60,7 @@ export default function Legend({
 
   return (
     <div className="legend">
-      <div className="legend-title">{SCORE_METRIC_LABELS[scoreMetric]}</div>
+      <div className="legend-title">{colorMetric ? COLOR_METRICS[colorMetric].label : SCORE_METRIC_LABELS[scoreMetric]}</div>
       <div className="legend-scale">
         {grades.map((grade) => {
           const isPinned = pinnedGrade === grade;
@@ -89,8 +92,8 @@ export default function Legend({
         })}
       </div>
       <div className="legend-labels">
-        <span>Poor</span>
-        <span>Excellent</span>
+        <span>{colorMetric ? (COLOR_METRICS[colorMetric].higherIsBetter ? 'Lowest' : 'Highest') : 'Poor'}</span>
+        <span>{colorMetric ? (COLOR_METRICS[colorMetric].higherIsBetter ? 'Highest' : 'Lowest') : 'Excellent'}</span>
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '10px' }}>

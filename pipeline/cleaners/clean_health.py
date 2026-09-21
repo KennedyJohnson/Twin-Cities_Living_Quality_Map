@@ -34,7 +34,7 @@ CITY_COUNTY_NAME = {
     "mpls": "Hennepin",
 }
 
-MEASURES = ["OBESITY", "DIABETES"]
+MEASURES = ["OBESITY", "DIABETES", "CASTHMA", "CSMOKING"]
 
 
 def _fetch_places_tracts(county_name, measure_id):

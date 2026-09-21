@@ -12,6 +12,7 @@ import MatchFinder from '@/components/MatchFinder';
 import type { Neighborhood } from '@/types/neighborhood';
 import type { ScoreMetricKey, MatchWeights } from '@/lib/scoreMetric';
 import { DEFAULT_MATCH_WEIGHTS, hasActiveWeights } from '@/lib/scoreMetric';
+import type { ColorMetricKey } from '@/lib/colorMetric';
 import type { MapClickMode, MapGranularity } from '@/components/NeighborhoodMap';
 import { reverseGeocode, googleMapsSearchUrl, snapToNearestBuilding, findNearestNamedPlace, cityForDistrictId } from '@/lib/geo';
 import { POINT_LAYER_LABELS } from '@/lib/pointLayerColors';
@@ -30,6 +31,7 @@ export default function Home() {
   const [flyToLocation, setFlyToLocation] = useState<{ lat: number; lon: number } | null>(null);
   const [searchMarker, setSearchMarker] = useState<{ lat: number; lon: number; label: string; isNamedPlace: boolean; address?: string } | null>(null);
   const [scoreMetric, setScoreMetric] = useState<ScoreMetricKey>('health_score');
+  const [colorMetric, setColorMetric] = useState<ColorMetricKey | null>(null);
   const [hoveredGrade, setHoveredGrade] = useState<LetterGrade | null>(null);
   const [pinnedGrade, setPinnedGrade] = useState<LetterGrade | null>(null);
   const highlightedGrade = hoveredGrade ?? pinnedGrade;
@@ -359,6 +361,7 @@ export default function Home() {
           onMapClick={handleMapClick}
           clickMode={clickMode}
           scoreMetric={scoreMetric}
+          colorMetric={colorMetric}
           onPlaceScoreComputed={setSelectedDistrict}
           hiddenSources={hiddenSources}
           matchWeights={matchFinderOpen && hasActiveWeights(matchWeights) ? matchWeights : null}
@@ -373,6 +376,7 @@ export default function Home() {
         />
         <Legend
           scoreMetric={scoreMetric}
+          colorMetric={colorMetric}
           hiddenSources={hiddenSources}
           onHoverGrade={setHoveredGrade}
           pinnedGrade={pinnedGrade}
@@ -404,7 +408,7 @@ export default function Home() {
           {!matchFinderOpen && (
             <>
               <AddressSearch onAddressSelect={handleAddressSelect} />
-              <ScoreSelector value={scoreMetric} onChange={setScoreMetric} />
+              <ScoreSelector value={scoreMetric} onChange={setScoreMetric} colorMetric={colorMetric} onColorMetricChange={setColorMetric} />
               <div className="click-mode-toggle">
                 <div className="click-mode-toggle-row">
                   <span className="click-mode-toggle-label">Map view:</span>
@@ -561,6 +565,7 @@ export default function Home() {
             onSelectDistrict={handleDistrictSelect}
             granularity={granularity}
             scoreMetric={scoreMetric}
+            colorMetric={colorMetric}
             reviewsUrl={
               searchMarker
                 ? googleMapsSearchUrl(searchMarker.lat, searchMarker.lon, searchMarker.isNamedPlace ? searchMarker.label : undefined)

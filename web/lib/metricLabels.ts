@@ -141,14 +141,16 @@ export const indexLabels: Record<string, string> = {
   affordability: 'Economic Profile',
   walkability_score: 'Walk/Bike Score',
   broadband_score: 'Broadband Access',
+  commute_score: 'Commute Quality',
 };
 
 export const indexDescriptions: Record<string, string> = {
   safety: 'Comprised of: Crime Rate, Pedestrian/Cyclist Crash Rate, Natural Hazard Risk, and Chronic Disease Burden.',
   opportunity: 'Comprised of: Permit Rate and Unemployment Rate. More development raises this index; more unemployment lowers it.',
   amenities: 'Comprised of: Schools, Grocery Stores, Restaurants/Bars, Healthcare Access, and Entertainment Venues where available, blended 85/15 with Broadband Access below.',
-  transportation: 'Comprised of: Trail/Path Length and Transit Stop Rate (direct) minus Traffic Volume (inverted), blended 30% with the Walk/Bike Score below.',
+  transportation: 'Comprised of: Trail/Path Length and Transit Stop Rate (direct) minus Traffic Volume (inverted), blended 25% with the Walk/Bike Score and 15% with the Commute Quality score below.',
   affordability: 'Comprised of: Census median home value, median gross rent, median household income, poverty rate, housing cost burden (% of income spent on rent), homeownership rate, and income inequality (Gini index).',
-  walkability_score: 'A Zillow-style Walk/Bike Score: distance-decay proximity to groceries, restaurants/bars, transit, schools, and healthcare, plus street-intersection density (a block-size/bikeability proxy) and trail km per capita. Closer amenities, denser intersections, and more trails raise this score. Feeds 30% of the Transportation index.',
+  walkability_score: 'A Zillow-style Walk/Bike Score: distance-decay proximity to groceries, restaurants/bars, transit, schools, and healthcare, plus street-intersection density (a block-size/bikeability proxy) and trail km per capita. Closer amenities, denser intersections, and more trails raise this score. Feeds 25% of the Transportation index.',
+  commute_score: 'Census ACS commute quality: shorter average commute time (excluding remote workers) and a higher share of workers commuting by transit, walking, or bike raise this score, relative to other districts. Feeds 15% of the Transportation index.',
   broadband_score: 'Share of households with an internet subscription (Census ACS), relative to other districts. Feeds 15% of the Amenities & Services index.',
 };

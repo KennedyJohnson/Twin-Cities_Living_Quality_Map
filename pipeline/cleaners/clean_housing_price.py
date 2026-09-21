@@ -43,8 +43,23 @@ ACS_VARS = (
     "B28002_001E,B28002_013E,"
     "B23025_005E,"
     "B19083_001E,"
-    "B25002_001E,B25002_003E"
+    "B25002_001E,B25002_003E,"
+    # education (25+): universe, bachelor's, master's, professional, doctorate
+    "B15003_001E,B15003_022E,B15003_023E,B15003_024E,B15003_025E,"
+    # median age
+    "B01002_001E,"
+    # commute: aggregate travel minutes, workers universe, transit, bicycle, walked, work from home
+    "B08013_001E,B08301_001E,B08301_010E,B08301_018E,B08301_019E,B08301_021E,"
+    # race/ethnicity (for diversity index): total, white NH, Black NH, AIAN NH, Asian NH, NHPI NH, other NH, two+ NH, Hispanic
+    "B03002_001E,B03002_003E,B03002_004E,B03002_005E,B03002_006E,B03002_007E,B03002_008E,B03002_009E,B03002_012E"
 )
+
+# Informational-only tract fields (shown in the sidebar, not part of the score)
+INFO_FIELDS = [
+    "bachelors_rate", "median_age", "avg_commute_min",
+    "transit_commute_rate", "walk_commute_rate", "bike_commute_rate", "wfh_rate",
+    "diversity_index",
+]
 
 # state=MN (27); county FIPS per city
 CITY_COUNTY = {
@@ -117,6 +132,31 @@ def _fetch_acs_tracts(county_fips, year=ACS_YEAR):
     vacant_units = pd.to_numeric(df["B25002_003E"], errors="coerce")
     df["vacancy_rate"] = (vacant_units / housing_universe * 100).where(housing_universe > 0)
 
+    def num(col):
+        return pd.to_numeric(df[col], errors="coerce")
+
+    edu_universe = num("B15003_001E")
+    bachelors_plus = sum(num(c) for c in ["B15003_022E", "B15003_023E", "B15003_024E", "B15003_025E"])
+    df["bachelors_rate"] = (bachelors_plus / edu_universe * 100).where(edu_universe > 0)
+
+    df["median_age"] = num("B01002_001E").where(num("B01002_001E") > 0)
+
+    workers = num("B08301_001E")
+    wfh = num("B08301_021E")
+    commuters = workers - wfh
+    df["avg_commute_min"] = (num("B08013_001E") / commuters).where((commuters > 0) & (num("B08013_001E") >= 0))
+    df["transit_commute_rate"] = (num("B08301_010E") / workers * 100).where(workers > 0)
+    df["walk_commute_rate"] = (num("B08301_019E") / workers * 100).where(workers > 0)
+    df["bike_commute_rate"] = (num("B08301_018E") / workers * 100).where(workers > 0)
+    df["wfh_rate"] = (wfh / workers * 100).where(workers > 0)
+
+    # Simpson diversity index: probability two random residents differ in
+    # race/ethnicity group (0 = homogeneous, ~0.8+ = highly diverse)
+    race_total = num("B03002_001E")
+    groups = ["B03002_003E", "B03002_004E", "B03002_005E", "B03002_006E",
+              "B03002_007E", "B03002_008E", "B03002_009E", "B03002_012E"]
+    df["diversity_index"] = (1 - sum((num(c) / race_total) ** 2 for c in groups)).where(race_total > 0)
+
     # Census codes negative sentinel values (e.g. -666666666) for unavailable estimates
     df.loc[df["median_home_value"] < 0, "median_home_value"] = None
     df.loc[df["median_gross_rent"] < 0, "median_gross_rent"] = None
@@ -128,11 +168,14 @@ def _fetch_acs_tracts(county_fips, year=ACS_YEAR):
     df.loc[unemployed < 0, "unemployment_rate_pc"] = None
     df.loc[df["gini_index"] < 0, "gini_index"] = None
     df.loc[vacant_units < 0, "vacancy_rate"] = None
+    df.loc[(num("B08013_001E") < 0) | (num("B08301_001E") < 0) | (wfh < 0), INFO_FIELDS[2:7]] = None
+    df.loc[(edu_universe < 0) | (bachelors_plus < 0), "bachelors_rate"] = None
+    df.loc[race_total < 0, "diversity_index"] = None
     return df[[
         "geoid", "median_home_value", "median_gross_rent", "median_household_income",
         "poverty_rate", "housing_cost_burden_rate", "homeownership_rate", "broadband_rate",
         "unemployment_rate_pc", "gini_index", "vacancy_rate", "population",
-    ]]
+    ] + INFO_FIELDS]
 
 
 def _fetch_tract_centroids(county_fips):
@@ -177,7 +220,7 @@ def clean_housing_price_tracts(city="stpaul", year=ACS_YEAR):
         "geoid", "lat", "lon", "population", "median_home_value", "median_gross_rent",
         "median_household_income", "poverty_rate", "housing_cost_burden_rate", "homeownership_rate",
         "broadband_rate", "unemployment_rate_pc", "gini_index", "vacancy_rate",
-    ]]
+    ] + INFO_FIELDS]
 
 
 def clean_housing_price(city="stpaul", year=ACS_YEAR, granularity="district"):
@@ -240,13 +283,14 @@ def clean_housing_price(city="stpaul", year=ACS_YEAR, granularity="district"):
             # districts, not an exact inequality measure.
             "gini_index": weighted_mean(group, "gini_index", decimals=3),
             "vacancy_rate": weighted_mean(group, "vacancy_rate", decimals=1),
+            **{f: weighted_mean(group, f, decimals=3 if f == "diversity_index" else 1) for f in INFO_FIELDS},
         })
 
     return pd.DataFrame(rows, columns=[
         "district_id", "median_home_value", "median_gross_rent", "median_household_income",
         "poverty_rate", "housing_cost_burden_rate", "homeownership_rate", "broadband_rate",
         "unemployment_rate_pc", "gini_index", "vacancy_rate",
-    ])
+    ] + INFO_FIELDS)
 
 
 if __name__ == "__main__":
