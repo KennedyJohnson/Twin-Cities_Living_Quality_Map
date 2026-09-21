@@ -17,9 +17,13 @@ test('clicking a district shows details in the sidebar', async ({ page }) => {
 
   await expect(page.getByText('Click a district on the map to view details')).toBeVisible();
 
-  const districtPath = page.locator('.leaflet-container path').first();
-  await expect(districtPath).toBeVisible({ timeout: 15000 });
-  await districtPath.click({ force: true });
+  // District polygons are drawn on a canvas (no DOM paths), so click at a
+  // district's name label — the labels are non-interactive DOM markers that
+  // pass clicks through to the map underneath.
+  const label = page.locator('.district-name-label').first();
+  await expect(label).toBeVisible({ timeout: 15000 });
+  const box = await label.boundingBox();
+  await page.mouse.click(box!.x + box!.width / 2, box!.y + box!.height / 2);
 
   await expect(page.getByText('Component Scores', { exact: false })).toBeVisible({ timeout: 10000 });
   await expect(page.getByText(/Population:/)).toBeVisible();
@@ -31,8 +35,9 @@ test('changing the score selector updates the legend title', async ({ page }) =>
   const select = page.getByLabel('Color districts by');
   await expect(select).toBeVisible();
 
-  await expect(page.getByText('Overall Living Quality Score')).toBeVisible();
+  const legendTitle = page.locator('.legend-title').first();
+  await expect(legendTitle).toHaveText('Overall Living Quality Score');
 
   await select.selectOption('safety');
-  await expect(page.getByText('Safety', { exact: true })).toBeVisible();
+  await expect(legendTitle).toHaveText('Safety & Health');
 });
