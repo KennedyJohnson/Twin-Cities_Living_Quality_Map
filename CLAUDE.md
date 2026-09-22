@@ -96,6 +96,14 @@ python build.py
 - **MPLS "housing production" isn't independent of MPLS "permits".** Minneapolis has no dedicated housing-production dataset, so `clean_housing_mpls.py` derives it by filtering the same CCS_Permits feed used for MPLS's own `permit_rate_pc` metric (`permitType='Res'`). St. Paul's housing and permits metrics come from genuinely separate datasets. Result: MPLS's Amenities "housing" and Opportunity "permits" sub-metrics are near-duplicates of each other, while St. Paul's are not — when both are pooled into the shared z-scored `housing_rate_pc`/`permit_rate_pc` metrics, the two cities aren't quite measuring the same thing. Deferred unless a dedicated MPLS housing-production source is found.
 - **Pedestrian/cyclist crash data is a frozen 2016-2021 MnDOT snapshot** (`clean_crashes.py`) and is intentionally NOT run through `date_window.py`'s rolling-recency filter like crime/permits/requests/housing, since the feed has no newer records to filter toward. Applies equally to both cities (no cross-city bias), but it will silently drift further out of date as the rest of the pipeline's shared window keeps advancing. Revisit if MnDOT/MnDPS publish a newer VRU crash extract.
 
+#### Data Science Extensions — Potential Next Steps (not started)
+The project today is an ETL pipeline + composite-score dashboard. These would extend it toward a more data-science-forward portfolio piece, using the existing district-level historical data already collected:
+- **Predictive modeling layer:** train on historic home price/permit data (and other Health Score components — safety, affordability, opportunity) to predict which districts will appreciate; validate against what actually happened. Demonstrates regression/time-series skill beyond ETL.
+- **Causal/driver analysis:** feature-importance or SHAP analysis of what actually drives the composite Health Score up or down per district — turns pipeline output into an inferential story, not just a dashboard.
+- **Clustering neighborhoods:** k-means or hierarchical clustering on existing district features to find "neighborhood archetypes" (e.g. "affordable + safe but low amenity" vs. "high opportunity + high cost") instead of just a single blended score. Demonstrates unsupervised ML.
+- **Anomaly/outlier detection:** flag districts where the score changed sharply year-over-year and dig into why — ties into the historical trend charts already on the site.
+- **Time-series forecasting:** ARIMA/Prophet forecast of a specific metric (crime, permits, home values) by district — extends the "map" project into a forecasting portfolio piece.
+
 #### Troubleshooting
 - **"CENSUS_API_KEY not found"** → Set env var or add to `.env` file
 - **"Census API returned no data"** → Verify key is valid at https://api.census.gov/data/key_signup.html
