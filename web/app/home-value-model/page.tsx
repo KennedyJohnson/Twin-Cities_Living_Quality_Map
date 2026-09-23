@@ -259,8 +259,13 @@ export default function HomeValueModelPage() {
                           padding: '6px 8px',
                           fontWeight: isBetter ? 700 : 400,
                           color: err > 0 ? '#c0392b' : err < 0 ? '#2166ac' : '#666',
+                          background: isBetter ? '#eafaf1' : 'transparent',
+                          borderRadius: '4px',
                         }}
                       >
+                        {isBetter && (
+                          <span style={{ color: '#27ae60', fontWeight: 700, marginRight: '4px' }}>✓</span>
+                        )}
                         {err > 0 ? '+' : ''}
                         {fmtDollar(err)}
                       </td>
@@ -282,7 +287,7 @@ export default function HomeValueModelPage() {
             </table>
           </div>
           <p style={{ marginBottom: '20px', fontSize: '13px', color: '#888' }}>
-            Red = overpredicted, blue = underpredicted. Bolded error is the closer prediction for
+            Red = overpredicted, blue = underpredicted. <span style={{ color: '#27ae60', fontWeight: 700 }}>✓</span> marks the closer prediction for
             that district.
           </p>
 

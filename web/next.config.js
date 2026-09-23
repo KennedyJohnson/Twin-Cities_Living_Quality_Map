@@ -8,6 +8,9 @@ const nextConfig = {
   // Next 16 otherwise regenerates web/AGENTS.md + web/CLAUDE.md on every
   // dev/build run — this repo already has its own root CLAUDE.md.
   agentRules: false,
+  // Hides the dev-only "N" build-info badge (route/bundler/preferences) in
+  // the corner while running `next dev`. Never appears in production.
+  devIndicators: false,
   async headers() {
     return [
       {
