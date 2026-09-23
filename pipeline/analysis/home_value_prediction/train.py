@@ -183,18 +183,30 @@ def run_model_bakeoff(df, features):
     results = []
     years = sorted(df["year"].unique())
     for name in MODEL_CANDIDATES:
-        folds, all_true, all_pred = [], [], []
+        folds, all_true, all_pred, all_city = [], [], [], []
         for y in years:
             train, test = df[df["year"] != y], df[df["year"] == y]
             pred = fit_predict(name, train, test, features)
             folds.append({"test_year": int(y), "rmse": round(rmse(test["label"], pred), 1)})
-            all_true.extend(test["label"]); all_pred.extend(pred)
+            all_true.extend(test["label"]); all_pred.extend(pred); all_city.extend(test["city"])
         fold_rmses = [f["rmse"] for f in folds]
+        # Per-city accuracy pooled over all 7 held-out folds. MAPE is the
+        # headline since the two cities sit at different price levels.
+        t, p_, c = np.array(all_true), np.array(all_pred), np.array(all_city)
+        by_city = {
+            city: {
+                "rmse": round(rmse(t[c == city], p_[c == city]), 1),
+                "mape": round(float(np.mean(np.abs(p_[c == city] - t[c == city]) / t[c == city]) * 100), 2),
+                "n": int((c == city).sum()),
+            }
+            for city in sorted(set(all_city))
+        }
         results.append({
             "model": name,
             "mean_rmse": round(float(np.mean(fold_rmses)), 1),
             "std_rmse": round(float(np.std(fold_rmses)), 1),
             "pooled_r2": round(float(r2_score(all_true, all_pred)), 3),
+            "by_city": by_city,
             "folds": folds,
         })
     results.sort(key=lambda r: r["mean_rmse"])

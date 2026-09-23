@@ -14,7 +14,10 @@ interface Results {
   feature_selection: { candidates: string[]; selected: string[] };
   top_models: string[];
   featured_models: string[];
-  model_bakeoff: { model: string; mean_rmse: number; std_rmse: number; pooled_r2: number }[];
+  model_bakeoff: {
+    model: string; mean_rmse: number; std_rmse: number; pooled_r2: number;
+    by_city: Record<string, { rmse: number; mape: number; n: number }>;
+  }[];
   test_metrics: Record<string, { rmse: number; r2: number }>;
   predictions: { city: string; district_id: number; actual: number; preds: Record<string, number> }[];
   learning_curve_years: ModelPoint[];
@@ -129,6 +132,57 @@ export default function HomeValueModelPage() {
             are within ~$300 of each other. The next gap is $1–7K, down to the tree, kernel, and neighbor
             models. Elastic Net was also tested, but cross-validation picked a pure-L1 penalty on every
             fold, which made it identical to Lasso, so it&apos;s omitted.
+          </p>
+
+          <H2>Accuracy by City</H2>
+          <p style={note}>
+            Mean absolute % error for each city, pooled over all 7 held-out years (lower is better). The ✓
+            marks the best model per city.
+          </p>
+          <div style={{ overflowX: 'auto', marginBottom: '12px' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
+              <thead>
+                <tr style={{ borderBottom: '2px solid #ddd', textAlign: 'right' }}>
+                  <th style={{ textAlign: 'left', padding: '6px 8px' }}>City</th>
+                  {data.top_models.map((m) => (
+                    <th key={m} style={{ padding: '6px 8px', color: colorFor(m) }}>{m}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {[['stpaul', 'St. Paul'], ['mpls', 'Minneapolis']].map(([city, label]) => {
+                  const rows = data.top_models.map((m) => data.model_bakeoff.find((r) => r.model === m)!.by_city[city]);
+                  const best = rows.reduce((bi, r, i) => (r.mape < rows[bi].mape ? i : bi), 0);
+                  return (
+                    <tr key={city} style={{ borderBottom: '1px solid #eee', textAlign: 'right' }}>
+                      <td style={{ textAlign: 'left', padding: '6px 8px' }}>
+                        {label} <span style={{ color: '#888', fontSize: '12px' }}>({rows[0].n} predictions)</span>
+                      </td>
+                      {rows.map((r, i) => (
+                        <td
+                          key={i}
+                          style={{
+                            padding: '6px 8px',
+                            fontWeight: i === best ? 700 : 400,
+                            background: i === best ? '#eafaf1' : 'transparent',
+                          }}
+                        >
+                          {i === best && <span style={{ color: '#27ae60', marginRight: '4px' }}>✓</span>}
+                          {r.mape.toFixed(2)}%
+                          <div style={{ fontSize: '11px', color: '#888', fontWeight: 400 }}>RMSE {fmtDollar(r.rmse)}</div>
+                        </td>
+                      ))}
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+          <p style={note}>
+            The top 3 are close in both cities. The margins are hundredths to tenths of a percentage point,
+            well inside fold-to-fold noise, so neither city has a clear winner. All three are more accurate
+            in percentage terms in Minneapolis, even though their dollar errors there are higher, because
+            Minneapolis home values are higher.
           </p>
 
           <H2>Why the Small-Sample Models Win</H2>

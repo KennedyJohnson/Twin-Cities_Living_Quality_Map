@@ -81,6 +81,18 @@
       "mean_rmse": 12998.5,
       "std_rmse": 5465.9,
       "pooled_r2": 0.979,
+      "by_city": {
+        "mpls": {
+          "rmse": 14560.7,
+          "mape": 3.23,
+          "n": 77
+        },
+        "stpaul": {
+          "rmse": 13795.3,
+          "mape": 3.57,
+          "n": 119
+        }
+      },
       "folds": [
         {
           "test_year": 2017,
@@ -117,6 +129,18 @@
       "mean_rmse": 13048.6,
       "std_rmse": 5439.9,
       "pooled_r2": 0.979,
+      "by_city": {
+        "mpls": {
+          "rmse": 14633.3,
+          "mape": 3.29,
+          "n": 77
+        },
+        "stpaul": {
+          "rmse": 13806.7,
+          "mape": 3.56,
+          "n": 119
+        }
+      },
       "folds": [
         {
           "test_year": 2017,
@@ -153,6 +177,18 @@
       "mean_rmse": 13307.4,
       "std_rmse": 5387.2,
       "pooled_r2": 0.978,
+      "by_city": {
+        "mpls": {
+          "rmse": 14863.3,
+          "mape": 3.49,
+          "n": 77
+        },
+        "stpaul": {
+          "rmse": 14018.7,
+          "mape": 3.69,
+          "n": 119
+        }
+      },
       "folds": [
         {
           "test_year": 2017,
@@ -189,6 +225,18 @@
       "mean_rmse": 14277.6,
       "std_rmse": 5664.2,
       "pooled_r2": 0.975,
+      "by_city": {
+        "mpls": {
+          "rmse": 15725.0,
+          "mape": 3.82,
+          "n": 77
+        },
+        "stpaul": {
+          "rmse": 15119.3,
+          "mape": 4.45,
+          "n": 119
+        }
+      },
       "folds": [
         {
           "test_year": 2017,
@@ -225,6 +273,18 @@
       "mean_rmse": 16553.1,
       "std_rmse": 6019.0,
       "pooled_r2": 0.967,
+      "by_city": {
+        "mpls": {
+          "rmse": 16718.4,
+          "mape": 3.87,
+          "n": 77
+        },
+        "stpaul": {
+          "rmse": 18169.1,
+          "mape": 4.02,
+          "n": 119
+        }
+      },
       "folds": [
         {
           "test_year": 2017,
@@ -261,6 +321,18 @@
       "mean_rmse": 16680.2,
       "std_rmse": 5409.6,
       "pooled_r2": 0.968,
+      "by_city": {
+        "mpls": {
+          "rmse": 18278.1,
+          "mape": 4.23,
+          "n": 77
+        },
+        "stpaul": {
+          "rmse": 17037.7,
+          "mape": 4.6,
+          "n": 119
+        }
+      },
       "folds": [
         {
           "test_year": 2017,
@@ -297,6 +369,18 @@
       "mean_rmse": 17020.3,
       "std_rmse": 5774.0,
       "pooled_r2": 0.966,
+      "by_city": {
+        "mpls": {
+          "rmse": 18902.4,
+          "mape": 4.26,
+          "n": 77
+        },
+        "stpaul": {
+          "rmse": 17345.1,
+          "mape": 4.65,
+          "n": 119
+        }
+      },
       "folds": [
         {
           "test_year": 2017,
@@ -333,6 +417,18 @@
       "mean_rmse": 19814.9,
       "std_rmse": 6406.8,
       "pooled_r2": 0.954,
+      "by_city": {
+        "mpls": {
+          "rmse": 20627.4,
+          "mape": 5.4,
+          "n": 77
+        },
+        "stpaul": {
+          "rmse": 20951.7,
+          "mape": 5.41,
+          "n": 119
+        }
+      },
       "folds": [
         {
           "test_year": 2017,
