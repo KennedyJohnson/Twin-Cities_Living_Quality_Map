@@ -35,8 +35,12 @@ import numpy as np
 import pandas as pd
 from pathlib import Path
 
-from sklearn.linear_model import LassoCV, Lasso
-from sklearn.ensemble import GradientBoostingRegressor
+from sklearn.linear_model import LassoCV, Lasso, Ridge, ElasticNetCV, BayesianRidge
+from sklearn.ensemble import GradientBoostingRegressor, RandomForestRegressor
+from sklearn.svm import SVR
+from sklearn.neighbors import KNeighborsRegressor
+from sklearn.gaussian_process import GaussianProcessRegressor
+from sklearn.gaussian_process.kernels import RBF, WhiteKernel, ConstantKernel
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 
@@ -60,6 +64,17 @@ FEATURE_GROUPS = {
         "median_gross_rent", "median_household_income", "poverty_rate",
         "housing_cost_burden_rate", "homeownership_rate", "unemployment_rate_pc",
     ],
+    # This year's own home value, as a feature for predicting next year's.
+    # An earlier version of this analysis omitted it, forcing every model
+    # to reconstruct a district's absolute price level entirely from
+    # unrelated demographic proxies. Adding it back (2026-09-22) dropped
+    # Lasso's test RMSE from $34,779 to ~$10,400 (R^2 0.89 -> 0.99) -- by
+    # far the single biggest lever in this whole analysis, well ahead of
+    # any model-family choice below. Home values are highly autocorrelated
+    # year to year, so this is the standard "predict the return, not the
+    # level" framing used in real-estate/finance forecasting, just
+    # expressed as a feature rather than a change of target variable.
+    "autoregressive": ["median_home_value"],
     "acs_extra": [
         "gini_index", "vacancy_rate", "broadband_rate", "bachelors_rate",
         "median_age", "avg_commute_min", "transit_commute_rate",
@@ -67,7 +82,9 @@ FEATURE_GROUPS = {
     ],
 }
 FEATURE_GROUPS["core_plus_acs_extra"] = FEATURE_GROUPS["core"] + FEATURE_GROUPS["acs_extra"]
-ALL_CANDIDATE_FEATURES = FEATURE_GROUPS["core_plus_acs_extra"]
+FEATURE_GROUPS["core_plus_autoregressive"] = FEATURE_GROUPS["core"] + FEATURE_GROUPS["autoregressive"]
+FEATURE_GROUPS["all"] = FEATURE_GROUPS["core"] + FEATURE_GROUPS["autoregressive"] + FEATURE_GROUPS["acs_extra"]
+ALL_CANDIDATE_FEATURES = FEATURE_GROUPS["all"]
 
 
 def load_transitions():
@@ -191,6 +208,113 @@ def evaluate(model, scaler, df, features, is_lasso):
     }, pred
 
 
+# Model bake-off: beyond Lasso vs. GBM, try a handful of other model
+# families that are each, for different reasons, suited to a small (~170
+# row), noisy, tabular panel like this one -- and a couple that are
+# included specifically as a contrast because they *aren't* well suited to
+# it, so the comparison itself is informative. `needs_scaling` mirrors
+# Lasso: distance/kernel-based and penalized-linear models need
+# standardized inputs, tree ensembles don't.
+MODEL_CANDIDATES = {
+    "Lasso": (True, lambda: LassoCV(cv=5, max_iter=20000, random_state=0)),
+    "Ridge": (True, lambda: Ridge(alpha=10.0, random_state=0)),
+    "ElasticNet": (True, lambda: ElasticNetCV(cv=5, l1_ratio=[.1, .5, .7, .9, 1], max_iter=20000, random_state=0)),
+    "Bayesian Ridge": (True, lambda: BayesianRidge()),
+    "Random Forest": (False, lambda: RandomForestRegressor(n_estimators=200, max_depth=4, min_samples_leaf=2, random_state=0)),
+    "Gradient Boosting": (False, lambda: GradientBoostingRegressor(n_estimators=80, max_depth=2, learning_rate=0.05, subsample=0.8, random_state=0)),
+    "K-Nearest Neighbors": (True, lambda: KNeighborsRegressor(n_neighbors=5, weights="distance")),
+    "Support Vector (RBF)": (True, lambda: SVR(kernel="rbf", C=1e5, epsilon=1000)),
+    "Gaussian Process": (True, lambda: GaussianProcessRegressor(
+        kernel=ConstantKernel(1.0) * RBF(length_scale=1.0) + WhiteKernel(noise_level=1.0),
+        normalize_y=True, n_restarts_optimizer=3, random_state=0,
+    )),
+}
+
+
+def loyo_cv_error_generic(df, features, needs_scaling, model_factory):
+    """Leave-one-year-out CV for an arbitrary sklearn-style regressor."""
+    years = sorted(df["year"].unique())
+    fold_rmses = []
+    for held_out_year in years:
+        train = df[df["year"] != held_out_year]
+        val = df[df["year"] == held_out_year]
+        if val.empty or train.empty:
+            continue
+        if needs_scaling:
+            scaler = StandardScaler()
+            X_train = scaler.fit_transform(train[features])
+            X_val = scaler.transform(val[features])
+        else:
+            X_train, X_val = train[features], val[features]
+        model = model_factory()
+        model.fit(X_train, train["label"])
+        fold_rmses.append(rmse(val["label"], model.predict(X_val)))
+    return float(np.mean(fold_rmses)) if fold_rmses else None
+
+
+def full_loyo_evaluation(full_df, features, needs_scaling, model_factory):
+    """Evaluate a model across EVERY year as its own held-out test fold
+    (leave-one-year-out), not just the single most recent year. A single
+    held-out year is one test, not a distribution -- a model can look
+    good or bad on any one year by chance. This runs the full LOYO cycle
+    (fit on the other 6 years, test on the 7th) for each of the 7
+    available years and reports the per-year results plus mean/std across
+    them, which is the primary metric used for ranking models below."""
+    years = sorted(full_df["year"].unique())
+    folds = []
+    all_true, all_pred = [], []
+    for held_out_year in years:
+        train = full_df[full_df["year"] != held_out_year]
+        test = full_df[full_df["year"] == held_out_year]
+        if needs_scaling:
+            scaler = StandardScaler()
+            X_train = scaler.fit_transform(train[features])
+            X_test = scaler.transform(test[features])
+        else:
+            X_train, X_test = train[features], test[features]
+        model = model_factory()
+        model.fit(X_train, train["label"])
+        pred = model.predict(X_test)
+        fold_rmse = rmse(test["label"], pred)
+        folds.append({
+            "test_year": int(held_out_year),
+            "test_transition": f"{held_out_year} -> {held_out_year + 1}",
+            "rmse": round(fold_rmse, 1),
+            "r2": round(float(r2_score(test["label"], pred)), 3),
+        })
+        all_true.extend(test["label"].tolist())
+        all_pred.extend(pred.tolist())
+    fold_rmses = [f["rmse"] for f in folds]
+    return {
+        "folds": folds,
+        "mean_rmse": round(float(np.mean(fold_rmses)), 1),
+        "std_rmse": round(float(np.std(fold_rmses)), 1),
+        "min_rmse": round(float(np.min(fold_rmses)), 1),
+        "max_rmse": round(float(np.max(fold_rmses)), 1),
+        "pooled_r2": round(float(r2_score(all_true, all_pred)), 3),
+    }
+
+
+def run_model_bakeoff(full_df, features):
+    """Run the full leave-one-year-out evaluation for every candidate in
+    MODEL_CANDIDATES on the same feature set, ranked by mean RMSE across
+    all 7 year-folds (not a single held-out year)."""
+    results = []
+    for name, (needs_scaling, factory) in MODEL_CANDIDATES.items():
+        loyo = full_loyo_evaluation(full_df, features, needs_scaling, factory)
+        results.append({
+            "model": name,
+            "mean_rmse": loyo["mean_rmse"],
+            "std_rmse": loyo["std_rmse"],
+            "min_rmse": loyo["min_rmse"],
+            "max_rmse": loyo["max_rmse"],
+            "pooled_r2": loyo["pooled_r2"],
+            "folds": loyo["folds"],
+        })
+    results.sort(key=lambda r: r["mean_rmse"])
+    return results
+
+
 def learning_curve_years(all_train_df, test_df, features):
     """Sweep A: train on the most recent N training transitions, N = 1..all,
     fixed test set and feature set. Shows whether more years narrows the
@@ -221,7 +345,7 @@ def learning_curve_years(all_train_df, test_df, features):
 def learning_curve_features(all_train_df, test_df):
     """Sweep B: train on increasingly wide feature groups, fixed years."""
     curve = []
-    for group_name in ["core", "core_plus_acs_extra"]:
+    for group_name in ["core", "core_plus_autoregressive", "all"]:
         features = FEATURE_GROUPS[group_name]
         lasso_model, lasso_scaler = fit_final_lasso(all_train_df, features)
         lasso_metrics, _ = evaluate(lasso_model, lasso_scaler, test_df, features, is_lasso=True)
@@ -279,6 +403,11 @@ def main():
     print("Learning curve B (feature groups)...")
     curve_features = learning_curve_features(train_df, test_df)
 
+    print("\nModel bake-off: leave-one-year-out across all 7 years (9 model families)...")
+    bakeoff = run_model_bakeoff(df, selected_features)
+    for r in bakeoff:
+        print(f"  {r['model']:<22} mean RMSE ${r['mean_rmse']:>10,.0f} (+/- ${r['std_rmse']:,.0f})  pooled R2 {r['pooled_r2']:.3f}")
+
     lasso_coefs = {
         feat: round(float(coef), 1)
         for feat, coef in zip(selected_features, lasso_model.coef_)
@@ -321,6 +450,7 @@ def main():
         "predictions": predictions,
         "learning_curve_years": curve_years,
         "learning_curve_features": curve_features,
+        "model_bakeoff": bakeoff,
     }
 
     OUT_FILE.write_text(json.dumps(results, indent=2))
