@@ -48,7 +48,7 @@ export default function TopDistrictsRanking({ onSelectDistrict, granularity = 'd
 
         return (
           <div key={metric} style={{ marginBottom: '14px' }}>
-            <div style={{ fontSize: '12px', fontWeight: 600, color: '#756bb1', marginBottom: '6px' }}>
+            <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--accent)', marginBottom: '6px' }}>
               {SCORE_METRIC_LABELS[metric]}
             </div>
             <ol style={{ margin: 0, paddingLeft: '18px' }}>

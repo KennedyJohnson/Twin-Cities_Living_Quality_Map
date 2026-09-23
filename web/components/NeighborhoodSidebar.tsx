@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import AreaGuide from '@/components/AreaGuide';
 import {
   getMetricLabel,
   getMetricUnit,
@@ -19,6 +20,7 @@ import GradeBadge from './GradeBadge';
 import { percentileRank, getLetterGrade } from '@/lib/letterGrade';
 import { loadNeighborhoodData } from '@/lib/loadNeighborhoodData';
 import { cityForDistrictId } from '@/lib/geo';
+import type { ListingPrefs } from '@/lib/listingLinks';
 import type { Neighborhood } from '@/types/neighborhood';
 import type { ScoreMetricKey } from '@/lib/scoreMetric';
 import { COLOR_METRICS, ColorMetricKey } from '@/lib/colorMetric';
@@ -50,6 +52,14 @@ interface NeighborhoodSidebarProps {
   // back to null when collapsed or the district changes), so the map can
   // auto-reveal the point layers relevant to whichever component is open.
   onExpandedIndexChange?: (key: string | null) => void;
+  // Center point of a radius/place selection (for its listing links and
+  // commute estimate), plus the Find Your Match budget for listing filters.
+  center?: { lat: number; lon: number } | null;
+  maxRent?: number | null;
+  maxHomeValue?: number | null;
+  housingMode?: 'rent' | 'buy';
+  minBeds?: number | null;
+  listingPrefs?: ListingPrefs;
 }
 
 const COMPONENT_WEIGHTS: { key: 'safety' | 'opportunity' | 'amenities' | 'transportation' | 'affordability'; weight: number }[] = [
@@ -106,7 +116,7 @@ interface AffordabilityFile {
   districts: Record<string, Affordability>;
 }
 
-export default function NeighborhoodSidebar({ district, onSelectDistrict, granularity = 'district', reviewsUrl, reviewsLinkIsNamedPlace = false, scoreMetric, colorMetric = null, onExpandedIndexChange }: NeighborhoodSidebarProps) {
+export default function NeighborhoodSidebar({ district, onSelectDistrict, granularity = 'district', reviewsUrl, reviewsLinkIsNamedPlace = false, scoreMetric, colorMetric = null, onExpandedIndexChange, center = null, maxRent = null, maxHomeValue = null, housingMode, minBeds = null, listingPrefs }: NeighborhoodSidebarProps) {
   const [affordability, setAffordability] = useState<Record<string, Affordability>>({});
   const [acsYear, setAcsYear] = useState<number | null>(null);
   const [expandedIndex, setExpandedIndex] = useState<string | null>(null);
@@ -298,6 +308,23 @@ export default function NeighborhoodSidebar({ district, onSelectDistrict, granul
           ? `1-mile radius${district.population > 0 ? ` • ~${district.population.toLocaleString()} residents nearby` : ''}`
           : `Population: ${district.population.toLocaleString()}`}
       </div>
+      <AreaGuide
+        district={district}
+        center={center}
+        percentiles={Object.fromEntries(
+          ['safety', 'amenities', 'transportation', 'walkability_score'].map((k) => [
+            k,
+            district.indices[k] != null ? indexGrade(k, district.indices[k]!) : null,
+          ])
+        )}
+        rent={districtAffordability?.median_gross_rent}
+        homeValue={districtAffordability?.median_home_value}
+        avgRent={districtAverageAffordability('median_gross_rent')}
+        avgHomeValue={districtAverageAffordability('median_home_value')}
+        homeownershipRate={districtAffordability?.homeownership_rate}
+        medianAge={districtAffordability?.median_age}
+        filters={{ maxRent, maxHomeValue, mode: housingMode, minBeds, prefs: listingPrefs }}
+      />
 
 
       {colorMetric && (() => {

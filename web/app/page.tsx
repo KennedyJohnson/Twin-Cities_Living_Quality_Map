@@ -1,6 +1,8 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import type { ListingPrefs } from '@/lib/listingLinks';
+import { getNeighborhoodById } from '@/lib/loadNeighborhoodData';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import NeighborhoodSidebar from '@/components/NeighborhoodSidebar';
@@ -48,6 +50,18 @@ export default function Home() {
   const [matchWeights, setMatchWeights] = useState<MatchWeights>({ ...DEFAULT_MATCH_WEIGHTS });
   const [maxRent, setMaxRent] = useState<number | null>(null);
   const [maxHomeValue, setMaxHomeValue] = useState<number | null>(null);
+  const [housingMode, setHousingMode] = useState<'rent' | 'buy'>('rent');
+  const [minBeds, setMinBeds] = useState<number | null>(null);
+  const [listingPrefs, setListingPrefs] = useState<ListingPrefs>({});
+  // Only the active mode's budget applies, so a renter doesn't get filtered
+  // out by a leftover home-price limit (and vice versa).
+  const handleHousingModeChange = (mode: 'rent' | 'buy') => {
+    setHousingMode(mode);
+    // Home-type options differ by mode, so a hidden checked box can't linger.
+    setListingPrefs((p) => ({ ...p, homeTypes: [] }));
+    if (mode === 'rent') setMaxHomeValue(null);
+    else setMaxRent(null);
+  };
   const [budgetExcludedDistrictIds, setBudgetExcludedDistrictIds] = useState<Set<number> | null>(null);
   const [matchCityFilter, setMatchCityFilter] = useState<'all' | 'stpaul' | 'mpls'>('all');
   const [matchRegions, setMatchRegions] = useState<MatchRegion[]>([]);
@@ -327,7 +341,14 @@ export default function Home() {
   // markers — the region itself is the recommendation, not any one building.
   const handleSelectRegion = (region: MatchRegion) => {
     setActiveRegionId(region.id);
+    // Populate the sidebar with the recommended district itself, same as
+    // clicking that district on the map (not a radius around one building).
+    setCompareDistrict(null);
+    setSearchMarker(null);
     setFlyToLocation(region.center);
+    getNeighborhoodById(region.districtId, cityForDistrictId(region.districtId)).then((d) => {
+      if (d) setSelectedDistrict(d);
+    });
   };
 
   // Clicking an apartment-building dot (the always-on layer, or one inside
@@ -478,6 +499,12 @@ export default function Home() {
               onMaxRentChange={setMaxRent}
               maxHomeValue={maxHomeValue}
               onMaxHomeValueChange={setMaxHomeValue}
+              housingMode={housingMode}
+              onHousingModeChange={handleHousingModeChange}
+              minBeds={minBeds}
+              onMinBedsChange={setMinBeds}
+              listingPrefs={listingPrefs}
+              onListingPrefsChange={setListingPrefs}
               cityFilter={matchCityFilter}
               onCityFilterChange={setMatchCityFilter}
               onRegionsChange={setMatchRegions}
@@ -522,25 +549,11 @@ export default function Home() {
             </div>
           )}
         </div>
-        <div
-          style={{
-            position: 'absolute',
-            bottom: '10px',
-            right: '10px',
-            zIndex: 1000,
-            display: 'flex',
-            gap: '12px',
-            background: 'white',
-            padding: '8px 12px',
-            borderRadius: '8px',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.25)',
-            fontSize: '14px',
-          }}
-        >
-          <Link href="/trends" style={{ color: '#756bb1', fontWeight: 600 }}>Trends</Link>
-          <Link href="/home-value-model" style={{ color: '#756bb1', fontWeight: 600 }}>Home Price Prediction</Link>
-          <Link href="/about" style={{ color: '#756bb1', fontWeight: 600 }}>About</Link>
-        </div>
+        <nav className="map-nav">
+          <Link href="/trends">Trends</Link>
+          <Link href="/home-value-model">Home Price Prediction</Link>
+          <Link href="/about">About</Link>
+        </nav>
       </div>
       <div className="sidebar-wrapper" style={{ width: sidebarWidth }}>
         <div
@@ -559,6 +572,11 @@ export default function Home() {
             districtA={selectedDistrict}
             districtB={compareDistrict}
             onClose={exitCompare}
+            maxRent={maxRent}
+            maxHomeValue={maxHomeValue}
+            housingMode={housingMode}
+            minBeds={minBeds}
+            listingPrefs={listingPrefs}
           />
         ) : (
           <NeighborhoodSidebar
@@ -574,6 +592,12 @@ export default function Home() {
             }
             reviewsLinkIsNamedPlace={searchMarker?.isNamedPlace ?? false}
             onExpandedIndexChange={handleExpandedIndexChange}
+            center={searchMarker ? { lat: searchMarker.lat, lon: searchMarker.lon } : null}
+            maxRent={maxRent}
+            maxHomeValue={maxHomeValue}
+            housingMode={housingMode}
+            minBeds={minBeds}
+            listingPrefs={listingPrefs}
           />
         )}
       </div>

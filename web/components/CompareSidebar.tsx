@@ -7,12 +7,23 @@ import {
   isMetricInverted,
   indexLabels,
 } from '@/lib/metricLabels';
+import { useEffect, useState } from 'react';
+import type { ListingPrefs } from '@/lib/listingLinks';
 import type { Neighborhood } from '@/types/neighborhood';
+import { loadBudgetData, DistrictBudget } from '@/lib/budgetData';
+import { boundsCenter } from '@/lib/listingLinks';
+import { estimateCommute, useWorkLocation } from '@/lib/commute';
+import { ListingLinks, useAreaBounds, WorkAddressInput } from '@/components/AreaGuide';
 
 interface CompareSidebarProps {
   districtA: Neighborhood;
   districtB: Neighborhood;
   onClose: () => void;
+  maxRent?: number | null;
+  maxHomeValue?: number | null;
+  housingMode?: 'rent' | 'buy';
+  minBeds?: number | null;
+  listingPrefs?: ListingPrefs;
 }
 
 const COMPONENT_KEYS = ['safety', 'opportunity', 'amenities', 'transportation', 'affordability'] as const;
@@ -63,7 +74,19 @@ function ScoreRow({
   );
 }
 
-export default function CompareSidebar({ districtA, districtB, onClose }: CompareSidebarProps) {
+export default function CompareSidebar({ districtA, districtB, onClose, maxRent = null, maxHomeValue = null, housingMode, minBeds = null, listingPrefs }: CompareSidebarProps) {
+  const [budget, setBudget] = useState<Record<number, DistrictBudget>>({});
+  useEffect(() => {
+    loadBudgetData().then(setBudget);
+  }, []);
+  const boundsA = useAreaBounds(districtA);
+  const boundsB = useAreaBounds(districtB);
+  const work = useWorkLocation();
+  const commuteA = work && boundsA ? estimateCommute(boundsCenter(boundsA), work) : null;
+  const commuteB = work && boundsB ? estimateCommute(boundsCenter(boundsB), work) : null;
+  const money = (v: number) => `$${Math.round(v).toLocaleString()}`;
+  const filters = { maxRent, maxHomeValue, mode: housingMode, minBeds, prefs: listingPrefs };
+
   return (
     <div className="sidebar">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
@@ -77,7 +100,7 @@ export default function CompareSidebar({ districtA, districtB, onClose }: Compar
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr auto auto', gap: '8px', marginBottom: '4px' }}>
         <span />
-        <span style={{ fontSize: '12px', fontWeight: 700, color: '#756bb1', textAlign: 'right' }}>{districtA.district_name}</span>
+        <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--accent)', textAlign: 'right' }}>{districtA.district_name}</span>
         <span style={{ fontSize: '12px', fontWeight: 700, color: '#e6550d', textAlign: 'right' }}>{districtB.district_name}</span>
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr auto auto', gap: '8px', marginBottom: '16px' }}>
@@ -91,6 +114,16 @@ export default function CompareSidebar({ districtA, districtB, onClose }: Compar
       </div>
       <ScoreRow label="Score (0-100)" valueA={districtA.health_score} valueB={districtB.health_score} />
 
+      <div style={{ fontSize: '13px', fontWeight: 600, color: '#666', margin: '16px 0 4px' }}>
+        Cost &amp; Commute
+      </div>
+      <ScoreRow label="Typical rent (Census median)" valueA={budget[districtA.district_id]?.median_gross_rent} valueB={budget[districtB.district_id]?.median_gross_rent} inverted format={money} />
+      <ScoreRow label="Typical home value" valueA={budget[districtA.district_id]?.median_home_value} valueB={budget[districtB.district_id]?.median_home_value} inverted format={money} />
+      <ScoreRow label="Est. drive to work (min)" valueA={commuteA?.driveMin} valueB={commuteB?.driveMin} inverted />
+      <ScoreRow label="Est. transit to work (min)" valueA={commuteA?.transitMin} valueB={commuteB?.transitMin} inverted />
+      <div style={{ margin: '6px 0' }}>
+        <WorkAddressInput />
+      </div>
       <div style={{ fontSize: '13px', fontWeight: 600, color: '#666', margin: '16px 0 4px' }}>
         Component Scores
       </div>
@@ -124,6 +157,16 @@ export default function CompareSidebar({ districtA, districtB, onClose }: Compar
           </div>
         );
       })}
+
+      <div style={{ fontSize: '13px', fontWeight: 600, color: '#666', margin: '16px 0 4px' }}>
+        Listings
+      </div>
+      {[districtA, districtB].map((d, i) => (
+        <div key={d.district_id} style={{ marginBottom: '10px' }}>
+          <div style={{ fontSize: '12px', fontWeight: 700, color: i === 0 ? '#756bb1' : '#e6550d', marginBottom: '2px' }}>{d.district_name}</div>
+          <ListingLinks district={d} bounds={i === 0 ? boundsA : boundsB} filters={filters} />
+        </div>
+      ))}
 
       <div style={{ fontSize: '11px', color: '#aaa', marginTop: '8px' }}>
         Green/red highlights a gap of more than {DIFF_PCT_NEUTRAL_THRESHOLD}% between the two, colored toward whichever side is better for that metric.
