@@ -71,7 +71,9 @@ export default function HomeValueModelPage() {
   const [error, setError] = useState(false);
 
   useEffect(() => {
-    fetch('/data/home_value_prediction.json')
+    // no-cache: /data/* is served with a 1-hour max-age (next.config.js), so
+    // without revalidation a stale copy can pair with newer page code.
+    fetch('/data/home_value_prediction.json', { cache: 'no-cache' })
       .then((r) => (r.ok ? r.json() : Promise.reject()))
       .then(setData)
       .catch(() => setError(true));
@@ -134,6 +136,7 @@ export default function HomeValueModelPage() {
             fold, which made it identical to Lasso, so it&apos;s omitted.
           </p>
 
+          {data.model_bakeoff.every((r) => r.by_city) && (<>
           <H2>Accuracy by City</H2>
           <p style={note}>
             Mean absolute % error for each city, pooled over all 7 held-out years (lower is better). The ✓
@@ -184,6 +187,7 @@ export default function HomeValueModelPage() {
             in percentage terms in Minneapolis, even though their dollar errors there are higher, because
             Minneapolis home values are higher.
           </p>
+          </>)}
 
           <H2>Why the Small-Sample Models Win</H2>
           <p style={{ marginBottom: '12px' }}>
