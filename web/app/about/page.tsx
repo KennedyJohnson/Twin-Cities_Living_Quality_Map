@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import ScoreDrivers from '@/components/ScoreDrivers';
 
 function TechRow({ name, href, use }: { name: string; href?: string; use: string }) {
   return (
@@ -193,6 +194,21 @@ export default function AboutPage() {
       </p>
 
       <h2 style={{ fontSize: '18px', fontWeight: 600, marginTop: '32px', marginBottom: '12px' }}>
+        What Actually Drives the Score (SHAP)
+      </h2>
+      <p style={{ marginBottom: '12px' }}>
+        Nominal weights don&apos;t say which inputs actually move the score: a metric that barely
+        differs between districts moves nothing, whatever its weight. To measure realized influence,
+        we fit a linear surrogate model to each score across the 28 districts and explain it with{' '}
+        <a href="https://shap.readthedocs.io" target="_blank" rel="noopener noreferrer" style={{ color: '#756bb1' }}>SHAP</a>.
+        Each bar is an input&apos;s average absolute SHAP value: how many points it typically
+        pushes a district above or below the average, shown as a share of all inputs combined.
+        Inputs are correlated (e.g. poverty, income, and chronic disease move together), so credit
+        among related inputs is approximate.
+      </p>
+      <ScoreDrivers />
+
+      <h2 style={{ fontSize: '18px', fontWeight: 600, marginTop: '32px', marginBottom: '12px' }}>
         Built With
       </h2>
       <ul style={{ paddingLeft: '20px', marginBottom: '24px' }}>
@@ -207,6 +223,7 @@ export default function AboutPage() {
         <TechRow name="Shapely" use="geospatial joins (points/lines to district polygons)" />
         <TechRow name="pyosmium" use="reads the local Geofabrik OSM extract directly, replacing live Overpass API calls" />
         <TechRow name="NumPy" use="the score normalization math" />
+        <TechRow name="SHAP" use="explaining which inputs drive the score (About page)" />
         <TechRow name="pytest" use="unit tests for the scoring math" />
         <TechRow name="Playwright" use="end-to-end tests of the map UI" />
         <TechRow name="GitHub Actions" use="scheduled data refreshes and CI on every pull request" />

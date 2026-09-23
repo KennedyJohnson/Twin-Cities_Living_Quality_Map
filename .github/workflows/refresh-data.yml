@@ -60,6 +60,13 @@ jobs:
           CENSUS_API_KEY: ${{ secrets.CENSUS_API_KEY }}
         run: python exports/export_all.py
 
+      - name: Recompute SHAP score drivers (About page)
+        working-directory: pipeline
+        continue-on-error: true
+        run: |
+          pip install "shap>=0.44"
+          python -m analysis.score_drivers.shap_drivers
+
       - name: Commit refreshed data
         run: |
           git config user.name "github-actions[bot]"

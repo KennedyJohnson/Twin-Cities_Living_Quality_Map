@@ -1,0 +1,483 @@
+{
+  "total": {
+    "n_districts": 28,
+    "loo_r2": 0.926,
+    "score_sd": 7.11,
+    "drivers": [
+      {
+        "feature": "permit_rate_pc",
+        "label": "Building permits",
+        "component": "opportunity",
+        "mean_abs_shap": 0.97,
+        "share_pct": 6.5,
+        "direction": "+"
+      },
+      {
+        "feature": "trail_km_pc",
+        "label": "Trails",
+        "component": "transportation",
+        "mean_abs_shap": 0.95,
+        "share_pct": 6.4,
+        "direction": "+"
+      },
+      {
+        "feature": "crash_rate_pc",
+        "label": "Ped/bike crashes",
+        "component": "safety",
+        "mean_abs_shap": 0.94,
+        "share_pct": 6.3,
+        "direction": "-"
+      },
+      {
+        "feature": "disaster_risk_pc",
+        "label": "Natural hazard risk",
+        "component": "safety",
+        "mean_abs_shap": 0.93,
+        "share_pct": 6.3,
+        "direction": "-"
+      },
+      {
+        "feature": "unemployment_rate_pc",
+        "label": "Unemployment",
+        "component": "opportunity",
+        "mean_abs_shap": 0.87,
+        "share_pct": 5.8,
+        "direction": "-"
+      },
+      {
+        "feature": "housing_inventory_pc",
+        "label": "For-sale listings",
+        "component": "opportunity",
+        "mean_abs_shap": 0.76,
+        "share_pct": 5.1,
+        "direction": "-"
+      },
+      {
+        "feature": "housing_cost_burden_rate",
+        "label": "Housing cost burden",
+        "component": "affordability",
+        "mean_abs_shap": 0.7,
+        "share_pct": 4.7,
+        "direction": "-"
+      },
+      {
+        "feature": "vacancy_rate",
+        "label": "Vacancy rate",
+        "component": "affordability",
+        "mean_abs_shap": 0.66,
+        "share_pct": 4.4,
+        "direction": "-"
+      },
+      {
+        "feature": "schools_pc",
+        "label": "Schools",
+        "component": "amenities",
+        "mean_abs_shap": 0.61,
+        "share_pct": 4.1,
+        "direction": "+"
+      },
+      {
+        "feature": "commute_score",
+        "label": "Commute",
+        "component": "transportation",
+        "mean_abs_shap": 0.61,
+        "share_pct": 4.1,
+        "direction": "+"
+      },
+      {
+        "feature": "gini_index",
+        "label": "Income inequality (Gini)",
+        "component": "affordability",
+        "mean_abs_shap": 0.61,
+        "share_pct": 4.1,
+        "direction": "-"
+      },
+      {
+        "feature": "traffic_vkm_pc",
+        "label": "Traffic volume",
+        "component": "transportation",
+        "mean_abs_shap": 0.59,
+        "share_pct": 4.0,
+        "direction": "-"
+      },
+      {
+        "feature": "education_score",
+        "label": "Bachelor's+ rate",
+        "component": "opportunity",
+        "mean_abs_shap": 0.56,
+        "share_pct": 3.8,
+        "direction": "+"
+      },
+      {
+        "feature": "broadband_score",
+        "label": "Broadband",
+        "component": "amenities",
+        "mean_abs_shap": 0.55,
+        "share_pct": 3.7,
+        "direction": "+"
+      },
+      {
+        "feature": "crime_rate_pc",
+        "label": "Crime rate",
+        "component": "safety",
+        "mean_abs_shap": 0.53,
+        "share_pct": 3.5,
+        "direction": "-"
+      },
+      {
+        "feature": "chronic_disease_pc",
+        "label": "Chronic disease",
+        "component": "safety",
+        "mean_abs_shap": 0.53,
+        "share_pct": 3.6,
+        "direction": "-"
+      },
+      {
+        "feature": "grocery_pc",
+        "label": "Groceries",
+        "component": "amenities",
+        "mean_abs_shap": 0.5,
+        "share_pct": 3.4,
+        "direction": "+"
+      },
+      {
+        "feature": "entertainment_pc",
+        "label": "Entertainment venues",
+        "component": "amenities",
+        "mean_abs_shap": 0.39,
+        "share_pct": 2.6,
+        "direction": "+"
+      },
+      {
+        "feature": "homeownership_rate",
+        "label": "Homeownership",
+        "component": "affordability",
+        "mean_abs_shap": 0.39,
+        "share_pct": 2.6,
+        "direction": "+"
+      },
+      {
+        "feature": "restaurants_pc",
+        "label": "Restaurants/bars",
+        "component": "amenities",
+        "mean_abs_shap": 0.36,
+        "share_pct": 2.4,
+        "direction": "+"
+      },
+      {
+        "feature": "walkability_score",
+        "label": "Walk/Bike Score",
+        "component": "transportation",
+        "mean_abs_shap": 0.34,
+        "share_pct": 2.3,
+        "direction": "+"
+      },
+      {
+        "feature": "median_gross_rent",
+        "label": "Rent",
+        "component": "affordability",
+        "mean_abs_shap": 0.34,
+        "share_pct": 2.3,
+        "direction": "-"
+      },
+      {
+        "feature": "healthcare_pc",
+        "label": "Healthcare",
+        "component": "amenities",
+        "mean_abs_shap": 0.29,
+        "share_pct": 2.0,
+        "direction": "+"
+      },
+      {
+        "feature": "median_household_income",
+        "label": "Household income",
+        "component": "affordability",
+        "mean_abs_shap": 0.28,
+        "share_pct": 1.9,
+        "direction": "+"
+      },
+      {
+        "feature": "transit_stops_pc",
+        "label": "Transit stops",
+        "component": "transportation",
+        "mean_abs_shap": 0.25,
+        "share_pct": 1.7,
+        "direction": "+"
+      },
+      {
+        "feature": "median_home_value",
+        "label": "Home value",
+        "component": "affordability",
+        "mean_abs_shap": 0.23,
+        "share_pct": 1.6,
+        "direction": "+"
+      },
+      {
+        "feature": "poverty_rate",
+        "label": "Poverty rate",
+        "component": "affordability",
+        "mean_abs_shap": 0.12,
+        "share_pct": 0.8,
+        "direction": "-"
+      }
+    ],
+    "component_share_pct": {
+      "safety": 19.7,
+      "opportunity": 21.2,
+      "amenities": 18.2,
+      "transportation": 18.5,
+      "affordability": 22.4
+    }
+  },
+  "safety": {
+    "n_districts": 28,
+    "loo_r2": 0.965,
+    "score_sd": 14.53,
+    "drivers": [
+      {
+        "feature": "crime_rate_pc",
+        "label": "Crime rate",
+        "component": "safety",
+        "mean_abs_shap": 6.19,
+        "share_pct": 36.9,
+        "direction": "-"
+      },
+      {
+        "feature": "disaster_risk_pc",
+        "label": "Natural hazard risk",
+        "component": "safety",
+        "mean_abs_shap": 4.05,
+        "share_pct": 24.2,
+        "direction": "-"
+      },
+      {
+        "feature": "crash_rate_pc",
+        "label": "Ped/bike crashes",
+        "component": "safety",
+        "mean_abs_shap": 3.6,
+        "share_pct": 21.5,
+        "direction": "-"
+      },
+      {
+        "feature": "chronic_disease_pc",
+        "label": "Chronic disease",
+        "component": "safety",
+        "mean_abs_shap": 2.92,
+        "share_pct": 17.4,
+        "direction": "-"
+      }
+    ]
+  },
+  "opportunity": {
+    "n_districts": 28,
+    "loo_r2": 0.944,
+    "score_sd": 13.5,
+    "drivers": [
+      {
+        "feature": "permit_rate_pc",
+        "label": "Building permits",
+        "component": "opportunity",
+        "mean_abs_shap": 6.11,
+        "share_pct": 34.1,
+        "direction": "+"
+      },
+      {
+        "feature": "education_score",
+        "label": "Bachelor's+ rate",
+        "component": "opportunity",
+        "mean_abs_shap": 4.54,
+        "share_pct": 25.4,
+        "direction": "+"
+      },
+      {
+        "feature": "unemployment_rate_pc",
+        "label": "Unemployment",
+        "component": "opportunity",
+        "mean_abs_shap": 4.46,
+        "share_pct": 24.9,
+        "direction": "-"
+      },
+      {
+        "feature": "housing_inventory_pc",
+        "label": "For-sale listings",
+        "component": "opportunity",
+        "mean_abs_shap": 2.79,
+        "share_pct": 15.6,
+        "direction": "-"
+      }
+    ]
+  },
+  "amenities": {
+    "n_districts": 28,
+    "loo_r2": 0.985,
+    "score_sd": 9.91,
+    "drivers": [
+      {
+        "feature": "healthcare_pc",
+        "label": "Healthcare",
+        "component": "amenities",
+        "mean_abs_shap": 2.92,
+        "share_pct": 19.5,
+        "direction": "+"
+      },
+      {
+        "feature": "schools_pc",
+        "label": "Schools",
+        "component": "amenities",
+        "mean_abs_shap": 2.63,
+        "share_pct": 17.5,
+        "direction": "+"
+      },
+      {
+        "feature": "grocery_pc",
+        "label": "Groceries",
+        "component": "amenities",
+        "mean_abs_shap": 2.56,
+        "share_pct": 17.0,
+        "direction": "+"
+      },
+      {
+        "feature": "broadband_score",
+        "label": "Broadband",
+        "component": "amenities",
+        "mean_abs_shap": 2.53,
+        "share_pct": 16.9,
+        "direction": "+"
+      },
+      {
+        "feature": "entertainment_pc",
+        "label": "Entertainment venues",
+        "component": "amenities",
+        "mean_abs_shap": 2.28,
+        "share_pct": 15.1,
+        "direction": "+"
+      },
+      {
+        "feature": "restaurants_pc",
+        "label": "Restaurants/bars",
+        "component": "amenities",
+        "mean_abs_shap": 2.1,
+        "share_pct": 14.0,
+        "direction": "+"
+      }
+    ]
+  },
+  "transportation": {
+    "n_districts": 28,
+    "loo_r2": 0.931,
+    "score_sd": 6.39,
+    "drivers": [
+      {
+        "feature": "trail_km_pc",
+        "label": "Trails",
+        "component": "transportation",
+        "mean_abs_shap": 3.32,
+        "share_pct": 29.2,
+        "direction": "+"
+      },
+      {
+        "feature": "traffic_vkm_pc",
+        "label": "Traffic volume",
+        "component": "transportation",
+        "mean_abs_shap": 2.6,
+        "share_pct": 22.9,
+        "direction": "-"
+      },
+      {
+        "feature": "transit_stops_pc",
+        "label": "Transit stops",
+        "component": "transportation",
+        "mean_abs_shap": 2.35,
+        "share_pct": 20.7,
+        "direction": "+"
+      },
+      {
+        "feature": "commute_score",
+        "label": "Commute",
+        "component": "transportation",
+        "mean_abs_shap": 1.87,
+        "share_pct": 16.5,
+        "direction": "+"
+      },
+      {
+        "feature": "walkability_score",
+        "label": "Walk/Bike Score",
+        "component": "transportation",
+        "mean_abs_shap": 1.22,
+        "share_pct": 10.7,
+        "direction": "+"
+      }
+    ]
+  },
+  "affordability": {
+    "n_districts": 28,
+    "loo_r2": 0.992,
+    "score_sd": 10.85,
+    "drivers": [
+      {
+        "feature": "housing_cost_burden_rate",
+        "label": "Housing cost burden",
+        "component": "affordability",
+        "mean_abs_shap": 2.41,
+        "share_pct": 14.9,
+        "direction": "-"
+      },
+      {
+        "feature": "gini_index",
+        "label": "Income inequality (Gini)",
+        "component": "affordability",
+        "mean_abs_shap": 2.34,
+        "share_pct": 14.5,
+        "direction": "-"
+      },
+      {
+        "feature": "vacancy_rate",
+        "label": "Vacancy rate",
+        "component": "affordability",
+        "mean_abs_shap": 2.32,
+        "share_pct": 14.3,
+        "direction": "-"
+      },
+      {
+        "feature": "homeownership_rate",
+        "label": "Homeownership",
+        "component": "affordability",
+        "mean_abs_shap": 2.1,
+        "share_pct": 13.0,
+        "direction": "+"
+      },
+      {
+        "feature": "median_gross_rent",
+        "label": "Rent",
+        "component": "affordability",
+        "mean_abs_shap": 1.86,
+        "share_pct": 11.5,
+        "direction": "-"
+      },
+      {
+        "feature": "median_household_income",
+        "label": "Household income",
+        "component": "affordability",
+        "mean_abs_shap": 1.84,
+        "share_pct": 11.4,
+        "direction": "+"
+      },
+      {
+        "feature": "median_home_value",
+        "label": "Home value",
+        "component": "affordability",
+        "mean_abs_shap": 1.8,
+        "share_pct": 11.1,
+        "direction": "-"
+      },
+      {
+        "feature": "poverty_rate",
+        "label": "Poverty rate",
+        "component": "affordability",
+        "mean_abs_shap": 1.51,
+        "share_pct": 9.3,
+        "direction": "-"
+      }
+    ]
+  }
+}
