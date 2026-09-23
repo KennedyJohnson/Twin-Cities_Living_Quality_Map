@@ -54,6 +54,14 @@ def _fetch_all_features(out_fields="Neighborhood,Offense_Category,Occurred_Date,
     return features
 
 
+EXCLUDED_OFFENSE_CATEGORIES = {
+    "Subset of NIBRS Assault Offenses",
+    "Subset of NIBRS Robbery",
+    "Gunshot Wound Victims",
+    "Shots Fired Calls",
+}
+
+
 def clean_crime_mpls(crosswalk_file=CROSSWALK_FILE, granularity="district"):
     """
     Fetch Minneapolis crime data and assign district_id via crosswalk
@@ -67,6 +75,15 @@ def clean_crime_mpls(crosswalk_file=CROSSWALK_FILE, granularity="district"):
     """
     features = _fetch_all_features()
     crime = pd.DataFrame(features)
+    # Drop categories that aren't distinct reported offenses (2026-09 audit):
+    # the "Subset of NIBRS ..." rows (domestic aggravated assault,
+    # carjacking) and "Gunshot Wound Victims" matched an existing
+    # Assault/Robbery/Homicide record on the same day and address 99.5-100%
+    # of the time, so they double-count; "Shots Fired Calls" are 911/
+    # ShotSpotter activations, not confirmed incidents, with no equivalent
+    # in St. Paul's offense feed.
+    if "Offense_Category" in crime.columns:
+        crime = crime[~crime["Offense_Category"].astype(str).str.strip().isin(EXCLUDED_OFFENSE_CATEGORIES)]
 
     if "Neighborhood" not in crime.columns:
         raise ValueError("Minneapolis crime data missing Neighborhood column")

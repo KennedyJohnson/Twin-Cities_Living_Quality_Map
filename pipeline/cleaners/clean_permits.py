@@ -12,6 +12,15 @@ from core.load import load_permits, resolve_boundaries
 from core.date_window import filter_recent_years
 from shapely.geometry import Point, shape
 
+COMPARABLE_FOLDER_TYPES = {
+    "Building Permit",
+    "Mechanical Permit",
+    "Plumbing/Gasfitting/Inside Water Piping",
+    "Warm Air, Ventilation & General Sheet",
+    "Demolition Permit",
+}
+
+
 def clean_permits(granularity="district"):
     """
     Clean permits data. Use existing 'District Council' column if valid
@@ -25,6 +34,14 @@ def clean_permits(granularity="district"):
     # Restricted to a shared recent-years window so this compares fairly
     # against Minneapolis's shorter permit history — see core/date_window.py.
     permits = filter_recent_years(permits, "ISSUEDATE", epoch_ms=True)
+    # Keep only permit categories Minneapolis's CCS_Permits feed also
+    # contains (building/residential/commercial, plumbing, mechanical,
+    # demolition). St. Paul's feed additionally includes electrical (~24% of
+    # rows), fence, fire engineering, elevator, sign, and stucco permits,
+    # which Minneapolis doesn't publish in this feed -- counting them
+    # inflated St. Paul's permit rate and Opportunity index (2026-09 audit).
+    if "FOLDER_TYPE" in permits.columns:
+        permits = permits[permits["FOLDER_TYPE"].astype(str).str.strip().isin(COMPARABLE_FOLDER_TYPES)]
 
     # Ensure required columns exist
     required_cols = ["District Council", "Latitude", "Longtitude"]

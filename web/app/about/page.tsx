@@ -46,6 +46,16 @@ export default function AboutPage() {
         districts, ZIP codes, or buildings against each other, not as a verdict on any one of them.
       </p>
 
+      <p style={{ marginBottom: '20px', fontSize: '14px', color: '#666', fontStyle: 'italic' }}>
+        The score also tracks neighborhood demographics closely: across the 28 districts, poverty rate
+        and racial/ethnic diversity alone explain about 60% of the variation in the overall score.
+        Part of that reflects real differences in conditions, but part is how the inputs are built. CDC
+        chronic-disease figures are modeled partly from demographics (they correlate −0.85 with
+        bachelor&apos;s-degree share), poverty and unemployment each appear directly, and police-reported
+        crime depends partly on where reporting and enforcement are concentrated. Read a low score as
+        &quot;these measures are less favorable here,&quot; not as a judgment of the people who live there.
+      </p>
+
       <h2 style={{ fontSize: '18px', fontWeight: 600, marginTop: '32px', marginBottom: '12px' }}>
         Why Just St. Paul and Minneapolis?
       </h2>

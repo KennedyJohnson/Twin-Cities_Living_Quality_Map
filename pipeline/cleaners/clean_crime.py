@@ -17,6 +17,9 @@ from shapely.geometry import Point, shape
 
 PIPELINE_DIR = Path(__file__).resolve().parent.parent
 
+NON_CRIME_INCIDENTS = {"Proactive Police Visit", "Community Event"}
+
+
 def clean_crime(crosswalk_file="crosswalks/crime_neighborhood_to_district.json", granularity="district"):
     """
     Clean crime data and assign district_id via crosswalk (district
@@ -29,6 +32,14 @@ def clean_crime(crosswalk_file="crosswalks/crime_neighborhood_to_district.json",
         DataFrame with columns: incident_id (or index), district_id, date, ...
     """
     crime = load_crime()
+    # St. Paul's Crime Incident Report feed also logs police activity that
+    # isn't a reported crime -- "Proactive Police Visit" and "Community
+    # Event" were ~53% of rows in the scoring window (2026-09 audit).
+    # Counting them roughly doubled St. Paul's crime rate relative to
+    # Minneapolis's offense-only feed and made the rate partly a measure of
+    # patrol intensity rather than crime.
+    if "INCIDENT" in crime.columns:
+        crime = crime[~crime["INCIDENT"].astype(str).str.strip().isin(NON_CRIME_INCIDENTS)]
     # Restricted to a shared recent-years window so St. Paul's longer crime
     # history doesn't inflate its rate relative to Minneapolis's shorter
     # one — see core/date_window.py.

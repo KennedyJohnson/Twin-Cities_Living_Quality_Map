@@ -62,6 +62,13 @@ def clean_permits_mpls(crosswalk_file=CROSSWALK_FILE, granularity="district"):
     """
     features = _fetch_all_features()
     permits = pd.DataFrame(features)
+    # The CCS_Permits feed repeats a permit once per parcel it covers (e.g.
+    # 1201 Yale Pl: 13 permits x 510 condo-unit rows = 6,630 rows, 9% of all
+    # MPLS permits in the window). ~19% of rows were such repeats; count each
+    # permit once so a single multi-unit building can't dominate its
+    # community's permit rate. St. Paul's feed has one row per permit.
+    if "permitNumber" in permits.columns:
+        permits = permits.drop_duplicates(subset="permitNumber")
 
     if "Neighborhoods_Desc" not in permits.columns:
         raise ValueError("Minneapolis permits data missing Neighborhoods_Desc column")
