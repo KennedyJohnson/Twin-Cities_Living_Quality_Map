@@ -16,11 +16,14 @@ interface Results {
     by_city?: Record<string, { rmse: number; mape: number; n: number }>;
   }[];
   predictions: { city: string; district_id: number; actual: number; preds: Record<string, number> }[];
+  naive_baselines?: { model: string; mean_rmse: number; std_rmse: number; pooled_r2: number;
+    by_city: Record<string, { rmse: number; mape: number; n: number }> }[];
   learning_curve_years: ModelPoint[];
   learning_curve_features: ModelPoint[];
 }
 
 const MODEL = 'Lasso';
+const NAIVE = 'Average growth';
 const PURPLE = '#756bb1';
 
 const FEATURE_LABELS: Record<string, string> = {
@@ -124,6 +127,55 @@ export default function HomeValueModelPage() {
             doesn&apos;t need.
           </p>
 
+          {data.naive_baselines && lasso.by_city && (
+            <>
+              <H2>Compared to Naive Forecasts</H2>
+              <p style={note}>
+                Two forecasts that use no features, scored the same way: <strong>No change</strong> (next
+                year&apos;s value = this year&apos;s) and <strong>Average growth</strong> (every district grows at
+                the training years&apos; average rate).
+              </p>
+              <div style={{ overflowX: 'auto', marginBottom: '12px' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
+                  <thead>
+                    <tr style={{ borderBottom: '2px solid #ddd', textAlign: 'right' }}>
+                      <th style={{ textAlign: 'left', padding: '6px 8px' }}>Forecast</th>
+                      <th style={{ padding: '6px 8px' }}>Mean RMSE</th>
+                      <th style={{ padding: '6px 8px' }}>R²</th>
+                      <th style={{ padding: '6px 8px' }}>St. Paul % error</th>
+                      <th style={{ padding: '6px 8px' }}>Mpls % error</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {[...data.naive_baselines, lasso].map((r) => (
+                      <tr
+                        key={r.model}
+                        style={{
+                          borderBottom: '1px solid #eee', textAlign: 'right',
+                          fontWeight: r.model === MODEL ? 700 : 400,
+                          color: r.model === MODEL ? PURPLE : '#333',
+                        }}
+                      >
+                        <td style={{ textAlign: 'left', padding: '6px 8px' }}>{r.model}</td>
+                        <td style={{ padding: '6px 8px' }}>{fmtDollar(r.mean_rmse)}</td>
+                        <td style={{ padding: '6px 8px' }}>{r.pooled_r2.toFixed(3)}</td>
+                        <td style={{ padding: '6px 8px' }}>{r.by_city!.stpaul.mape.toFixed(2)}%</td>
+                        <td style={{ padding: '6px 8px' }}>{r.by_city!.mpls.mape.toFixed(2)}%</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <p style={note}>
+                Lasso cuts error by about 40% against No change, but most of that gain comes from learning the
+                citywide growth rate, which Average growth also captures. Against Average growth, Lasso is only
+                about 3% better overall, and slightly worse in St. Paul. So the model is good at forecasting
+                price levels, but it adds little skill at telling <em>which</em> districts will grow faster than
+                the average.
+              </p>
+            </>
+          )}
+
           <H2>Feature Selection</H2>
           <div style={{ width: '100%', height: 290, marginBottom: '8px' }}>
             <ResponsiveContainer>
@@ -167,6 +219,7 @@ export default function HomeValueModelPage() {
           <H2>District Predictions ({data.generated_from.test_transition})</H2>
           <p style={note}>
             Error is (prediction − actual) / actual. Red means an overprediction and blue an underprediction.
+            The gray column is the Average growth forecast, for reference.
           </p>
           <div style={{ overflowX: 'auto', marginBottom: '24px' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
@@ -175,7 +228,8 @@ export default function HomeValueModelPage() {
                   <th style={{ textAlign: 'left', padding: '6px 8px' }}>District</th>
                   <th style={{ padding: '6px 8px' }}>Actual</th>
                   <th style={{ padding: '6px 8px' }}>Predicted</th>
-                  <th style={{ padding: '6px 8px' }}>Error</th>
+                  <th style={{ padding: '6px 8px' }}>Lasso error</th>
+                  <th style={{ padding: '6px 8px', color: '#888' }}>Avg. growth error</th>
                 </tr>
               </thead>
               <tbody>
@@ -185,6 +239,8 @@ export default function HomeValueModelPage() {
                   .map((p) => {
                     const pred = p.preds[MODEL];
                     const e = ((pred - p.actual) / p.actual) * 100;
+                    const naive = p.preds[NAIVE];
+                    const ne = naive != null ? ((naive - p.actual) / p.actual) * 100 : null;
                     return (
                       <tr key={`${p.city}-${p.district_id}`} style={{ borderBottom: '1px solid #eee', textAlign: 'right' }}>
                         <td style={{ textAlign: 'left', padding: '6px 8px' }}>
@@ -194,6 +250,9 @@ export default function HomeValueModelPage() {
                         <td style={{ padding: '6px 8px' }}>{fmtDollar(pred)}</td>
                         <td style={{ padding: '6px 8px', color: e > 0 ? '#c0392b' : '#2166ac' }}>
                           {e > 0 ? '+' : ''}{e.toFixed(1)}%
+                        </td>
+                        <td style={{ padding: '6px 8px', color: '#888' }}>
+                          {ne == null ? '–' : `${ne > 0 ? '+' : ''}${ne.toFixed(1)}%`}
                         </td>
                       </tr>
                     );

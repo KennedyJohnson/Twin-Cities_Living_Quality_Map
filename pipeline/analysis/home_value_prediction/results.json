@@ -461,6 +461,104 @@
       ]
     }
   ],
+  "naive_baselines": [
+    {
+      "model": "No change",
+      "mean_rmse": 21677.9,
+      "std_rmse": 7736.8,
+      "pooled_r2": 0.944,
+      "by_city": {
+        "mpls": {
+          "rmse": 24478.9,
+          "mape": 6.92,
+          "n": 77
+        },
+        "stpaul": {
+          "rmse": 22019.7,
+          "mape": 6.64,
+          "n": 119
+        }
+      },
+      "folds": [
+        {
+          "test_year": 2017,
+          "rmse": 12429.0
+        },
+        {
+          "test_year": 2018,
+          "rmse": 19679.6
+        },
+        {
+          "test_year": 2019,
+          "rmse": 21460.5
+        },
+        {
+          "test_year": 2020,
+          "rmse": 16650.1
+        },
+        {
+          "test_year": 2021,
+          "rmse": 39104.8
+        },
+        {
+          "test_year": 2022,
+          "rmse": 21123.9
+        },
+        {
+          "test_year": 2023,
+          "rmse": 21297.5
+        }
+      ]
+    },
+    {
+      "model": "Average growth",
+      "mean_rmse": 13449.3,
+      "std_rmse": 4823.5,
+      "pooled_r2": 0.979,
+      "by_city": {
+        "mpls": {
+          "rmse": 15008.3,
+          "mape": 3.37,
+          "n": 77
+        },
+        "stpaul": {
+          "rmse": 13802.1,
+          "mape": 3.49,
+          "n": 119
+        }
+      },
+      "folds": [
+        {
+          "test_year": 2017,
+          "rmse": 10408.1
+        },
+        {
+          "test_year": 2018,
+          "rmse": 11844.8
+        },
+        {
+          "test_year": 2019,
+          "rmse": 17924.2
+        },
+        {
+          "test_year": 2020,
+          "rmse": 9568.1
+        },
+        {
+          "test_year": 2021,
+          "rmse": 23346.2
+        },
+        {
+          "test_year": 2022,
+          "rmse": 9847.9
+        },
+        {
+          "test_year": 2023,
+          "rmse": 11205.7
+        }
+      ]
+    }
+  ],
   "test_metrics": {
     "Lasso": {
       "rmse": 10396.0,
@@ -477,6 +575,14 @@
     "Gradient Boosting": {
       "rmse": 19003.2,
       "r2": 0.967
+    },
+    "No change": {
+      "rmse": 21297.5,
+      "r2": 0.958
+    },
+    "Average growth": {
+      "rmse": 11205.7,
+      "r2": 0.988
     }
   },
   "predictions": [
@@ -488,7 +594,9 @@
         "Lasso": 576591,
         "Bayesian Ridge": 578794,
         "Gaussian Process": 577080,
-        "Gradient Boosting": 526374
+        "Gradient Boosting": 526374,
+        "No change": 547164,
+        "Average growth": 588338
       }
     },
     {
@@ -499,7 +607,9 @@
         "Lasso": 241761,
         "Bayesian Ridge": 241984,
         "Gaussian Process": 241148,
-        "Gradient Boosting": 240712
+        "Gradient Boosting": 240712,
+        "No change": 224488,
+        "Average growth": 241381
       }
     },
     {
@@ -510,7 +620,9 @@
         "Lasso": 391911,
         "Bayesian Ridge": 392912,
         "Gaussian Process": 393394,
-        "Gradient Boosting": 382314
+        "Gradient Boosting": 382314,
+        "No change": 369188,
+        "Average growth": 396969
       }
     },
     {
@@ -521,7 +633,9 @@
         "Lasso": 358016,
         "Bayesian Ridge": 358215,
         "Gaussian Process": 358009,
-        "Gradient Boosting": 352733
+        "Gradient Boosting": 352733,
+        "No change": 336523,
+        "Average growth": 361846
       }
     },
     {
@@ -532,7 +646,9 @@
         "Lasso": 263827,
         "Bayesian Ridge": 263995,
         "Gaussian Process": 264238,
-        "Gradient Boosting": 266588
+        "Gradient Boosting": 266588,
+        "No change": 245753,
+        "Average growth": 264246
       }
     },
     {
@@ -543,7 +659,9 @@
         "Lasso": 396205,
         "Bayesian Ridge": 397367,
         "Gaussian Process": 397777,
-        "Gradient Boosting": 391610
+        "Gradient Boosting": 391610,
+        "No change": 373326,
+        "Average growth": 401419
       }
     },
     {
@@ -554,7 +672,9 @@
         "Lasso": 350588,
         "Bayesian Ridge": 351288,
         "Gaussian Process": 351825,
-        "Gradient Boosting": 340080
+        "Gradient Boosting": 340080,
+        "No change": 329365,
+        "Average growth": 354150
       }
     },
     {
@@ -565,7 +685,9 @@
         "Lasso": 271789,
         "Bayesian Ridge": 271562,
         "Gaussian Process": 272647,
-        "Gradient Boosting": 270877
+        "Gradient Boosting": 270877,
+        "No change": 253426,
+        "Average growth": 272496
       }
     },
     {
@@ -576,7 +698,9 @@
         "Lasso": 337941,
         "Bayesian Ridge": 338185,
         "Gaussian Process": 338690,
-        "Gradient Boosting": 338634
+        "Gradient Boosting": 338634,
+        "No change": 317177,
+        "Average growth": 341044
       }
     },
     {
@@ -587,7 +711,9 @@
         "Lasso": 541436,
         "Bayesian Ridge": 543769,
         "Gaussian Process": 543836,
-        "Gradient Boosting": 523699
+        "Gradient Boosting": 523699,
+        "No change": 513285,
+        "Average growth": 551909
       }
     },
     {
@@ -598,7 +724,9 @@
         "Lasso": 393389,
         "Bayesian Ridge": 394172,
         "Gaussian Process": 394450,
-        "Gradient Boosting": 382314
+        "Gradient Boosting": 382314,
+        "No change": 370612,
+        "Average growth": 398500
       }
     },
     {
@@ -609,7 +737,9 @@
         "Lasso": 285349,
         "Bayesian Ridge": 285942,
         "Gaussian Process": 285108,
-        "Gradient Boosting": 287867
+        "Gradient Boosting": 287867,
+        "No change": 266494,
+        "Average growth": 286548
       }
     },
     {
@@ -620,7 +750,9 @@
         "Lasso": 246053,
         "Bayesian Ridge": 246259,
         "Gaussian Process": 245706,
-        "Gradient Boosting": 255528
+        "Gradient Boosting": 255528,
+        "No change": 228624,
+        "Average growth": 245828
       }
     },
     {
@@ -631,7 +763,9 @@
         "Lasso": 274753,
         "Bayesian Ridge": 275288,
         "Gaussian Process": 274274,
-        "Gradient Boosting": 273516
+        "Gradient Boosting": 273516,
+        "No change": 256283,
+        "Average growth": 275568
       }
     },
     {
@@ -642,7 +776,9 @@
         "Lasso": 247936,
         "Bayesian Ridge": 248106,
         "Gaussian Process": 247810,
-        "Gradient Boosting": 255528
+        "Gradient Boosting": 255528,
+        "No change": 230439,
+        "Average growth": 247779
       }
     },
     {
@@ -653,7 +789,9 @@
         "Lasso": 245682,
         "Bayesian Ridge": 245936,
         "Gaussian Process": 245109,
-        "Gradient Boosting": 255528
+        "Gradient Boosting": 255528,
+        "No change": 228267,
+        "Average growth": 245444
       }
     },
     {
@@ -664,7 +802,9 @@
         "Lasso": 233988,
         "Bayesian Ridge": 234149,
         "Gaussian Process": 233299,
-        "Gradient Boosting": 228476
+        "Gradient Boosting": 228476,
+        "No change": 216997,
+        "Average growth": 233326
       }
     },
     {
@@ -675,7 +815,9 @@
         "Lasso": 237454,
         "Bayesian Ridge": 237644,
         "Gaussian Process": 236799,
-        "Gradient Boosting": 238372
+        "Gradient Boosting": 238372,
+        "No change": 220338,
+        "Average growth": 236918
       }
     },
     {
@@ -686,7 +828,9 @@
         "Lasso": 378651,
         "Bayesian Ridge": 379801,
         "Gaussian Process": 379978,
-        "Gradient Boosting": 371944
+        "Gradient Boosting": 371944,
+        "No change": 356409,
+        "Average growth": 383229
       }
     },
     {
@@ -697,7 +841,9 @@
         "Lasso": 306647,
         "Bayesian Ridge": 307255,
         "Gaussian Process": 307167,
-        "Gradient Boosting": 305514
+        "Gradient Boosting": 305514,
+        "No change": 287019,
+        "Average growth": 308617
       }
     },
     {
@@ -708,7 +854,9 @@
         "Lasso": 317352,
         "Bayesian Ridge": 317662,
         "Gaussian Process": 318391,
-        "Gradient Boosting": 307200
+        "Gradient Boosting": 307200,
+        "No change": 297335,
+        "Average growth": 319709
       }
     },
     {
@@ -719,7 +867,9 @@
         "Lasso": 307858,
         "Bayesian Ridge": 308399,
         "Gaussian Process": 308572,
-        "Gradient Boosting": 305514
+        "Gradient Boosting": 305514,
+        "No change": 288186,
+        "Average growth": 309872
       }
     },
     {
@@ -730,7 +880,9 @@
         "Lasso": 391108,
         "Bayesian Ridge": 392077,
         "Gaussian Process": 392560,
-        "Gradient Boosting": 382314
+        "Gradient Boosting": 382314,
+        "No change": 368414,
+        "Average growth": 396137
       }
     },
     {
@@ -741,7 +893,9 @@
         "Lasso": 427195,
         "Bayesian Ridge": 428678,
         "Gaussian Process": 429021,
-        "Gradient Boosting": 431959
+        "Gradient Boosting": 431959,
+        "No change": 403191,
+        "Average growth": 433531
       }
     },
     {
@@ -752,7 +906,9 @@
         "Lasso": 492706,
         "Bayesian Ridge": 494578,
         "Gaussian Process": 494814,
-        "Gradient Boosting": 486460
+        "Gradient Boosting": 486460,
+        "No change": 466324,
+        "Average growth": 501415
       }
     },
     {
@@ -763,7 +919,9 @@
         "Lasso": 402974,
         "Bayesian Ridge": 404342,
         "Gaussian Process": 404523,
-        "Gradient Boosting": 391830
+        "Gradient Boosting": 391830,
+        "No change": 379849,
+        "Average growth": 408432
       }
     },
     {
@@ -774,7 +932,9 @@
         "Lasso": 569870,
         "Bayesian Ridge": 572428,
         "Gaussian Process": 572279,
-        "Gradient Boosting": 523699
+        "Gradient Boosting": 523699,
+        "No change": 540687,
+        "Average growth": 581373
       }
     },
     {
@@ -785,7 +945,9 @@
         "Lasso": 286173,
         "Bayesian Ridge": 286670,
         "Gaussian Process": 286324,
-        "Gradient Boosting": 287867
+        "Gradient Boosting": 287867,
+        "No change": 267288,
+        "Average growth": 287401
       }
     }
   ],

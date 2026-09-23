@@ -177,40 +177,59 @@ def evaluate(model, scaler, df, features, is_lasso):
     }, pred
 
 
-def run_model_bakeoff(df, features):
-    """Every model, trained on 6 years and tested on the 7th, for all 7
-    years; ranked by mean RMSE across folds."""
-    results = []
-    years = sorted(df["year"].unique())
-    for name in MODEL_CANDIDATES:
-        folds, all_true, all_pred, all_city = [], [], [], []
-        for y in years:
-            train, test = df[df["year"] != y], df[df["year"] == y]
-            pred = fit_predict(name, train, test, features)
-            folds.append({"test_year": int(y), "rmse": round(rmse(test["label"], pred), 1)})
-            all_true.extend(test["label"]); all_pred.extend(pred); all_city.extend(test["city"])
-        fold_rmses = [f["rmse"] for f in folds]
-        # Per-city accuracy pooled over all 7 held-out folds. MAPE is the
-        # headline since the two cities sit at different price levels.
-        t, p_, c = np.array(all_true), np.array(all_pred), np.array(all_city)
-        by_city = {
+def loyo_summary(df, predict):
+    """Leave-one-year-out metrics for any predict(train, test) -> array:
+    mean/std fold RMSE, pooled R^2, and per-city RMSE/MAPE (MAPE is the
+    headline per city since the two cities sit at different price levels)."""
+    folds, all_true, all_pred, all_city = [], [], [], []
+    for y in sorted(df["year"].unique()):
+        train, test = df[df["year"] != y], df[df["year"] == y]
+        pred = np.asarray(predict(train, test))
+        folds.append({"test_year": int(y), "rmse": round(rmse(test["label"], pred), 1)})
+        all_true.extend(test["label"]); all_pred.extend(pred); all_city.extend(test["city"])
+    fold_rmses = [f["rmse"] for f in folds]
+    t, p_, c = np.array(all_true), np.array(all_pred), np.array(all_city)
+    return {
+        "mean_rmse": round(float(np.mean(fold_rmses)), 1),
+        "std_rmse": round(float(np.std(fold_rmses)), 1),
+        "pooled_r2": round(float(r2_score(t, p_)), 3),
+        "by_city": {
             city: {
                 "rmse": round(rmse(t[c == city], p_[c == city]), 1),
                 "mape": round(float(np.mean(np.abs(p_[c == city] - t[c == city]) / t[c == city]) * 100), 2),
                 "n": int((c == city).sum()),
             }
             for city in sorted(set(all_city))
-        }
-        results.append({
-            "model": name,
-            "mean_rmse": round(float(np.mean(fold_rmses)), 1),
-            "std_rmse": round(float(np.std(fold_rmses)), 1),
-            "pooled_r2": round(float(r2_score(all_true, all_pred)), 3),
-            "by_city": by_city,
-            "folds": folds,
-        })
+        },
+        "folds": folds,
+    }
+
+
+def run_model_bakeoff(df, features):
+    """Every model, trained on 6 years and tested on the 7th, for all 7
+    years; ranked by mean RMSE across folds."""
+    results = [
+        {"model": name, **loyo_summary(df, lambda tr, te, n=name: fit_predict(n, tr, te, features))}
+        for name in MODEL_CANDIDATES
+    ]
     results.sort(key=lambda r: r["mean_rmse"])
     return results
+
+
+# Naive reference forecasts -- no features, no fitting beyond one average.
+# "No change" is the random-walk forecast; "Average growth" applies the
+# training years' mean year-over-year growth to every district equally, so
+# beating it means the model can tell districts' growth apart, not just
+# extrapolate the citywide trend.
+def naive_no_change(train, test):
+    return test["median_home_value"].to_numpy()
+
+
+def naive_avg_growth(train, test):
+    return test["median_home_value"].to_numpy() * (train["label"] / train["median_home_value"]).mean()
+
+
+NAIVE_BASELINES = {"No change": naive_no_change, "Average growth": naive_avg_growth}
 
 
 def learning_curve_years(train_df, test_df, features, models):
@@ -261,6 +280,11 @@ def main():
     featured = top + ([CONTRAST_MODEL] if CONTRAST_MODEL not in top else [])
 
     preds = {name: fit_predict(name, train_df, test_df, selected) for name in featured}
+    for name, fn in NAIVE_BASELINES.items():
+        preds[name] = fn(train_df, test_df)
+    baselines = [{"model": name, **loyo_summary(df, fn)} for name, fn in NAIVE_BASELINES.items()]
+    for b in baselines:
+        print(f"  [naive] {b['model']:<14} mean RMSE ${b['mean_rmse']:>9,.0f} (+/- ${b['std_rmse']:,.0f})  R2 {b['pooled_r2']:.3f}")
     test_metrics = {
         name: {
             "rmse": round(rmse(test_df["label"], p), 1),
@@ -273,7 +297,7 @@ def main():
             "city": row["city"],
             "district_id": int(row["district_id"]),
             "actual": round(float(row["label"])),
-            "preds": {name: round(float(preds[name][i])) for name in featured},
+            "preds": {name: round(float(p[i])) for name, p in preds.items()},
         }
         for i, row in test_df.iterrows()
     ]
@@ -289,6 +313,7 @@ def main():
         "top_models": top,
         "featured_models": featured,
         "model_bakeoff": bakeoff,
+        "naive_baselines": baselines,
         "test_metrics": test_metrics,
         "predictions": predictions,
         "learning_curve_years": learning_curve_years(train_df, test_df, selected, featured),
