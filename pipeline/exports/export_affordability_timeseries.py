@@ -23,7 +23,15 @@ from cleaners.clean_housing_price import clean_housing_price
 PIPELINE_DIR = Path(__file__).resolve().parent.parent
 OUT_DIR = PIPELINE_DIR.parent / "web" / "public" / "data"
 
-YEARS = [2018, 2019, 2020, 2021, 2022]
+
+# 2017-2024: matches the wider panel pulled for
+# analysis/home_value_prediction (same ACS loader, same confirmed-working
+# year range — 2017 is the earliest vintage with stable variable codes for
+# every field this pipeline uses; see that module's fetch_panel.py).
+# Widened from the original 2018-2022 (2026-09-22) now that more years are
+# confirmed to fetch cleanly, so the site's own trend charts show as much
+# history as the model-comparison analysis does.
+YEARS = [2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024]
 
 
 def export_city_timeseries(city):

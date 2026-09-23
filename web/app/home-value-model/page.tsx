@@ -88,7 +88,7 @@ export default function HomeValueModelPage() {
       <p style={{ marginBottom: '20px' }}>
         The map itself scores districts on a single blended Living Quality Score. This page asks a
         narrower, more predictive question: given a district&apos;s features in one year, how well
-        can a model predict its <strong>median home value the following year</strong> — and does a
+        can a model predict its <strong>median home value the following year</strong>, and does a
         more flexible model (gradient-boosted trees) actually beat a simple regularized linear one
         (Lasso) here, given how little data 28 districts and a handful of years really is?
       </p>
@@ -100,22 +100,22 @@ export default function HomeValueModelPage() {
         <>
           {h2('The Data')}
           <p style={{ marginBottom: '20px' }}>
-            The site&apos;s own affordability trend charts only cover 2018–2022 (5 years) —
+            The site&apos;s own affordability trend charts only cover 2018–2022 (5 years), which is
             enough for a line chart, not enough to train a model. This analysis instead pulls the
             same Census ACS loader across {data.generated_from.panel_years[0]}–
             {data.generated_from.panel_years[data.generated_from.panel_years.length - 1]} (
             {data.generated_from.panel_years.length} years), across all {data.generated_from.n_districts}{' '}
-            districts in both cities — {data.generated_from.train_rows} training district-year
+            districts in both cities: {data.generated_from.train_rows} training district-year
             transitions plus a held-out test transition ({data.generated_from.test_transition}) that
             was never touched during feature selection or model tuning. Each row predicts next-year
-            median home value from this year&apos;s features — a genuine forward-in-time
+            median home value from this year&apos;s features, a genuine forward-in-time
             prediction, not a same-year correlation.
           </p>
 
           {h2('Feature Selection')}
           <p style={{ marginBottom: '20px' }}>
             Rather than throw every available Census variable at the model, features were added one
-            at a time — greedily, starting from a mean-only baseline — keeping whichever addition
+            at a time, greedily, starting from a mean-only baseline, keeping whichever addition
             most improved leave-one-year-out cross-validated error on the training years, and
             stopping once nothing left improved it. {data.feature_selection.selected.length} of{' '}
             {data.feature_selection.candidates.length} candidate variables survived:
@@ -175,7 +175,7 @@ export default function HomeValueModelPage() {
             </ResponsiveContainer>
           </div>
           <p style={{ marginBottom: '20px', fontSize: '14px', color: '#666' }}>
-            Neither model improved with more years here — both got worse as older (2017–2019)
+            Neither model improved with more years here; both got worse as older (2017–2019)
             years were added. The likely reason: 2020–2022&apos;s pandemic-era price boom was a
             regime shift, not a continuation of the pre-2020 trend, so older years taught a
             relationship that no longer held by the test period. Recency mattered more than row
@@ -205,7 +205,7 @@ export default function HomeValueModelPage() {
           </div>
           <p style={{ marginBottom: '20px', fontSize: '14px', color: '#666' }}>
             Adding the extra ACS variables (education, commute, diversity, vacancy, Gini, broadband)
-            on top of the 6-variable affordability core noticeably reduced Lasso&apos;s error — more
+            on top of the 6-variable affordability core noticeably reduced Lasso&apos;s error. More
             columns helped, where more years didn&apos;t. The forward-selected subset gets nearly
             the same accuracy as the full extra set with fewer features, which is the point of
             selecting by cross-validated error rather than including everything available.
@@ -214,50 +214,83 @@ export default function HomeValueModelPage() {
           {h2('Why Didn’t Boosting Win?')}
           <p style={{ marginBottom: '20px' }}>
             Gradient boosting never beat Lasso, in any configuration tried above. This isn&apos;t a
-            tuning failure — it&apos;s the expected outcome at this sample size. With roughly 170
+            tuning failure; it&apos;s the expected outcome at this sample size. With roughly 170
             training rows, a tree ensemble has enough flexibility to fit noise as easily as signal,
             while a regularized linear model&apos;s bias toward simpler relationships is exactly
             what a small, noisy panel needs. Boosting would likely close the gap with meaningfully
-            more district-years of history than this pipeline currently has — worth revisiting as
+            more district-years of history than this pipeline currently has, worth revisiting as
             more annual refreshes accumulate.
           </p>
 
           {h2('Test-Year Predictions vs. Actual')}
+          <p style={{ marginBottom: '12px', fontSize: '14px', color: '#666' }}>
+            Error = prediction − actual, so a positive number means the model overshot. The
+            smaller (better) of the two errors is bolded in each row.
+          </p>
           <div style={{ overflowX: 'auto', marginBottom: '24px' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
               <thead>
                 <tr style={{ borderBottom: '2px solid #ddd', textAlign: 'right' }}>
                   <th style={{ textAlign: 'left', padding: '6px 8px' }}>District</th>
                   <th style={{ padding: '6px 8px' }}>Actual</th>
-                  <th style={{ padding: '6px 8px' }}>Lasso</th>
-                  <th style={{ padding: '6px 8px' }}>GBM</th>
-                  <th style={{ padding: '6px 8px' }}>YoY %</th>
+                  <th style={{ padding: '6px 8px' }} colSpan={2}>Lasso</th>
+                  <th style={{ padding: '6px 8px' }} colSpan={2}>Gradient Boosting</th>
+                </tr>
+                <tr style={{ borderBottom: '2px solid #ddd', textAlign: 'right', fontSize: '11px', color: '#888' }}>
+                  <th style={{ padding: '0 8px 6px' }} />
+                  <th style={{ padding: '0 8px 6px' }} />
+                  <th style={{ padding: '0 8px 6px' }}>pred.</th>
+                  <th style={{ padding: '0 8px 6px' }}>error</th>
+                  <th style={{ padding: '0 8px 6px' }}>pred.</th>
+                  <th style={{ padding: '0 8px 6px' }}>error</th>
                 </tr>
               </thead>
               <tbody>
                 {data.predictions
                   .slice()
                   .sort((a, b) => a.city.localeCompare(b.city) || a.district_id - b.district_id)
-                  .map((p) => (
-                    <tr key={`${p.city}-${p.district_id}`} style={{ borderBottom: '1px solid #eee', textAlign: 'right' }}>
-                      <td style={{ textAlign: 'left', padding: '6px 8px' }}>
-                        {p.city === 'stpaul' ? 'St. Paul' : 'Mpls'} {p.district_id}
+                  .map((p) => {
+                    const lassoErr = p.lasso_pred - p.actual;
+                    const gbmErr = p.gbm_pred - p.actual;
+                    const lassoBetter = Math.abs(lassoErr) <= Math.abs(gbmErr);
+                    const errCell = (err: number, isBetter: boolean) => (
+                      <td
+                        style={{
+                          padding: '6px 8px',
+                          fontWeight: isBetter ? 700 : 400,
+                          color: err > 0 ? '#c0392b' : err < 0 ? '#2166ac' : '#666',
+                        }}
+                      >
+                        {err > 0 ? '+' : ''}
+                        {fmtDollar(err)}
                       </td>
-                      <td style={{ padding: '6px 8px' }}>{fmtDollar(p.actual)}</td>
-                      <td style={{ padding: '6px 8px' }}>{fmtDollar(p.lasso_pred)}</td>
-                      <td style={{ padding: '6px 8px' }}>{fmtDollar(p.gbm_pred)}</td>
-                      <td style={{ padding: '6px 8px' }}>{p.appreciation_pct > 0 ? '+' : ''}{p.appreciation_pct}%</td>
-                    </tr>
-                  ))}
+                    );
+                    return (
+                      <tr key={`${p.city}-${p.district_id}`} style={{ borderBottom: '1px solid #eee', textAlign: 'right' }}>
+                        <td style={{ textAlign: 'left', padding: '6px 8px' }}>
+                          {p.city === 'stpaul' ? 'St. Paul' : 'Mpls'} {p.district_id}
+                        </td>
+                        <td style={{ padding: '6px 8px' }}>{fmtDollar(p.actual)}</td>
+                        <td style={{ padding: '6px 8px' }}>{fmtDollar(p.lasso_pred)}</td>
+                        {errCell(lassoErr, lassoBetter)}
+                        <td style={{ padding: '6px 8px' }}>{fmtDollar(p.gbm_pred)}</td>
+                        {errCell(gbmErr, !lassoBetter)}
+                      </tr>
+                    );
+                  })}
               </tbody>
             </table>
           </div>
+          <p style={{ marginBottom: '20px', fontSize: '13px', color: '#888' }}>
+            Red = overpredicted, blue = underpredicted. Bolded error is the closer prediction for
+            that district.
+          </p>
 
           {h2('Honest Limitations')}
           <ul style={{ marginBottom: '24px', paddingLeft: '20px' }}>
-            <li>28 districts and a handful of years is a small panel — these results describe what worked on this specific dataset, not a general claim that linear models always beat boosting.</li>
+            <li>28 districts and a handful of years is a small panel; these results describe what worked on this specific dataset, not a general claim that linear models always beat boosting.</li>
             <li>Crime, permits, and OpenStreetMap-derived amenities aren&apos;t included as features: they don&apos;t have a matching year-by-year history over this same window, so adding them as static values would misrepresent them as time-varying.</li>
-            <li>A single held-out year is one test, not a distribution — a different test year could rank the models differently.</li>
+            <li>A single held-out year is one test, not a distribution; a different test year could rank the models differently.</li>
           </ul>
 
           <p style={{ fontSize: '13px', color: '#888', marginBottom: '8px' }}>
