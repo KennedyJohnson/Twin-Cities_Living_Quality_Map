@@ -538,6 +538,7 @@ export default function Home() {
           }}
         >
           <Link href="/trends" style={{ color: '#756bb1', fontWeight: 600 }}>Trends</Link>
+          <Link href="/home-value-model" style={{ color: '#756bb1', fontWeight: 600 }}>ML Model</Link>
           <Link href="/about" style={{ color: '#756bb1', fontWeight: 600 }}>About</Link>
         </div>
       </div>

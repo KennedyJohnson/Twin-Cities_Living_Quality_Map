@@ -34,7 +34,9 @@ export default function AboutPage() {
         MnDOT/CDC figures into a single comparable Living Quality Score per district. See below for the
         scoring methodology, tech stack, and data sources, and{' '}
         <Link href="/trends" style={{ color: '#756bb1' }}>Trends</Link> for the underlying data over
-        time.
+        time, and{' '}
+        <Link href="/home-value-model" style={{ color: '#756bb1' }}>the home value prediction write-up</Link>{' '}
+        for a model-comparison analysis (Lasso vs. gradient boosting) built on the same pipeline.
       </p>
 
       <p style={{ marginBottom: '20px', fontSize: '14px', color: '#666', fontStyle: 'italic' }}>

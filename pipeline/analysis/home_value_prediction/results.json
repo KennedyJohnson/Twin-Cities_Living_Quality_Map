@@ -1,0 +1,524 @@
+{
+  "generated_from": {
+    "panel_years": [
+      2017,
+      2018,
+      2019,
+      2020,
+      2021,
+      2022,
+      2023
+    ],
+    "n_districts": 28,
+    "train_rows": 168,
+    "test_rows": 28,
+    "test_transition": "2023 -> 2024"
+  },
+  "feature_selection": {
+    "candidates": [
+      "median_gross_rent",
+      "median_household_income",
+      "poverty_rate",
+      "housing_cost_burden_rate",
+      "homeownership_rate",
+      "unemployment_rate_pc",
+      "gini_index",
+      "vacancy_rate",
+      "broadband_rate",
+      "bachelors_rate",
+      "median_age",
+      "avg_commute_min",
+      "transit_commute_rate",
+      "walk_commute_rate",
+      "bike_commute_rate",
+      "wfh_rate",
+      "diversity_index"
+    ],
+    "selected": [
+      "bachelors_rate",
+      "wfh_rate",
+      "gini_index",
+      "median_household_income",
+      "homeownership_rate",
+      "vacancy_rate",
+      "diversity_index",
+      "median_age",
+      "bike_commute_rate",
+      "broadband_rate",
+      "avg_commute_min"
+    ],
+    "history": [
+      {
+        "step": 0,
+        "added": null,
+        "features": [],
+        "cv_rmse": 92465.5
+      },
+      {
+        "step": 1,
+        "added": "bachelors_rate",
+        "features": [
+          "bachelors_rate"
+        ],
+        "cv_rmse": 54668.3
+      },
+      {
+        "step": 2,
+        "added": "wfh_rate",
+        "features": [
+          "bachelors_rate",
+          "wfh_rate"
+        ],
+        "cv_rmse": 44722.0
+      },
+      {
+        "step": 3,
+        "added": "gini_index",
+        "features": [
+          "bachelors_rate",
+          "wfh_rate",
+          "gini_index"
+        ],
+        "cv_rmse": 42493.9
+      },
+      {
+        "step": 4,
+        "added": "median_household_income",
+        "features": [
+          "bachelors_rate",
+          "wfh_rate",
+          "gini_index",
+          "median_household_income"
+        ],
+        "cv_rmse": 35317.0
+      },
+      {
+        "step": 5,
+        "added": "homeownership_rate",
+        "features": [
+          "bachelors_rate",
+          "wfh_rate",
+          "gini_index",
+          "median_household_income",
+          "homeownership_rate"
+        ],
+        "cv_rmse": 32902.6
+      },
+      {
+        "step": 6,
+        "added": "vacancy_rate",
+        "features": [
+          "bachelors_rate",
+          "wfh_rate",
+          "gini_index",
+          "median_household_income",
+          "homeownership_rate",
+          "vacancy_rate"
+        ],
+        "cv_rmse": 30569.9
+      },
+      {
+        "step": 7,
+        "added": "diversity_index",
+        "features": [
+          "bachelors_rate",
+          "wfh_rate",
+          "gini_index",
+          "median_household_income",
+          "homeownership_rate",
+          "vacancy_rate",
+          "diversity_index"
+        ],
+        "cv_rmse": 29492.7
+      },
+      {
+        "step": 8,
+        "added": "median_age",
+        "features": [
+          "bachelors_rate",
+          "wfh_rate",
+          "gini_index",
+          "median_household_income",
+          "homeownership_rate",
+          "vacancy_rate",
+          "diversity_index",
+          "median_age"
+        ],
+        "cv_rmse": 27636.1
+      },
+      {
+        "step": 9,
+        "added": "bike_commute_rate",
+        "features": [
+          "bachelors_rate",
+          "wfh_rate",
+          "gini_index",
+          "median_household_income",
+          "homeownership_rate",
+          "vacancy_rate",
+          "diversity_index",
+          "median_age",
+          "bike_commute_rate"
+        ],
+        "cv_rmse": 27003.3
+      },
+      {
+        "step": 10,
+        "added": "broadband_rate",
+        "features": [
+          "bachelors_rate",
+          "wfh_rate",
+          "gini_index",
+          "median_household_income",
+          "homeownership_rate",
+          "vacancy_rate",
+          "diversity_index",
+          "median_age",
+          "bike_commute_rate",
+          "broadband_rate"
+        ],
+        "cv_rmse": 26209.9
+      },
+      {
+        "step": 11,
+        "added": "avg_commute_min",
+        "features": [
+          "bachelors_rate",
+          "wfh_rate",
+          "gini_index",
+          "median_household_income",
+          "homeownership_rate",
+          "vacancy_rate",
+          "diversity_index",
+          "median_age",
+          "bike_commute_rate",
+          "broadband_rate",
+          "avg_commute_min"
+        ],
+        "cv_rmse": 25607.1
+      }
+    ]
+  },
+  "test_metrics": {
+    "lasso": {
+      "rmse": 34778.7,
+      "mae": 25950.6,
+      "r2": 0.888
+    },
+    "gbm": {
+      "rmse": 55655.6,
+      "mae": 40387.1,
+      "r2": 0.714
+    }
+  },
+  "lasso_coefficients": {
+    "bachelors_rate": -25166.6,
+    "wfh_rate": 16482.6,
+    "gini_index": 26623.6,
+    "median_household_income": 75974.7,
+    "homeownership_rate": -37278.0,
+    "vacancy_rate": -14792.6,
+    "diversity_index": -38257.7,
+    "median_age": -16272.7,
+    "bike_commute_rate": 10468.1,
+    "broadband_rate": 11445.7,
+    "avg_commute_min": 7881.1
+  },
+  "gbm_feature_importances": {
+    "bachelors_rate": 0.2424,
+    "wfh_rate": 0.0945,
+    "gini_index": 0.0486,
+    "median_household_income": 0.0451,
+    "homeownership_rate": 0.0095,
+    "vacancy_rate": 0.0068,
+    "diversity_index": 0.3404,
+    "median_age": 0.0031,
+    "bike_commute_rate": 0.0188,
+    "broadband_rate": 0.1871,
+    "avg_commute_min": 0.0037
+  },
+  "predictions": [
+    {
+      "city": "mpls",
+      "district_id": 101,
+      "actual": 570383.0,
+      "lasso_pred": 488102.0,
+      "gbm_pred": 408101.0,
+      "appreciation_pct": 4.24
+    },
+    {
+      "city": "mpls",
+      "district_id": 102,
+      "actual": 234549.0,
+      "lasso_pred": 212743.0,
+      "gbm_pred": 229349.0,
+      "appreciation_pct": 4.48
+    },
+    {
+      "city": "mpls",
+      "district_id": 103,
+      "actual": 380721.0,
+      "lasso_pred": 414827.0,
+      "gbm_pred": 342782.0,
+      "appreciation_pct": 3.12
+    },
+    {
+      "city": "mpls",
+      "district_id": 104,
+      "actual": 355303.0,
+      "lasso_pred": 347993.0,
+      "gbm_pred": 310031.0,
+      "appreciation_pct": 5.58
+    },
+    {
+      "city": "mpls",
+      "district_id": 105,
+      "actual": 263087.0,
+      "lasso_pred": 256125.0,
+      "gbm_pred": 224897.0,
+      "appreciation_pct": 7.05
+    },
+    {
+      "city": "mpls",
+      "district_id": 106,
+      "actual": 394488.0,
+      "lasso_pred": 390577.0,
+      "gbm_pred": 314248.0,
+      "appreciation_pct": 5.67
+    },
+    {
+      "city": "mpls",
+      "district_id": 107,
+      "actual": 357020.0,
+      "lasso_pred": 360474.0,
+      "gbm_pred": 306496.0,
+      "appreciation_pct": 8.4
+    },
+    {
+      "city": "mpls",
+      "district_id": 108,
+      "actual": 252212.0,
+      "lasso_pred": 236098.0,
+      "gbm_pred": 241213.0,
+      "appreciation_pct": -0.48
+    },
+    {
+      "city": "mpls",
+      "district_id": 109,
+      "actual": 336558.0,
+      "lasso_pred": 335411.0,
+      "gbm_pred": 321359.0,
+      "appreciation_pct": 6.11
+    },
+    {
+      "city": "mpls",
+      "district_id": 110,
+      "actual": 541722.0,
+      "lasso_pred": 560938.0,
+      "gbm_pred": 478988.0,
+      "appreciation_pct": 5.54
+    },
+    {
+      "city": "mpls",
+      "district_id": 111,
+      "actual": 390942.0,
+      "lasso_pred": 335679.0,
+      "gbm_pred": 340483.0,
+      "appreciation_pct": 5.49
+    },
+    {
+      "city": "stpaul",
+      "district_id": 1,
+      "actual": 279479.0,
+      "lasso_pred": 231083.0,
+      "gbm_pred": 241721.0,
+      "appreciation_pct": 4.87
+    },
+    {
+      "city": "stpaul",
+      "district_id": 2,
+      "actual": 236001.0,
+      "lasso_pred": 248144.0,
+      "gbm_pred": 235863.0,
+      "appreciation_pct": 3.23
+    },
+    {
+      "city": "stpaul",
+      "district_id": 3,
+      "actual": 266520.0,
+      "lasso_pred": 277982.0,
+      "gbm_pred": 250259.0,
+      "appreciation_pct": 3.99
+    },
+    {
+      "city": "stpaul",
+      "district_id": 4,
+      "actual": 236949.0,
+      "lasso_pred": 233692.0,
+      "gbm_pred": 251238.0,
+      "appreciation_pct": 2.83
+    },
+    {
+      "city": "stpaul",
+      "district_id": 5,
+      "actual": 238459.0,
+      "lasso_pred": 253715.0,
+      "gbm_pred": 254667.0,
+      "appreciation_pct": 4.46
+    },
+    {
+      "city": "stpaul",
+      "district_id": 6,
+      "actual": 225205.0,
+      "lasso_pred": 235587.0,
+      "gbm_pred": 225853.0,
+      "appreciation_pct": 3.78
+    },
+    {
+      "city": "stpaul",
+      "district_id": 7,
+      "actual": 230143.0,
+      "lasso_pred": 222124.0,
+      "gbm_pred": 196014.0,
+      "appreciation_pct": 4.45
+    },
+    {
+      "city": "stpaul",
+      "district_id": 8,
+      "actual": 378323.0,
+      "lasso_pred": 370659.0,
+      "gbm_pred": 344212.0,
+      "appreciation_pct": 6.15
+    },
+    {
+      "city": "stpaul",
+      "district_id": 9,
+      "actual": 304132.0,
+      "lasso_pred": 314291.0,
+      "gbm_pred": 288719.0,
+      "appreciation_pct": 5.96
+    },
+    {
+      "city": "stpaul",
+      "district_id": 10,
+      "actual": 310510.0,
+      "lasso_pred": 347411.0,
+      "gbm_pred": 307543.0,
+      "appreciation_pct": 4.43
+    },
+    {
+      "city": "stpaul",
+      "district_id": 11,
+      "actual": 301079.0,
+      "lasso_pred": 310177.0,
+      "gbm_pred": 302465.0,
+      "appreciation_pct": 4.47
+    },
+    {
+      "city": "stpaul",
+      "district_id": 12,
+      "actual": 392393.0,
+      "lasso_pred": 350433.0,
+      "gbm_pred": 361152.0,
+      "appreciation_pct": 6.51
+    },
+    {
+      "city": "stpaul",
+      "district_id": 13,
+      "actual": 449758.0,
+      "lasso_pred": 376466.0,
+      "gbm_pred": 342819.0,
+      "appreciation_pct": 11.55
+    },
+    {
+      "city": "stpaul",
+      "district_id": 14,
+      "actual": 479467.0,
+      "lasso_pred": 426810.0,
+      "gbm_pred": 491065.0,
+      "appreciation_pct": 2.82
+    },
+    {
+      "city": "stpaul",
+      "district_id": 15,
+      "actual": 421456.0,
+      "lasso_pred": 403436.0,
+      "gbm_pred": 323421.0,
+      "appreciation_pct": 10.95
+    },
+    {
+      "city": "stpaul",
+      "district_id": 16,
+      "actual": 586032.0,
+      "lasso_pred": 527346.0,
+      "gbm_pred": 484682.0,
+      "appreciation_pct": 8.39
+    },
+    {
+      "city": "stpaul",
+      "district_id": 17,
+      "actual": 264443.0,
+      "lasso_pred": 322136.0,
+      "gbm_pred": 313775.0,
+      "appreciation_pct": -1.06
+    }
+  ],
+  "learning_curve_years": [
+    {
+      "n_training_years": 1,
+      "training_rows": 28,
+      "lasso_rmse": null,
+      "gbm_rmse": 41548.6
+    },
+    {
+      "n_training_years": 2,
+      "training_rows": 56,
+      "lasso_rmse": 32116.1,
+      "gbm_rmse": 41706.0
+    },
+    {
+      "n_training_years": 3,
+      "training_rows": 84,
+      "lasso_rmse": 32744.9,
+      "gbm_rmse": 47390.5
+    },
+    {
+      "n_training_years": 4,
+      "training_rows": 112,
+      "lasso_rmse": 33302.9,
+      "gbm_rmse": 52458.9
+    },
+    {
+      "n_training_years": 5,
+      "training_rows": 140,
+      "lasso_rmse": 34290.5,
+      "gbm_rmse": 51495.9
+    },
+    {
+      "n_training_years": 6,
+      "training_rows": 168,
+      "lasso_rmse": 34778.7,
+      "gbm_rmse": 55655.6
+    }
+  ],
+  "learning_curve_features": [
+    {
+      "feature_group": "core",
+      "n_features": 6,
+      "lasso_rmse": 47053.0,
+      "gbm_rmse": 53453.7
+    },
+    {
+      "feature_group": "core_plus_acs_extra",
+      "n_features": 17,
+      "lasso_rmse": 34770.4,
+      "gbm_rmse": 56416.8
+    },
+    {
+      "feature_group": "forward_selected",
+      "n_features": 11,
+      "lasso_rmse": 34778.7,
+      "gbm_rmse": 55655.6
+    }
+  ]
+}
