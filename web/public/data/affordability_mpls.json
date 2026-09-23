@@ -1,5 +1,6 @@
 {
   "acs_year": 2024,
+  "growth_base_year": 2017,
   "districts": {
     "101": {
       "median_home_value": 570383,
@@ -17,7 +18,8 @@
       "walk_commute_rate": 2.7,
       "bike_commute_rate": 2.8,
       "wfh_rate": 32.0,
-      "diversity_index": 0.391
+      "diversity_index": 0.391,
+      "home_value_growth_pct": 42.0
     },
     "102": {
       "median_home_value": 234549,
@@ -35,7 +37,8 @@
       "walk_commute_rate": 0.4,
       "bike_commute_rate": 0.2,
       "wfh_rate": 17.1,
-      "diversity_index": 0.716
+      "diversity_index": 0.716,
+      "home_value_growth_pct": 88.5
     },
     "103": {
       "median_home_value": 380721,
@@ -53,7 +56,8 @@
       "walk_commute_rate": 18.8,
       "bike_commute_rate": 1.5,
       "wfh_rate": 28.3,
-      "diversity_index": 0.545
+      "diversity_index": 0.545,
+      "home_value_growth_pct": 69.5
     },
     "104": {
       "median_home_value": 355303,
@@ -71,7 +75,8 @@
       "walk_commute_rate": 2.8,
       "bike_commute_rate": 3.1,
       "wfh_rate": 27.1,
-      "diversity_index": 0.484
+      "diversity_index": 0.484,
+      "home_value_growth_pct": 70.1
     },
     "105": {
       "median_home_value": 263087,
@@ -89,7 +94,8 @@
       "walk_commute_rate": 1.6,
       "bike_commute_rate": 0.5,
       "wfh_rate": 14.6,
-      "diversity_index": 0.634
+      "diversity_index": 0.634,
+      "home_value_growth_pct": 72.8
     },
     "106": {
       "median_home_value": 394488,
@@ -107,7 +113,8 @@
       "walk_commute_rate": 1.3,
       "bike_commute_rate": 1.1,
       "wfh_rate": 30.5,
-      "diversity_index": 0.382
+      "diversity_index": 0.382,
+      "home_value_growth_pct": 64.4
     },
     "107": {
       "median_home_value": 357020,
@@ -125,7 +132,8 @@
       "walk_commute_rate": 1.5,
       "bike_commute_rate": 1.6,
       "wfh_rate": 26.5,
-      "diversity_index": 0.469
+      "diversity_index": 0.469,
+      "home_value_growth_pct": 79.8
     },
     "108": {
       "median_home_value": 252212,
@@ -143,7 +151,8 @@
       "walk_commute_rate": 8.2,
       "bike_commute_rate": 2.3,
       "wfh_rate": 10.8,
-      "diversity_index": 0.644
+      "diversity_index": 0.644,
+      "home_value_growth_pct": 55.9
     },
     "109": {
       "median_home_value": 336558,
@@ -161,7 +170,8 @@
       "walk_commute_rate": 4.4,
       "bike_commute_rate": 3.0,
       "wfh_rate": 24.9,
-      "diversity_index": 0.608
+      "diversity_index": 0.608,
+      "home_value_growth_pct": 69.3
     },
     "110": {
       "median_home_value": 541722,
@@ -179,7 +189,8 @@
       "walk_commute_rate": 1.9,
       "bike_commute_rate": 1.2,
       "wfh_rate": 36.8,
-      "diversity_index": 0.307
+      "diversity_index": 0.307,
+      "home_value_growth_pct": 60.4
     },
     "111": {
       "median_home_value": 390942,
@@ -197,7 +208,8 @@
       "walk_commute_rate": 16.1,
       "bike_commute_rate": 2.9,
       "wfh_rate": 21.1,
-      "diversity_index": 0.518
+      "diversity_index": 0.518,
+      "home_value_growth_pct": 36.7
     }
   }
 }

@@ -41,9 +41,11 @@ from sklearn.gaussian_process.kernels import RBF, WhiteKernel, ConstantKernel
 from sklearn.preprocessing import StandardScaler
 from sklearn.compose import TransformedTargetRegressor
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
+from scipy import stats
 
 DATA_DIR = Path(__file__).resolve().parent / "data"
 OUT_FILE = Path(__file__).resolve().parent / "results.json"
+NEIGHBORHOODS_DIR = Path(__file__).resolve().parent.parent.parent.parent / "web" / "public" / "data"
 WEB_OUT_FILE = Path(__file__).resolve().parent.parent.parent.parent / "web" / "public" / "data" / "home_value_prediction.json"
 
 TARGET = "median_home_value"
@@ -262,6 +264,110 @@ def learning_curve_features(train_df, test_df, selected, models):
     return curve
 
 
+def district_names():
+    names = {}
+    for fname, city in [("neighborhoods.json", "stpaul"), ("neighborhoods_mpls.json", "mpls")]:
+        try:
+            for n in json.loads((NEIGHBORHOODS_DIR / fname).read_text(encoding="utf-8"))["neighborhoods"]:
+                names[(city, int(n["district_id"]))] = n["district_name"]
+        except (OSError, KeyError, ValueError):
+            pass
+    return names
+
+
+def convergence_analysis(df):
+    """Long-run question the year-ahead forecast can't answer: did cheaper
+    districts appreciate faster over the whole panel (price convergence)?
+
+    Cumulative growth first->last year vs. first-year characteristics, plus
+    two checks on it: (1) whether the effect is visible year by year
+    (per-year sign of corr(excess growth, log value), and out-of-sample R^2
+    for predicting single-year excess growth from all features), and (2) a
+    regression-to-the-mean check -- growth over the most recent window whose
+    ACS 5-year vintages share no survey years with the baseline year, vs.
+    the baseline value. If convergence were purely baseline sampling noise,
+    it would also vanish there; if it's a real but period-specific trend,
+    it vanishes too -- so this check can refute persistence, not prove RTM.
+    """
+    panel = pd.read_csv(DATA_DIR / "panel.csv")
+    first, last = int(panel["year"].min()), int(panel["year"].max())
+    wide = {c: panel.pivot_table(index=["city", "district_id"], columns="year", values=c)
+            for c in ["median_home_value", "bachelors_rate", "diversity_index"]}
+    v = wide["median_home_value"]
+    growth = (v[last] / v[first] - 1) * 100
+    log_growth = np.log(v[last] / v[first])
+    names = district_names()
+
+    districts = [
+        {
+            "city": city, "district_id": int(did), "name": names.get((city, int(did)), f"District {did}"),
+            "value_start": round(float(v.loc[(city, did), first])),
+            "value_end": round(float(v.loc[(city, did), last])),
+            "growth_pct": round(float(growth.loc[(city, did)]), 1),
+        }
+        for city, did in growth.index
+    ]
+
+    def corr(x, y, label):
+        r, p = stats.pearsonr(x, y)
+        return {"feature": label, "r": round(float(r), 2), "p": round(float(p), 4)}
+
+    correlations = [
+        corr(np.log(v[first]), log_growth, f"{first} home value (log)"),
+        corr(wide["bachelors_rate"][first], log_growth, f"{first} bachelor's+ share"),
+        corr(wide["diversity_index"][first], log_growth, f"{first} diversity index"),
+    ]
+
+    quart = pd.qcut(v[first], 4, labels=False)
+    quartiles = [
+        {"quartile": int(q) + 1, "mean_growth_pct": round(float(growth[quart == q].mean()), 1),
+         "min_value": round(float(v[first][quart == q].min())), "max_value": round(float(v[first][quart == q].max()))}
+        for q in sorted(quart.unique())
+    ]
+
+    # Year-by-year visibility.
+    t = load_transitions()
+    t["growth"] = t["label"] / t["median_home_value"] - 1
+    t["excess"] = t["growth"] - t.groupby("year")["growth"].transform("mean")
+    yearly_r = [float(np.corrcoef(np.log(g["median_home_value"]), g["excess"])[0, 1]) for _, g in t.groupby("year")]
+    feats = [c for c in ALL_CANDIDATE_FEATURES if c != "median_home_value"]
+    t["log_value"] = np.log(t["median_home_value"])
+    X_cols = feats + ["log_value"]
+    pred = np.zeros(len(t))
+    for y in sorted(t["year"].unique()):
+        tr, te = t["year"] != y, t["year"] == y
+        sc = StandardScaler().fit(t.loc[tr, X_cols])
+        m = LassoCV(cv=5, max_iter=50000, random_state=0).fit(sc.transform(t.loc[tr, X_cols]), t.loc[tr, "excess"])
+        pred[te.values] = m.predict(sc.transform(t.loc[te, X_cols]))
+
+    # Most recent window with ACS vintages disjoint from the baseline year's
+    # (a 5-year vintage ending in year Y covers Y-4..Y).
+    recent_start = first + 5
+    recent = None
+    if recent_start < last:
+        r, p = stats.pearsonr(np.log(v[first]), np.log(v[last] / v[recent_start]))
+        recent = {"window": f"{recent_start}-{last}", "r": round(float(r), 2), "p": round(float(p), 4)}
+
+    return {
+        "start_year": first,
+        "end_year": last,
+        "districts": districts,
+        "correlations": correlations,
+        "quartiles": quartiles,
+        "spread": {
+            "max_min_start": round(float(v[first].max() / v[first].min()), 2),
+            "max_min_end": round(float(v[last].max() / v[last].min()), 2),
+        },
+        "yearly": {
+            "same_sign_years": int(sum(np.sign(yearly_r) == np.sign(np.mean(yearly_r)))),
+            "n_years": len(yearly_r),
+            "mean_r": round(float(np.mean(yearly_r)), 2),
+            "single_year_excess_r2": round(float(r2_score(t["excess"], pred)), 3),
+        },
+        "recent_check": recent,
+    }
+
+
 def main():
     df = load_transitions()
     test_year = int(df["year"].max())
@@ -312,6 +418,7 @@ def main():
         "feature_selection": {"candidates": ALL_CANDIDATE_FEATURES, "selected": selected, "history": history},
         "top_models": top,
         "featured_models": featured,
+        "convergence": convergence_analysis(df),
         "model_bakeoff": bakeoff,
         "naive_baselines": baselines,
         "test_metrics": test_metrics,

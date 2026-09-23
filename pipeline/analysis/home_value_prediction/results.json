@@ -75,6 +75,294 @@
     "Gaussian Process",
     "Gradient Boosting"
   ],
+  "convergence": {
+    "start_year": 2017,
+    "end_year": 2024,
+    "districts": [
+      {
+        "city": "mpls",
+        "district_id": 101,
+        "name": "Calhoun Isle",
+        "value_start": 401814,
+        "value_end": 570383,
+        "growth_pct": 42.0
+      },
+      {
+        "city": "mpls",
+        "district_id": 102,
+        "name": "Camden",
+        "value_start": 124402,
+        "value_end": 234549,
+        "growth_pct": 88.5
+      },
+      {
+        "city": "mpls",
+        "district_id": 103,
+        "name": "Central",
+        "value_start": 224676,
+        "value_end": 380721,
+        "growth_pct": 69.5
+      },
+      {
+        "city": "mpls",
+        "district_id": 104,
+        "name": "Longfellow",
+        "value_start": 208882,
+        "value_end": 355303,
+        "growth_pct": 70.1
+      },
+      {
+        "city": "mpls",
+        "district_id": 105,
+        "name": "Near North",
+        "value_start": 152206,
+        "value_end": 263087,
+        "growth_pct": 72.8
+      },
+      {
+        "city": "mpls",
+        "district_id": 106,
+        "name": "Nokomis",
+        "value_start": 240010,
+        "value_end": 394488,
+        "growth_pct": 64.4
+      },
+      {
+        "city": "mpls",
+        "district_id": 107,
+        "name": "Northeast",
+        "value_start": 198565,
+        "value_end": 357020,
+        "growth_pct": 79.8
+      },
+      {
+        "city": "mpls",
+        "district_id": 108,
+        "name": "Phillips",
+        "value_start": 161794,
+        "value_end": 252212,
+        "growth_pct": 55.9
+      },
+      {
+        "city": "mpls",
+        "district_id": 109,
+        "name": "Powderhorn",
+        "value_start": 198837,
+        "value_end": 336558,
+        "growth_pct": 69.3
+      },
+      {
+        "city": "mpls",
+        "district_id": 110,
+        "name": "Southwest",
+        "value_start": 337744,
+        "value_end": 541722,
+        "growth_pct": 60.4
+      },
+      {
+        "city": "mpls",
+        "district_id": 111,
+        "name": "University",
+        "value_start": 285930,
+        "value_end": 390942,
+        "growth_pct": 36.7
+      },
+      {
+        "city": "stpaul",
+        "district_id": 1,
+        "name": "Battle Creek - Conway - Eastview - Highwood Hills",
+        "value_start": 170889,
+        "value_end": 279479,
+        "growth_pct": 63.5
+      },
+      {
+        "city": "stpaul",
+        "district_id": 2,
+        "name": "Greater East Side",
+        "value_start": 140930,
+        "value_end": 236001,
+        "growth_pct": 67.5
+      },
+      {
+        "city": "stpaul",
+        "district_id": 3,
+        "name": "West Side",
+        "value_start": 164810,
+        "value_end": 266520,
+        "growth_pct": 61.7
+      },
+      {
+        "city": "stpaul",
+        "district_id": 4,
+        "name": "Dayton's Bluff",
+        "value_start": 132567,
+        "value_end": 236949,
+        "growth_pct": 78.7
+      },
+      {
+        "city": "stpaul",
+        "district_id": 5,
+        "name": "Payne - Phalen",
+        "value_start": 134974,
+        "value_end": 238459,
+        "growth_pct": 76.7
+      },
+      {
+        "city": "stpaul",
+        "district_id": 6,
+        "name": "North End",
+        "value_start": 137189,
+        "value_end": 225205,
+        "growth_pct": 64.2
+      },
+      {
+        "city": "stpaul",
+        "district_id": 7,
+        "name": "Frogtown",
+        "value_start": 130573,
+        "value_end": 230143,
+        "growth_pct": 76.3
+      },
+      {
+        "city": "stpaul",
+        "district_id": 8,
+        "name": "Summit - University",
+        "value_start": 259291,
+        "value_end": 378323,
+        "growth_pct": 45.9
+      },
+      {
+        "city": "stpaul",
+        "district_id": 9,
+        "name": "West Seventh - Fort Road",
+        "value_start": 186892,
+        "value_end": 304132,
+        "growth_pct": 62.7
+      },
+      {
+        "city": "stpaul",
+        "district_id": 10,
+        "name": "Como Park",
+        "value_start": 211983,
+        "value_end": 310510,
+        "growth_pct": 46.5
+      },
+      {
+        "city": "stpaul",
+        "district_id": 11,
+        "name": "Hamline - Midway",
+        "value_start": 176457,
+        "value_end": 301079,
+        "growth_pct": 70.6
+      },
+      {
+        "city": "stpaul",
+        "district_id": 12,
+        "name": "Saint Anthony Park",
+        "value_start": 273361,
+        "value_end": 392393,
+        "growth_pct": 43.5
+      },
+      {
+        "city": "stpaul",
+        "district_id": 13,
+        "name": "Union Park",
+        "value_start": 251839,
+        "value_end": 449758,
+        "growth_pct": 78.6
+      },
+      {
+        "city": "stpaul",
+        "district_id": 14,
+        "name": "Macalester - Groveland",
+        "value_start": 318142,
+        "value_end": 479467,
+        "growth_pct": 50.7
+      },
+      {
+        "city": "stpaul",
+        "district_id": 15,
+        "name": "Highland Park",
+        "value_start": 283969,
+        "value_end": 421456,
+        "growth_pct": 48.4
+      },
+      {
+        "city": "stpaul",
+        "district_id": 16,
+        "name": "Summit Hill",
+        "value_start": 388570,
+        "value_end": 586032,
+        "growth_pct": 50.8
+      },
+      {
+        "city": "stpaul",
+        "district_id": 17,
+        "name": "Downtown",
+        "value_start": 192600,
+        "value_end": 264443,
+        "growth_pct": 37.3
+      }
+    ],
+    "correlations": [
+      {
+        "feature": "2017 home value (log)",
+        "r": -0.64,
+        "p": 0.0003
+      },
+      {
+        "feature": "2017 bachelor's+ share",
+        "r": -0.65,
+        "p": 0.0002
+      },
+      {
+        "feature": "2017 diversity index",
+        "r": 0.53,
+        "p": 0.0039
+      }
+    ],
+    "quartiles": [
+      {
+        "quartile": 1,
+        "mean_growth_pct": 75.0,
+        "min_value": 124402,
+        "max_value": 152206
+      },
+      {
+        "quartile": 2,
+        "mean_growth_pct": 61.7,
+        "min_value": 161794,
+        "max_value": 198565
+      },
+      {
+        "quartile": 3,
+        "mean_growth_pct": 63.5,
+        "min_value": 198837,
+        "max_value": 259291
+      },
+      {
+        "quartile": 4,
+        "mean_growth_pct": 47.5,
+        "min_value": 273361,
+        "max_value": 401814
+      }
+    ],
+    "spread": {
+      "max_min_start": 3.23,
+      "max_min_end": 2.6
+    },
+    "yearly": {
+      "same_sign_years": 6,
+      "n_years": 7,
+      "mean_r": -0.24,
+      "single_year_excess_r2": -0.045
+    },
+    "recent_check": {
+      "window": "2022-2024",
+      "r": -0.1,
+      "p": 0.6237
+    }
+  },
   "model_bakeoff": [
     {
       "model": "Lasso",

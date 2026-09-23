@@ -8,6 +8,7 @@
 export type ColorMetricKey =
   | 'median_household_income'
   | 'median_home_value'
+  | 'home_value_growth_pct'
   | 'median_gross_rent'
   | 'poverty_rate'
   | 'housing_cost_burden_rate'
@@ -35,6 +36,14 @@ const usd = (v: number) => `$${Math.round(v).toLocaleString()}`;
 export const COLOR_METRICS: Record<ColorMetricKey, ColorMetricDef> = {
   median_household_income: { label: 'Median Household Income', higherIsBetter: true, format: usd },
   median_home_value: { label: 'Median Home Value (higher = more expensive)', higherIsBetter: false, format: usd },
+  // District-only (ZIPs have no value). Informational, not part of the score:
+  // faster growth is neither good nor bad on its own (equity vs. affordability),
+  // so "higher = darker" is a ranking direction only. See /home-value-model.
+  home_value_growth_pct: {
+    label: 'Home Value Growth since 2017 (faster = darker)',
+    higherIsBetter: true,
+    format: (v) => `${v > 0 ? '+' : ''}${v.toFixed(1)}%`,
+  },
   median_gross_rent: { label: 'Median Gross Rent (higher = more expensive)', higherIsBetter: false, format: usd },
   poverty_rate: { label: 'Poverty Rate', higherIsBetter: false, format: pct },
   housing_cost_burden_rate: { label: 'Rent Cost Burden', higherIsBetter: false, format: pct },
