@@ -7,67 +7,50 @@ import {
   Legend as RechartsLegend, ResponsiveContainer, Cell,
 } from 'recharts';
 
+type ModelPoint = Record<string, number | string>;
+
 interface Results {
-  generated_from: {
-    panel_years: number[];
-    n_districts: number;
-    train_rows: number;
-    test_rows: number;
-    test_transition: string;
-  };
-  feature_selection: {
-    candidates: string[];
-    selected: string[];
-    history: { step: number; added: string | null; features: string[]; cv_rmse: number }[];
-  };
-  test_metrics: {
-    lasso: { rmse: number; mae: number; r2: number };
-    gbm: { rmse: number; mae: number; r2: number };
-  };
-  lasso_coefficients: Record<string, number>;
-  gbm_feature_importances: Record<string, number>;
-  predictions: {
-    city: string; district_id: number; actual: number; lasso_pred: number;
-    gbm_pred: number; appreciation_pct: number;
-  }[];
-  learning_curve_years: { n_training_years: number; training_rows: number; lasso_rmse: number | null; gbm_rmse: number }[];
-  learning_curve_features: { feature_group: string; n_features: number; lasso_rmse: number; gbm_rmse: number }[];
-  model_bakeoff: {
-    model: string; mean_rmse: number; std_rmse: number; min_rmse: number; max_rmse: number;
-    pooled_r2: number; folds: { test_year: number; test_transition: string; rmse: number; r2: number }[];
-  }[];
+  generated_from: { panel_years: number[]; n_districts: number; n_transitions: number; test_transition: string };
+  feature_selection: { candidates: string[]; selected: string[] };
+  top_models: string[];
+  featured_models: string[];
+  model_bakeoff: { model: string; mean_rmse: number; std_rmse: number; pooled_r2: number }[];
+  test_metrics: Record<string, { rmse: number; r2: number }>;
+  predictions: { city: string; district_id: number; actual: number; preds: Record<string, number> }[];
+  learning_curve_years: ModelPoint[];
+  learning_curve_features: ModelPoint[];
 }
 
-const MODEL_LABELS: Record<string, string> = {
-  Lasso: 'Lasso', ElasticNet: 'Elastic Net', 'Bayesian Ridge': 'Bayesian Ridge',
-  'Gaussian Process': 'Gaussian Process', Ridge: 'Ridge', 'Support Vector (RBF)': 'Support Vector (RBF)',
-  'Gradient Boosting': 'Gradient Boosting', 'Random Forest': 'Random Forest', 'K-Nearest Neighbors': 'K-Nearest Neighbors',
+const PURPLE = '#756bb1';
+const MODEL_COLORS: Record<string, string> = {
+  Lasso: '#756bb1',
+  'Bayesian Ridge': '#2ca25f',
+  'Gaussian Process': '#3182bd',
+  'Gradient Boosting': '#e6550d',
+};
+const colorFor = (m: string) => MODEL_COLORS[m] ?? '#999';
+
+const FEATURE_LABELS: Record<string, string> = {
+  median_home_value: "this year's home value",
+  bike_commute_rate: 'bike commute rate',
 };
 
-const PURPLE = '#756bb1';
-const ORANGE = '#e6550d';
-const FEATURE_LABELS: Record<string, string> = {
-  median_home_value: "This year's home value", median_household_income: 'Household income', homeownership_rate: 'Homeownership rate',
-  gini_index: 'Income inequality (Gini)', diversity_index: 'Diversity index',
-  bachelors_rate: "Bachelor's+ rate", median_age: 'Median age', vacancy_rate: 'Vacancy rate',
-  broadband_rate: 'Broadband rate', avg_commute_min: 'Avg. commute (min)',
-  bike_commute_rate: 'Bike commute rate', wfh_rate: 'Work-from-home rate',
-  median_gross_rent: 'Gross rent', poverty_rate: 'Poverty rate',
-  housing_cost_burden_rate: 'Housing cost burden', unemployment_rate_pc: 'Unemployment rate',
-  transit_commute_rate: 'Transit commute rate', walk_commute_rate: 'Walk commute rate',
+const GROUP_LABELS: Record<string, string> = {
+  core: 'Demographics (6)',
+  core_plus_autoregressive: '+ current value (7)',
+  all: '+ 11 more ACS (18)',
+  forward_selected: 'Selected (2)',
 };
 
 function fmtDollar(v: number) {
   return `$${Math.round(v).toLocaleString()}`;
 }
 
-function h2(text: string) {
-  return (
-    <h2 style={{ fontSize: '18px', fontWeight: 600, marginTop: '36px', marginBottom: '12px' }}>
-      {text}
-    </h2>
-  );
+function H2({ children }: { children: React.ReactNode }) {
+  return <h2 style={{ fontSize: '18px', fontWeight: 600, marginTop: '36px', marginBottom: '12px' }}>{children}</h2>;
 }
+
+const note = { marginBottom: '20px', fontSize: '14px', color: '#555' } as const;
 
 export default function HomeValueModelPage() {
   const [data, setData] = useState<Results | null>(null);
@@ -82,28 +65,13 @@ export default function HomeValueModelPage() {
 
   return (
     <div style={{ maxWidth: '800px', margin: '0 auto', padding: '32px 20px', lineHeight: 1.6 }}>
-      <Link href="/" style={{ fontSize: '13px', color: PURPLE }}>
-        ← Back to map
-      </Link>
-      <h1 style={{ fontSize: '24px', fontWeight: 700, margin: '12px 0 8px' }}>
-        Predicting Home Value: A 9-Model Bake-Off
-      </h1>
+      <Link href="/" style={{ fontSize: '13px', color: PURPLE }}>← Back to map</Link>
+      <h1 style={{ fontSize: '24px', fontWeight: 700, margin: '12px 0 8px' }}>Predicting Next-Year Home Value</h1>
       <p style={{ fontSize: '13px', color: '#666', marginBottom: '20px' }}>
-        A model-comparison analysis built on top of the map&apos;s Census pipeline. Code and data:{' '}
+        Code and data:{' '}
         <code style={{ background: '#f4f4f4', padding: '1px 5px', borderRadius: '3px' }}>
           pipeline/analysis/home_value_prediction/
         </code>
-      </p>
-
-      <p style={{ marginBottom: '20px' }}>
-        The map itself scores districts on a single blended Living Quality Score. This page asks a
-        narrower, more predictive question: given a district&apos;s features in one year, how well
-        can a model predict its <strong>median home value the following year</strong>, and which of
-        9 different model families — from plain linear regression to gradient-boosted trees to a
-        Gaussian Process — actually wins here, given how little data 28 districts and a handful of
-        years really is? Every model below is evaluated with leave-one-year-out cross-validation
-        across all 7 available years, not a single held-out year, so the comparison reflects a
-        distribution of results, not one lucky (or unlucky) test split.
       </p>
 
       {error && <p style={{ color: '#c0392b' }}>Couldn&apos;t load the model results.</p>}
@@ -111,223 +79,121 @@ export default function HomeValueModelPage() {
 
       {data && (
         <>
-          {h2('The Data')}
           <p style={{ marginBottom: '20px' }}>
-            The site&apos;s own affordability trend charts only cover 2018–2022 (5 years), which is
-            enough for a line chart, not enough to train a model. This analysis instead pulls the
-            same Census ACS loader across {data.generated_from.panel_years[0]}–
-            {data.generated_from.panel_years[data.generated_from.panel_years.length - 1]} (
-            {data.generated_from.panel_years.length} years), across all {data.generated_from.n_districts}{' '}
-            districts in both cities: {data.generated_from.train_rows} training district-year
-            transitions plus a held-out test transition ({data.generated_from.test_transition}) that
-            was never touched during feature selection or model tuning. Each row predicts next-year
-            median home value from this year&apos;s features, a genuine forward-in-time
-            prediction, not a same-year correlation.
+            Each row is one district in one year: Census ACS features in year <em>t</em> predict
+            that district&apos;s median home value in year <em>t+1</em>. There are{' '}
+            {data.generated_from.n_districts} districts and{' '}
+            {data.generated_from.panel_years[0]}–{data.generated_from.panel_years[data.generated_from.panel_years.length - 1] + 1}{' '}
+            data, which gives {data.generated_from.n_transitions} rows. Every model is scored with{' '}
+            <strong>leave-one-year-out cross-validation</strong>: train on 6 years, test on the 7th, and
+            repeat for each year. That gives 7 held-out results per model instead of one test split.
+            Features were chosen by greedy forward selection on cross-validated error. Only 2 of{' '}
+            {data.feature_selection.candidates.length} candidates survived:{' '}
+            {data.feature_selection.selected.map((f) => FEATURE_LABELS[f] ?? f).join(' and ')}.
           </p>
 
-          {h2('Feature Selection')}
-          <p style={{ marginBottom: '20px' }}>
-            Rather than throw every available Census variable at the model, features were added one
-            at a time, greedily, starting from a mean-only baseline, keeping whichever addition
-            most improved leave-one-year-out cross-validated error on the training years, and
-            stopping once nothing left improved it. {data.feature_selection.selected.length} of{' '}
-            {data.feature_selection.candidates.length} candidate variables survived:
-          </p>
-          <ul style={{ marginBottom: '20px', paddingLeft: '20px', columns: 2 }}>
-            {data.feature_selection.selected.map((f) => (
-              <li key={f}>{FEATURE_LABELS[f] ?? f}</li>
-            ))}
-          </ul>
-
-          {h2('Test-Set Accuracy: One Example Fold')}
-          <p style={{ marginBottom: '12px' }}>
-            Before the full leave-one-year-out comparison below, here&apos;s the most recent single
-            fold ({data.generated_from.test_transition}) for the two models this analysis started
-            with, as a concrete illustration:
-          </p>
-          <div style={{ width: '100%', height: 220, marginBottom: '8px' }}>
+          <H2>Model Ranking</H2>
+          <div style={{ width: '100%', height: 260, marginBottom: '8px' }}>
             <ResponsiveContainer>
-              <BarChart
-                data={[
-                  { model: 'Lasso', rmse: data.test_metrics.lasso.rmse },
-                  { model: 'Gradient Boosting', rmse: data.test_metrics.gbm.rmse },
-                ]}
-              >
-                <CartesianGrid strokeDasharray="3 3" stroke="#eee" />
-                <XAxis dataKey="model" tick={{ fontSize: 13 }} />
-                <YAxis tickFormatter={fmtDollar} tick={{ fontSize: 12 }} width={70} />
-                <Tooltip formatter={(v: any) => fmtDollar(Number(v))} />
-                <Bar dataKey="rmse" name="Test RMSE" radius={[4, 4, 0, 0]}>
-                  <Cell fill={PURPLE} />
-                  <Cell fill={ORANGE} />
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-          <p style={{ marginBottom: '20px', fontSize: '14px', color: '#666' }}>
-            Lasso: RMSE {fmtDollar(data.test_metrics.lasso.rmse)}, R² {data.test_metrics.lasso.r2.toFixed(2)}.
-            Gradient Boosting: RMSE {fmtDollar(data.test_metrics.gbm.rmse)}, R² {data.test_metrics.gbm.r2.toFixed(2)}.
-            Lower RMSE and higher R² are better.
-          </p>
-
-          {h2('Does More Data Help? Two Kinds of "More"')}
-          <p style={{ marginBottom: '16px' }}>
-            <strong>More years.</strong> Training on a growing window of years-back, ending right
-            before the test year, shows whether extra history helps either model generalize
-            forward:
-          </p>
-          <div style={{ width: '100%', height: 240, marginBottom: '8px' }}>
-            <ResponsiveContainer>
-              <LineChart data={data.learning_curve_years}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#eee" />
-                <XAxis dataKey="n_training_years" tick={{ fontSize: 12 }} label={{ value: 'Training years used', position: 'insideBottom', offset: -4, fontSize: 12 }} />
-                <YAxis tickFormatter={fmtDollar} tick={{ fontSize: 12 }} width={70} />
-                <Tooltip formatter={(v: any) => (v == null ? 'n/a' : fmtDollar(Number(v)))} />
-                <RechartsLegend />
-                <Line type="monotone" dataKey="lasso_rmse" name="Lasso" stroke={PURPLE} strokeWidth={2} connectNulls />
-                <Line type="monotone" dataKey="gbm_rmse" name="Gradient Boosting" stroke={ORANGE} strokeWidth={2} />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-          <p style={{ marginBottom: '20px', fontSize: '14px', color: '#666' }}>
-            With the corrected feature set (below), more years actually does help Lasso — its RMSE
-            falls fairly steadily as older years are added back in. That&apos;s a reversal from an
-            earlier version of this analysis, which didn&apos;t include this year&apos;s own home
-            value as a feature and found the opposite: older years hurt, because 2020–2022&apos;s
-            pandemic-era price boom was a regime shift relative to demographic-only predictors.
-            Once the model has the stable, highly autocorrelated signal (this year&apos;s price) to
-            anchor on, more years of history refine that relationship rather than confuse it.
-            Gradient Boosting doesn&apos;t show the same steady improvement — its error moves
-            around without a clear trend, another sign it isn&apos;t extracting a stable
-            relationship from this few rows the way the linear model is.
-          </p>
-
-          <p style={{ marginBottom: '16px' }}>
-            <strong>More features.</strong> Widening the feature set, with training years fixed,
-            tells a different story:
-          </p>
-          <div style={{ width: '100%', height: 240, marginBottom: '8px' }}>
-            <ResponsiveContainer>
-              <BarChart data={data.learning_curve_features}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#eee" />
-                <XAxis
-                  dataKey="feature_group"
-                  tick={{ fontSize: 12 }}
-                  tickFormatter={(v: string) => ({ core: 'Core (6)', core_plus_autoregressive: '+ current value (7)', all: '+ ACS extras (18)', forward_selected: 'Forward-selected' }[v] ?? v)}
-                />
-                <YAxis tickFormatter={fmtDollar} tick={{ fontSize: 12 }} width={70} />
-                <Tooltip formatter={(v: any) => fmtDollar(Number(v))} />
-                <RechartsLegend />
-                <Bar dataKey="lasso_rmse" name="Lasso" fill={PURPLE} radius={[4, 4, 0, 0]} />
-                <Bar dataKey="gbm_rmse" name="Gradient Boosting" fill={ORANGE} radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-          <p style={{ marginBottom: '20px', fontSize: '14px', color: '#666' }}>
-            The single biggest jump here isn&apos;t a wider Census variable set — it&apos;s adding
-            <strong> this year&apos;s own home value</strong> as a feature (Core → +current value):
-            Lasso&apos;s RMSE drops from ~$47,000 to ~$11,000. That makes sense in hindsight: home
-            values are highly autocorrelated year to year, so knowing a district&apos;s current
-            price is far more informative than reconstructing its price level indirectly from
-            income, rent, and poverty rate. Piling on the remaining 11 ACS variables after that
-            point (+ ACS extras) actually made Lasso <em>worse</em>, not better — with this little
-            data, extra columns add noise faster than signal once the dominant driver is already
-            included. The forward-selected 2-feature set (current value + bike commute rate) beats
-            every fixed group above, which is the point of selecting by cross-validated error
-            rather than by how many columns are available.
-          </p>
-
-          {h2('Model Bake-Off: 9 Families, Leave-One-Year-Out')}
-          <p style={{ marginBottom: '16px' }}>
-            Rather than compare just Lasso and Gradient Boosting on one held-out year, this runs 9
-            different model families through a full leave-one-year-out cycle: each model is trained
-            on 6 years and tested on the 7th, once for <em>every</em> year, so the ranking reflects
-            a distribution of 7 results per model, not one test split that could have gone either
-            way by chance:
-          </p>
-          <div style={{ width: '100%', height: 280, marginBottom: '8px' }}>
-            <ResponsiveContainer>
-              <BarChart
-                data={data.model_bakeoff.map((m) => ({ ...m, label: MODEL_LABELS[m.model] ?? m.model }))}
-                layout="vertical"
-                margin={{ left: 8 }}
-              >
+              <BarChart data={data.model_bakeoff} layout="vertical" margin={{ left: 8 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#eee" />
                 <XAxis type="number" tickFormatter={fmtDollar} tick={{ fontSize: 11 }} />
-                <YAxis type="category" dataKey="label" tick={{ fontSize: 12 }} width={130} />
+                <YAxis type="category" dataKey="model" tick={{ fontSize: 12 }} width={140} />
                 <Tooltip
-                  formatter={(v: any, name: any) => [fmtDollar(Number(v)), name]}
-                  labelFormatter={() => ''}
+                  formatter={(v: any, _n: any, item: any) => [
+                    `${fmtDollar(Number(v))} ± ${fmtDollar(item.payload.std_rmse)} (R² ${item.payload.pooled_r2})`,
+                    'Mean RMSE',
+                  ]}
                 />
-                <Bar dataKey="mean_rmse" name="Mean RMSE across 7 year-folds" radius={[0, 4, 4, 0]}>
-                  {data.model_bakeoff.map((m, i) => (
-                    <Cell key={m.model} fill={i < 3 ? '#2ca25f' : i < 6 ? PURPLE : '#bbb'} />
+                <Bar dataKey="mean_rmse" radius={[0, 4, 4, 0]}>
+                  {data.model_bakeoff.map((m) => (
+                    <Cell key={m.model} fill={data.top_models.includes(m.model) ? colorFor(m.model) : '#ccc'} />
                   ))}
                 </Bar>
               </BarChart>
             </ResponsiveContainer>
           </div>
-          <p style={{ marginBottom: '20px', fontSize: '13px', color: '#888' }}>
-            Green = top 3, purple = middle 3, gray = bottom 3, ranked by mean RMSE across all 7
-            year-folds (lower is better).
+          <p style={note}>
+            This is mean RMSE across the 7 year-folds, lower is better, with the top 3 in color. The top 3
+            are within ~$300 of each other. The next gap is $1–7K, down to the tree, kernel, and neighbor
+            models. Elastic Net was also tested, but cross-validation picked a pure-L1 penalty on every
+            fold, which made it identical to Lasso, so it&apos;s omitted.
           </p>
 
-          <h3 style={{ fontSize: '16px', fontWeight: 600, marginTop: '24px', marginBottom: '12px' }}>
-            The Top 3, and Why They Won
-          </h3>
-          <p style={{ marginBottom: '16px' }}>
-            The three best performers — {data.model_bakeoff.slice(0, 3).map((m) => MODEL_LABELS[m.model] ?? m.model).join(', ')}
-            {' '}— are all, in different ways, models built around a small-sample assumption: the
-            true relationship is simple, and the job is mostly to avoid overfitting the noise in
-            168 rows, not to capture complex interactions there isn&apos;t enough data to
-            distinguish from chance:
+          <H2>Why the Small-Sample Models Win</H2>
+          <p style={{ marginBottom: '12px' }}>
+            With about 170 training rows, the limiting factor is <strong>variance, not bias</strong>. The top 3
+            each control variance in a different way:
           </p>
-          <ul style={{ marginBottom: '20px', paddingLeft: '20px' }}>
-            <li style={{ marginBottom: '10px' }}>
-              <strong>Lasso / Elastic Net</strong> — regularized linear regression that shrinks
-              weak or redundant coefficients toward (or to exactly) zero. With only ~170 rows and
-              correlated predictors (income, rent, and cost burden all move together), an
-              unregularized linear model would produce wild, unstable coefficients; Lasso&apos;s
-              penalty is exactly the right correction, and it doubles as automatic feature
-              selection.
-            </li>
-            <li style={{ marginBottom: '10px' }}>
-              <strong>Bayesian Ridge</strong> — statistically, close to Ridge regression, but the
-              regularization strength itself is inferred from the data via a probabilistic prior
-              rather than chosen by cross-validation. That makes it naturally conservative on a
-              small panel: it can&apos;t become overconfident from a handful of rows the way an
-              unregularized model or a deep tree can.
-            </li>
-            <li style={{ marginBottom: '10px' }}>
-              <strong>Gaussian Process</strong> — a kernel method that, with the smooth
-              (RBF) kernel used here, effectively predicts each district as a similarity-weighted
-              average of the training districts nearest it in feature space, with the kernel&apos;s
-              own noise term absorbing measurement noise instead of fitting it. GPs are a
-              standard choice specifically <em>for</em> small-sample regression, and they also
-              output calibrated uncertainty estimates for free — arguably more useful for a
-              district-level forecast than a bare point prediction.
-            </li>
+          <ul style={{ marginBottom: '16px', paddingLeft: '20px' }}>
+            <li><strong>Lasso</strong> uses an L1 penalty tuned by CV. It shrinks correlated coefficients and zeroes out weak ones.</li>
+            <li><strong>Bayesian Ridge</strong> uses an L2 penalty whose strength is estimated from the data by maximizing the marginal likelihood, rather than tuned by CV.</li>
+            <li><strong>Gaussian Process</strong> uses a smooth kernel prior plus an explicit noise term, so it doesn&apos;t fit the noise.</li>
           </ul>
           <p style={{ marginBottom: '20px' }}>
-            The bottom of the ranking tells the same story from the other direction: Gradient
-            Boosting, Random Forest, and K-Nearest Neighbors all build their prediction out of
-            local, data-driven splits or neighborhoods rather than a single global relationship.
-            That flexibility is normally an advantage — it lets them capture nonlinear patterns a
-            linear model can&apos;t — but it needs enough rows to tell a real nonlinear pattern
-            apart from sampling noise. At ~170 rows split across 28 districts, there usually
-            isn&apos;t enough repetition of any one local pattern for that flexibility to pay off,
-            so it mostly just adds variance. This is a property of <em>this dataset&apos;s size</em>,
-            not a general rule that linear models beat tree ensembles — with meaningfully more
-            district-years of history, that ranking would likely shift.
+            The relationship being learned is almost linear, because next year&apos;s value is roughly this
+            year&apos;s value times a growth rate. Gradient Boosting, Random Forest, and KNN estimate that
+            relationship from local splits or neighborhoods. Each split sees only a fraction of the rows,
+            so they pay a variance cost for flexibility the data doesn&apos;t need. With many more
+            district-years, the ranking could change.
           </p>
 
-          {h2('Test-Year Predictions vs. Actual')}
-          <p style={{ marginBottom: '12px', fontSize: '14px', color: '#666' }}>
-            The Lasso/Gradient Boosting district-by-district breakdown from the single most recent
-            fold ({data.generated_from.test_transition}) — one of the 7 folds behind the bake-off
-            above, shown concretely rather than just as a summary statistic. Error is % of the
-            actual value ((prediction − actual) / actual), not raw dollars, so districts at very
-            different price points are comparable at a glance.
+          <H2>More Features vs. More Years</H2>
+          <div style={{ width: '100%', height: 260, marginBottom: '8px' }}>
+            <ResponsiveContainer>
+              <BarChart data={data.learning_curve_features}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#eee" />
+                <XAxis dataKey="feature_group" tick={{ fontSize: 11 }} tickFormatter={(v: string) => GROUP_LABELS[v] ?? v} />
+                <YAxis tickFormatter={fmtDollar} tick={{ fontSize: 12 }} width={70} />
+                <Tooltip formatter={(v: any) => fmtDollar(Number(v))} labelFormatter={(v: any) => GROUP_LABELS[v] ?? v} />
+                <RechartsLegend />
+                {data.featured_models.map((m) => (
+                  <Bar key={m} dataKey={m} name={m} fill={colorFor(m)} radius={[3, 3, 0, 0]} />
+                ))}
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+          <p style={note}>
+            The chart shows test RMSE on the {data.generated_from.test_transition} fold. Adding this year&apos;s
+            own home value to the 6 demographic features cuts error by about 75%, from roughly $47K to $11K,
+            because home values are strongly autocorrelated. Adding 11 more ACS variables on top of that
+            makes all four models <em>worse</em>: with this little data, each extra column adds more
+            variance than signal. The 2-feature selected set is best for the top 3.
+          </p>
+
+          <div style={{ width: '100%', height: 260, marginBottom: '8px' }}>
+            <ResponsiveContainer>
+              <LineChart data={data.learning_curve_years} margin={{ bottom: 12 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#eee" />
+                <XAxis dataKey="n_training_years" tick={{ fontSize: 12 }} label={{ value: 'Most recent N training years', position: 'insideBottom', offset: -8, fontSize: 12 }} />
+                <YAxis tickFormatter={fmtDollar} tick={{ fontSize: 12 }} width={70} />
+                <Tooltip formatter={(v: any) => fmtDollar(Number(v))} />
+                <RechartsLegend verticalAlign="top" />
+                {data.featured_models.map((m) => (
+                  <Line
+                    key={m}
+                    type="monotone"
+                    dataKey={m}
+                    name={m}
+                    stroke={colorFor(m)}
+                    strokeWidth={2}
+                    strokeDasharray={data.top_models.includes(m) ? undefined : '5 4'}
+                  />
+                ))}
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+          <p style={note}>
+            When older years are added back to the training data, the top 3 improve from about $15K at 2
+            years to $10K at 6. Gradient Boosting (dashed) stays around $19K. With a stable autoregressive
+            signal, more years helps the low-variance models refine one relationship, but it doesn&apos;t give
+            the tree ensemble enough data to catch up.
+          </p>
+
+          <H2>District Predictions ({data.generated_from.test_transition})</H2>
+          <p style={note}>
+            Error is (prediction − actual) / actual. Red means an overprediction and blue an
+            underprediction. The ✓ marks the model that was closest for each district.
           </p>
           <div style={{ overflowX: 'auto', marginBottom: '24px' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
@@ -335,16 +201,9 @@ export default function HomeValueModelPage() {
                 <tr style={{ borderBottom: '2px solid #ddd', textAlign: 'right' }}>
                   <th style={{ textAlign: 'left', padding: '6px 8px' }}>District</th>
                   <th style={{ padding: '6px 8px' }}>Actual</th>
-                  <th style={{ padding: '6px 8px' }} colSpan={2}>Lasso</th>
-                  <th style={{ padding: '6px 8px' }} colSpan={2}>Gradient Boosting</th>
-                </tr>
-                <tr style={{ borderBottom: '2px solid #ddd', textAlign: 'right', fontSize: '11px', color: '#888' }}>
-                  <th style={{ padding: '0 8px 6px' }} />
-                  <th style={{ padding: '0 8px 6px' }} />
-                  <th style={{ padding: '0 8px 6px' }}>pred.</th>
-                  <th style={{ padding: '0 8px 6px' }}>error</th>
-                  <th style={{ padding: '0 8px 6px' }}>pred.</th>
-                  <th style={{ padding: '0 8px 6px' }}>error</th>
+                  {data.featured_models.map((m) => (
+                    <th key={m} style={{ padding: '6px 8px', color: colorFor(m) }}>{m}</th>
+                  ))}
                 </tr>
               </thead>
               <tbody>
@@ -352,62 +211,50 @@ export default function HomeValueModelPage() {
                   .slice()
                   .sort((a, b) => a.city.localeCompare(b.city) || a.district_id - b.district_id)
                   .map((p) => {
-                    const lassoErr = p.lasso_pred - p.actual;
-                    const gbmErr = p.gbm_pred - p.actual;
-                    const lassoErrPct = (lassoErr / p.actual) * 100;
-                    const gbmErrPct = (gbmErr / p.actual) * 100;
-                    const lassoBetter = Math.abs(lassoErr) <= Math.abs(gbmErr);
-                    const errCell = (errPct: number, isBetter: boolean) => (
-                      <td
-                        style={{
-                          padding: '6px 8px',
-                          fontWeight: isBetter ? 700 : 400,
-                          color: errPct > 0 ? '#c0392b' : errPct < 0 ? '#2166ac' : '#666',
-                          background: isBetter ? '#eafaf1' : 'transparent',
-                          borderRadius: '4px',
-                        }}
-                      >
-                        {isBetter && (
-                          <span style={{ color: '#27ae60', fontWeight: 700, marginRight: '4px' }}>✓</span>
-                        )}
-                        {errPct > 0 ? '+' : ''}
-                        {errPct.toFixed(1)}%
-                      </td>
-                    );
+                    const errs = data.featured_models.map((m) => ((p.preds[m] - p.actual) / p.actual) * 100);
+                    const best = errs.reduce((bi, e, i) => (Math.abs(e) < Math.abs(errs[bi]) ? i : bi), 0);
                     return (
                       <tr key={`${p.city}-${p.district_id}`} style={{ borderBottom: '1px solid #eee', textAlign: 'right' }}>
                         <td style={{ textAlign: 'left', padding: '6px 8px' }}>
                           {p.city === 'stpaul' ? 'St. Paul' : 'Mpls'} {p.district_id}
                         </td>
                         <td style={{ padding: '6px 8px' }}>{fmtDollar(p.actual)}</td>
-                        <td style={{ padding: '6px 8px' }}>{fmtDollar(p.lasso_pred)}</td>
-                        {errCell(lassoErrPct, lassoBetter)}
-                        <td style={{ padding: '6px 8px' }}>{fmtDollar(p.gbm_pred)}</td>
-                        {errCell(gbmErrPct, !lassoBetter)}
+                        {errs.map((e, i) => (
+                          <td
+                            key={i}
+                            style={{
+                              padding: '6px 8px',
+                              color: e > 0 ? '#c0392b' : '#2166ac',
+                              fontWeight: i === best ? 700 : 400,
+                              background: i === best ? '#eafaf1' : 'transparent',
+                            }}
+                          >
+                            {i === best && <span style={{ color: '#27ae60', marginRight: '4px' }}>✓</span>}
+                            {e > 0 ? '+' : ''}{e.toFixed(1)}%
+                          </td>
+                        ))}
                       </tr>
                     );
                   })}
               </tbody>
             </table>
           </div>
-          <p style={{ marginBottom: '20px', fontSize: '13px', color: '#888' }}>
-            Red = overpredicted, blue = underpredicted. <span style={{ color: '#27ae60', fontWeight: 700 }}>✓</span> marks the closer prediction for
-            that district.
-          </p>
 
-          {h2('Honest Limitations')}
+          <H2>Limitations</H2>
           <ul style={{ marginBottom: '24px', paddingLeft: '20px' }}>
-            <li>Crime, permits, and OpenStreetMap-derived amenities aren&apos;t included as features: they don&apos;t have a matching year-by-year history over this same window, so adding them as static values would misrepresent them as time-varying.</li>
-            <li>28 districts and 7 years is still a small panel in absolute terms — leave-one-year-out evaluation makes the ranking above far more trustworthy than a single test split, but it doesn&apos;t manufacture more independent data. The per-fold spread in the bake-off chart&apos;s tooltip (±$5-6K across models) shows real fold-to-fold variance even for the top models.</li>
+            <li>
+              The 7 folds share districts, and consecutive 5-year ACS estimates overlap. So the folds are not
+              independent samples, and the ± spread understates the true uncertainty.
+            </li>
+            <li>
+              Crime, permits, and OSM amenities are excluded because they have no matching yearly history
+              over 2017–2024.
+            </li>
           </ul>
 
-          <p style={{ fontSize: '13px', color: '#888', marginBottom: '8px' }}>
-            See <Link href="/about" style={{ color: PURPLE }}>About</Link> for the Living Quality
-            Score methodology, and{' '}
-            <code style={{ background: '#f4f4f4', padding: '1px 5px', borderRadius: '3px' }}>
-              pipeline/analysis/home_value_prediction/README.md
-            </code>{' '}
-            for the full write-up and how to regenerate these results.
+          <p style={{ fontSize: '13px', color: '#888' }}>
+            See <Link href="/about" style={{ color: PURPLE }}>About</Link> for the Living Quality Score
+            methodology.
           </p>
         </>
       )}

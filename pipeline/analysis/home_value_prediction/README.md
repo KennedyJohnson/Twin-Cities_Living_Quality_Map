@@ -1,8 +1,8 @@
-# Home Value Prediction — A 9-Model Bake-Off
+# Home Value Prediction — An 8-Model Bake-Off
 
 A small model-comparison study built on top of the Living Quality Map's
 existing Census pipeline: given a district's features in year *t*, predict
-its median home value in year *t+1*, then compare 9 different scikit-learn
+its median home value in year *t+1*, then compare 8 scikit-learn
 model families on genuinely held-out, forward-in-time data using
 leave-one-year-out cross-validation.
 
@@ -29,82 +29,23 @@ train a model. This analysis pulls the same ACS loader
 - `train.py` — reads `data/panel.csv` (no API key needed), builds
   year-over-year district transitions, runs leave-one-year-out (LOYO)
   cross-validated forward feature selection, then:
-  - fits Lasso and Gradient Boosting on one illustrative fold (the most
-    recent transition) for a concrete example,
-  - runs two learning-curve sweeps (more years / more features),
-  - runs a full LOYO bake-off of 9 model families (`MODEL_CANDIDATES`),
-    each evaluated on *all 7* years as the held-out fold, not just one —
-  and writes `results.json` (also copied to
+  runs the LOYO bake-off (`MODEL_CANDIDATES`), and fits the top 3 plus
+  Gradient Boosting on the most recent fold and two learning-curve sweeps
+  (more years / more features). It writes `results.json` (also copied to
   `web/public/data/home_value_prediction.json` for the frontend write-up
   page at `/home-value-model`).
 
-## Method summary
+## Method
 
-- **Target:** `median_home_value` in year t+1, predicted from year t
-  features — a real forward prediction, not same-year correlation.
-- **Feature selection:** greedy forward selection — starting from a
-  mean-only baseline, repeatedly adds whichever remaining candidate most
-  improves LOYO CV RMSE on the training years (years before the final
-  transition), stopping once no remaining feature helps.
-- **Evaluation — leave-one-year-out across all years, not a single test
-  split:** an earlier version of this analysis evaluated only on the most
-  recent transition (2023->2024). A single held-out year is one test, not
-  a distribution — a different test year could rank the models
-  differently. `run_model_bakeoff` now trains each model on 6 years and
-  tests on the 7th, once for *every* year, and ranks by mean RMSE across
-  all 7 folds (with std/min/max reported too). The single-fold Lasso vs.
-  GBM comparison is kept in the results/page as one concrete illustration,
-  not as the primary evidence.
-- **Models compared:** Lasso, Ridge, Elastic Net, Bayesian Ridge, Gradient
-  Boosting, Random Forest, K-Nearest Neighbors, Support Vector Regression
-  (RBF kernel), and Gaussian Process Regression — see `MODEL_CANDIDATES` in
-  `train.py`.
+- **Target:** `median_home_value` in year t+1 from year-t features (a forward prediction, not a same-year correlation).
+- **Feature selection:** greedy forward selection on Lasso's leave-one-year-out (LOYO) CV RMSE. Only 2 of 18 candidates survive: this year's home value and bike commute rate.
+- **Evaluation:** a full LOYO bake-off. Each model trains on 6 years and tests on the 7th, repeated for all 7 years, and models are ranked by mean RMSE across folds.
+- **Models:** Lasso, Ridge, Bayesian Ridge (target standardized, since its default priors over-shrink raw-dollar targets at small n), Gaussian Process, Random Forest, Gradient Boosting, KNN, and SVR. Elastic Net was dropped: CV picked l1_ratio=1 on every fold, which made it identical to Lasso.
 
-## The single biggest finding: this year's own value belongs in the feature set
+## Findings
 
-An earlier version of this analysis omitted `median_home_value` itself from
-the candidate features, forcing every model to reconstruct a district's
-absolute price level entirely from unrelated demographic proxies (income,
-rent, poverty rate, etc.). Adding it back as a candidate feature (it's
-forward-selected immediately, alongside one other variable) dropped Lasso's
-single-fold test RMSE from **$34,779 to ~$10,400** (R^2 0.89 -> 0.99) — by
-far the largest lever in the whole analysis, well ahead of any model-family
-choice. Home values are highly autocorrelated year to year, so this is the
-standard "predict the return, not the level" framing used in real
-estate/finance forecasting, just expressed as a feature rather than a
-change of target variable. It also flipped an earlier (now outdated)
-finding that more training years hurt — with the dominant, stable
-autoregressive signal now available to anchor on, more years steadily
-*improve* Lasso instead.
+1. **This year's home value is by far the most important feature.** Without it, every model has to reconstruct price level from demographic proxies. Adding it cuts single-fold RMSE by about 75% (~$47K to ~$11K). Adding the other 11 ACS variables on top of it makes every model worse, because at this sample size they add more variance than signal.
+2. **The top 3 are Lasso, Bayesian Ridge, and Gaussian Process** (mean LOYO RMSE ~$13.0-13.3K, R^2 ~0.98). They are within ~$300 of each other, and $1-7K ahead of Ridge, SVR, Gradient Boosting, Random Forest, and KNN. With ~170 rows the problem is variance-limited. All three top models control variance explicitly (an L1 penalty, a marginal-likelihood-tuned L2 prior, and a smooth kernel with a noise term). The relationship being learned is close to linear (value(t+1) is roughly growth x value(t)), so the local-split and neighbor models pay a variance cost for flexibility the data doesn't need.
+3. **More years helps the top 3** (~$15K at 2 training years down to ~$10K at 6) but not Gradient Boosting, which stays at ~$19K.
 
-## Which models actually win, and why
-
-Ranked by mean RMSE across all 7 leave-one-year-out folds, the top 3 are
-consistently **Lasso/Elastic Net, Bayesian Ridge, and Gaussian Process
-Regression** — all beating Gradient Boosting, Random Forest, SVR, and KNN
-in every configuration tried. This isn't a general claim that linear models
-beat tree ensembles; it's specific to how little data this panel has
-(~170-190 rows depending on the fold):
-
-- **Lasso / Elastic Net** shrink weak or collinear coefficients toward
-  zero, which is exactly the right correction when predictors (income,
-  rent, cost burden) move together and there isn't enough data to estimate
-  each one's independent effect reliably.
-- **Bayesian Ridge** infers its own regularization strength from a
-  probabilistic prior rather than tuning it against the data, making it
-  naturally conservative on a small panel.
-- **Gaussian Process Regression** (RBF + white-noise kernel) predicts each
-  district as a similarity-weighted average of its nearest training
-  districts in feature space, with the kernel's noise term absorbing
-  measurement noise instead of fitting it — a standard choice for
-  small-sample regression, and one that also gives calibrated uncertainty
-  estimates for free.
-- **Gradient Boosting, Random Forest, and KNN** all build predictions out
-  of local, data-driven splits/neighborhoods, which needs enough repeated
-  examples of any one local pattern to distinguish signal from noise. At
-  this sample size there usually isn't, so the extra flexibility mostly
-  adds variance instead of paying off. Revisit this ranking once
-  meaningfully more district-years of history have accumulated.
-
-See `results.json`'s `model_bakeoff` array (or the frontend page) for the
-exact numbers per model and per fold.
+**Caveat:** the folds share districts, and consecutive 5-year ACS estimates overlap, so the folds aren't independent. The reported +/- spread understates the true uncertainty.
