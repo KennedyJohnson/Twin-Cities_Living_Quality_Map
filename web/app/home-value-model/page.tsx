@@ -35,12 +35,23 @@ const FEATURE_LABELS: Record<string, string> = {
   bike_commute_rate: 'bike commute rate',
 };
 
-const GROUP_LABELS: Record<string, string> = {
-  core: 'Demographics (6)',
-  core_plus_autoregressive: '+ current value (7)',
-  all: '+ 11 more ACS (18)',
-  forward_selected: 'Selected (2)',
+const GROUP_LABELS: Record<string, [string, string]> = {
+  core: ['Demographics only', '6 features'],
+  core_plus_autoregressive: ["+ this year's value", '7 features'],
+  all: ['+ 11 more Census vars', '18 features'],
+  forward_selected: ['Forward-selected', '2 features'],
 };
+const groupLabel = (v: string) => (GROUP_LABELS[v] ? GROUP_LABELS[v].join(', ') : v);
+
+function GroupTick({ x, y, payload }: any) {
+  const [name, count] = GROUP_LABELS[payload.value] ?? [payload.value, ''];
+  return (
+    <g transform={`translate(${x},${y})`}>
+      <text dy={16} textAnchor="middle" fontSize={13} fontWeight={600} fill="#333">{name}</text>
+      <text dy={32} textAnchor="middle" fontSize={12} fill="#666">{count}</text>
+    </g>
+  );
+}
 
 function fmtDollar(v: number) {
   return `$${Math.round(v).toLocaleString()}`;
@@ -139,13 +150,13 @@ export default function HomeValueModelPage() {
           </p>
 
           <H2>More Features vs. More Years</H2>
-          <div style={{ width: '100%', height: 260, marginBottom: '8px' }}>
+          <div style={{ width: '100%', height: 290, marginBottom: '8px' }}>
             <ResponsiveContainer>
-              <BarChart data={data.learning_curve_features}>
+              <BarChart data={data.learning_curve_features} margin={{ bottom: 8 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#eee" />
-                <XAxis dataKey="feature_group" tick={{ fontSize: 11 }} tickFormatter={(v: string) => GROUP_LABELS[v] ?? v} />
+                <XAxis dataKey="feature_group" tick={<GroupTick />} height={50} interval={0} />
                 <YAxis tickFormatter={fmtDollar} tick={{ fontSize: 12 }} width={70} />
-                <Tooltip formatter={(v: any) => fmtDollar(Number(v))} labelFormatter={(v: any) => GROUP_LABELS[v] ?? v} />
+                <Tooltip formatter={(v: any) => fmtDollar(Number(v))} labelFormatter={(v: any) => groupLabel(v)} />
                 <RechartsLegend />
                 {data.top_models.map((m) => (
                   <Bar key={m} dataKey={m} name={m} fill={colorFor(m)} radius={[3, 3, 0, 0]} />
