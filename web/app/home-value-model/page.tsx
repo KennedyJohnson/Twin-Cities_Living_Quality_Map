@@ -200,7 +200,7 @@ export default function HomeValueModelPage() {
                 <tr style={{ borderBottom: '2px solid #ddd', textAlign: 'right' }}>
                   <th style={{ textAlign: 'left', padding: '6px 8px' }}>District</th>
                   <th style={{ padding: '6px 8px' }}>Actual</th>
-                  {data.featured_models.map((m) => (
+                  {data.top_models.map((m) => (
                     <th key={m} style={{ padding: '6px 8px', color: colorFor(m) }}>{m}</th>
                   ))}
                 </tr>
@@ -210,7 +210,7 @@ export default function HomeValueModelPage() {
                   .slice()
                   .sort((a, b) => a.city.localeCompare(b.city) || a.district_id - b.district_id)
                   .map((p) => {
-                    const errs = data.featured_models.map((m) => ((p.preds[m] - p.actual) / p.actual) * 100);
+                    const errs = data.top_models.map((m) => ((p.preds[m] - p.actual) / p.actual) * 100);
                     const best = errs.reduce((bi, e, i) => (Math.abs(e) < Math.abs(errs[bi]) ? i : bi), 0);
                     return (
                       <tr key={`${p.city}-${p.district_id}`} style={{ borderBottom: '1px solid #eee', textAlign: 'right' }}>
