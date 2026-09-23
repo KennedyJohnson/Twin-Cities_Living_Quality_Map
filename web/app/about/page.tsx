@@ -35,8 +35,8 @@ export default function AboutPage() {
         scoring methodology, tech stack, and data sources, and{' '}
         <Link href="/trends" style={{ color: '#756bb1' }}>Trends</Link> for the underlying data over
         time, and{' '}
-        <Link href="/home-value-model" style={{ color: '#756bb1' }}>the home value prediction write-up</Link>{' '}
-        for a model-comparison analysis (Lasso vs. gradient boosting) built on the same pipeline.
+        <Link href="/home-value-model" style={{ color: '#756bb1' }}>Home Price Prediction</Link>{' '}
+        for a next-year home value forecast comparing 8 model types, built on the same pipeline.
       </p>
 
       <p style={{ marginBottom: '20px', fontSize: '14px', color: '#666', fontStyle: 'italic' }}>

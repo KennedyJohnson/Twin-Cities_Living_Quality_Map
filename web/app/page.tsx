@@ -48,6 +48,15 @@ export default function Home() {
   const [matchWeights, setMatchWeights] = useState<MatchWeights>({ ...DEFAULT_MATCH_WEIGHTS });
   const [maxRent, setMaxRent] = useState<number | null>(null);
   const [maxHomeValue, setMaxHomeValue] = useState<number | null>(null);
+  const [housingMode, setHousingMode] = useState<'rent' | 'buy'>('rent');
+  const [minBeds, setMinBeds] = useState<number | null>(null);
+  // Only the active mode's budget applies, so a renter doesn't get filtered
+  // out by a leftover home-price limit (and vice versa).
+  const handleHousingModeChange = (mode: 'rent' | 'buy') => {
+    setHousingMode(mode);
+    if (mode === 'rent') setMaxHomeValue(null);
+    else setMaxRent(null);
+  };
   const [budgetExcludedDistrictIds, setBudgetExcludedDistrictIds] = useState<Set<number> | null>(null);
   const [matchCityFilter, setMatchCityFilter] = useState<'all' | 'stpaul' | 'mpls'>('all');
   const [matchRegions, setMatchRegions] = useState<MatchRegion[]>([]);
@@ -478,6 +487,10 @@ export default function Home() {
               onMaxRentChange={setMaxRent}
               maxHomeValue={maxHomeValue}
               onMaxHomeValueChange={setMaxHomeValue}
+              housingMode={housingMode}
+              onHousingModeChange={handleHousingModeChange}
+              minBeds={minBeds}
+              onMinBedsChange={setMinBeds}
               cityFilter={matchCityFilter}
               onCityFilterChange={setMatchCityFilter}
               onRegionsChange={setMatchRegions}
@@ -538,7 +551,7 @@ export default function Home() {
           }}
         >
           <Link href="/trends" style={{ color: '#756bb1', fontWeight: 600 }}>Trends</Link>
-          <Link href="/home-value-model" style={{ color: '#756bb1', fontWeight: 600 }}>ML Model</Link>
+          <Link href="/home-value-model" style={{ color: '#756bb1', fontWeight: 600 }}>Home Price Prediction</Link>
           <Link href="/about" style={{ color: '#756bb1', fontWeight: 600 }}>About</Link>
         </div>
       </div>
@@ -559,6 +572,10 @@ export default function Home() {
             districtA={selectedDistrict}
             districtB={compareDistrict}
             onClose={exitCompare}
+            maxRent={maxRent}
+            maxHomeValue={maxHomeValue}
+            housingMode={housingMode}
+            minBeds={minBeds}
           />
         ) : (
           <NeighborhoodSidebar
@@ -574,6 +591,11 @@ export default function Home() {
             }
             reviewsLinkIsNamedPlace={searchMarker?.isNamedPlace ?? false}
             onExpandedIndexChange={handleExpandedIndexChange}
+            center={searchMarker ? { lat: searchMarker.lat, lon: searchMarker.lon } : null}
+            maxRent={maxRent}
+            maxHomeValue={maxHomeValue}
+            housingMode={housingMode}
+            minBeds={minBeds}
           />
         )}
       </div>
