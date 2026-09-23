@@ -147,7 +147,7 @@ export default function HomeValueModelPage() {
                 <YAxis tickFormatter={fmtDollar} tick={{ fontSize: 12 }} width={70} />
                 <Tooltip formatter={(v: any) => fmtDollar(Number(v))} labelFormatter={(v: any) => GROUP_LABELS[v] ?? v} />
                 <RechartsLegend />
-                {data.featured_models.map((m) => (
+                {data.top_models.map((m) => (
                   <Bar key={m} dataKey={m} name={m} fill={colorFor(m)} radius={[3, 3, 0, 0]} />
                 ))}
               </BarChart>
@@ -157,8 +157,8 @@ export default function HomeValueModelPage() {
             The chart shows test RMSE on the {data.generated_from.test_transition} fold. Adding this year&apos;s
             own home value to the 6 demographic features cuts error by about 75%, from roughly $47K to $11K,
             because home values are strongly autocorrelated. Adding 11 more ACS variables on top of that
-            makes all four models <em>worse</em>: with this little data, each extra column adds more
-            variance than signal. The 2-feature selected set is best for the top 3.
+            makes all three <em>worse</em>: with this little data, each extra column adds more
+            variance than signal. The 2-feature selected set is best for all three.
           </p>
 
           <div style={{ width: '100%', height: 260, marginBottom: '8px' }}>
@@ -169,7 +169,7 @@ export default function HomeValueModelPage() {
                 <YAxis tickFormatter={fmtDollar} tick={{ fontSize: 12 }} width={70} />
                 <Tooltip formatter={(v: any) => fmtDollar(Number(v))} />
                 <RechartsLegend verticalAlign="top" />
-                {data.featured_models.map((m) => (
+                {data.top_models.map((m) => (
                   <Line
                     key={m}
                     type="monotone"
@@ -177,17 +177,16 @@ export default function HomeValueModelPage() {
                     name={m}
                     stroke={colorFor(m)}
                     strokeWidth={2}
-                    strokeDasharray={data.top_models.includes(m) ? undefined : '5 4'}
                   />
                 ))}
               </LineChart>
             </ResponsiveContainer>
           </div>
           <p style={note}>
-            When older years are added back to the training data, the top 3 improve from about $15K at 2
-            years to $10K at 6. Gradient Boosting (dashed) stays around $19K. With a stable autoregressive
-            signal, more years helps the low-variance models refine one relationship, but it doesn&apos;t give
-            the tree ensemble enough data to catch up.
+            When older years are added back to the training data, all three improve from about $15K at 2
+            years to $10K at 6. With a stable autoregressive signal, more years of history refine the same
+            relationship instead of confusing it. Lasso and Bayesian Ridge are nearly identical here, so
+            their lines overlap.
           </p>
 
           <H2>District Predictions ({data.generated_from.test_transition})</H2>
