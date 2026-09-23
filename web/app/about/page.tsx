@@ -36,7 +36,7 @@ export default function AboutPage() {
         <Link href="/trends" style={{ color: '#756bb1' }}>Trends</Link> for the underlying data over
         time, and{' '}
         <Link href="/home-value-model" style={{ color: '#756bb1' }}>Home Price Prediction</Link>{' '}
-        for a next-year home value forecast comparing 8 model types, built on the same pipeline.
+        for a test of whether public Census data can predict home prices, built on the same pipeline.
       </p>
 
       <p style={{ marginBottom: '20px', fontSize: '14px', color: '#666', fontStyle: 'italic' }}>
