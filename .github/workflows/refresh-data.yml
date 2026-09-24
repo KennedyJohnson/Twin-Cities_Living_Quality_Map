@@ -67,6 +67,16 @@ jobs:
           pip install "shap>=0.44"
           python -m analysis.score_drivers.shap_drivers
 
+      - name: Save score history to Supabase
+        working-directory: pipeline
+        continue-on-error: true
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+        run: |
+          python exports/export_supabase.py
+          python exports/export_houses_supabase.py
+
       - name: Commit refreshed data
         run: |
           git config user.name "github-actions[bot]"

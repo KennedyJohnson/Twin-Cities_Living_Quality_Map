@@ -1101,5 +1101,13 @@ input[type='checkbox'] { accent-color: var(--accent); }
   transition: background 0.12s ease, color 0.12s ease;
 }
 .map-nav a:hover { background: var(--accent-soft); color: var(--accent); }
+.map-nav a { white-space: nowrap; }
+.map-nav .nav-short { display: none; }
+@media (max-width: 1320px) {
+  .map-nav { font-size: 12px; gap: 2px; }
+  .map-nav a { padding: 5px 8px; }
+  .map-nav .nav-long { display: none; }
+  .map-nav .nav-short { display: inline; }
+}
 
 .leaflet-bar { border: none !important; box-shadow: var(--shadow) !important; border-radius: 10px !important; overflow: hidden; }

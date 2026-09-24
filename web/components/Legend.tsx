@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { POINT_LAYER_COLORS, POINT_LAYER_LABELS } from '@/lib/pointLayerColors';
 import { SCORE_METRIC_LABELS, ScoreMetricKey } from '@/lib/scoreMetric';
 import { COLOR_METRICS, ColorMetricKey } from '@/lib/colorMetric';
+import { supabase } from '@/lib/supabase';
 import { LetterGrade, gradeColor, gradeTextColor } from '@/lib/letterGrade';
 
 interface LegendProps {
@@ -14,6 +15,8 @@ interface LegendProps {
   onDeselectAll?: (allKeys: string[]) => void;
   apartmentBuildingsVisible?: boolean;
   onToggleApartmentBuildings?: () => void;
+  housesVisible?: boolean;
+  onToggleHouses?: () => void;
   onHoverGrade?: (grade: LetterGrade | null) => void;
   pinnedGrade?: LetterGrade | null;
   onClickGrade?: (grade: LetterGrade) => void;
@@ -28,6 +31,8 @@ export default function Legend({
   onToggleSource,
   onDeselectAll,
   apartmentBuildingsVisible = false,
+  housesVisible = false,
+  onToggleHouses,
   onToggleApartmentBuildings,
   onHoverGrade,
   pinnedGrade = null,
@@ -171,6 +176,26 @@ export default function Legend({
             Apartment Buildings
           </span>
         </label>
+        {supabase && (
+          <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', cursor: 'pointer', marginTop: '4px' }}>
+            <input type="checkbox" checked={housesVisible} onChange={() => onToggleHouses?.()} />
+            <span
+              style={{
+                display: 'inline-flex',
+                flexShrink: 0,
+                width: '8px',
+                height: '8px',
+                borderRadius: '50%',
+                backgroundColor: '#d9b48f',
+                border: '1px solid #7a5c3e',
+                opacity: housesVisible ? 1 : 0.4,
+              }}
+            />
+            <span style={{ opacity: housesVisible ? 1 : 0.4 }}>
+              Houses{housesVisible && <span style={{ color: '#999' }}> (visible when zoomed in)</span>}
+            </span>
+          </label>
+        )}
       </div>
     </div>
   );

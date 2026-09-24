@@ -17,6 +17,9 @@ import {
   MatchRegionBuilding,
   MATCH_REGION_RADIUS_METERS,
   haversineMeters,
+  houseTypesFor,
+  includesApartments,
+  housesInRegion,
 } from '@/lib/matchRegions';
 import { estimateCommute, useWorkLocation } from '@/lib/commute';
 import { WorkAddressInput } from '@/components/AreaGuide';
@@ -102,6 +105,15 @@ async function loadApartmentBuildings(city: 'stpaul' | 'mpls'): Promise<Apartmen
   return res.json();
 }
 
+function describeBuildings(buildings: MatchRegionBuilding[]): string {
+  const houses = buildings.filter((b) => b.kind === 'house').length;
+  const apts = buildings.length - houses;
+  const parts = [];
+  if (apts > 0 || houses === 0) parts.push(`${apts} apt${apts === 1 ? '' : 's'}`);
+  if (houses > 0) parts.push(`${houses.toLocaleString()} house${houses === 1 ? '' : 's'}`);
+  return parts.join(' · ');
+}
+
 interface MatchFinderProps {
   weights: MatchWeights;
   onWeightsChange: (weights: MatchWeights) => void;
@@ -179,6 +191,8 @@ export default function MatchFinder({
   }, []);
 
   const weightsActive = hasActiveWeights(weights);
+  const wantApartments = includesApartments(listingPrefs.homeTypes);
+  const houseTypes = useMemo(() => houseTypesFor(listingPrefs.homeTypes), [listingPrefs.homeTypes]);
 
   // Every building in this dataset is an OSM building=apartments record (see
   // clean_apartment_buildings.py) — there's no condo/townhome/house
@@ -237,9 +251,12 @@ export default function MatchFinder({
       // Every building in this district is past the commute limit.
       if (!center) continue;
 
-      const nearby: MatchRegionBuilding[] = buildingsWithinBudget
+      // Apartments still anchor the region (they carry precomputed radius
+      // scores; houses don't), but are only listed if a matching home type
+      // is selected. Houses are added afterwards from Supabase.
+      const nearby: MatchRegionBuilding[] = (wantApartments ? buildingsWithinBudget : [])
         .filter((b) => haversineMeters(center.lat, center.lon, b.lat, b.lon) <= MATCH_REGION_RADIUS_METERS)
-        .map((b) => ({ id: b.id, name: b.name, address: b.address, lat: b.lat, lon: b.lon }));
+        .map((b) => ({ id: b.id, kind: 'apartment' as const, name: b.name, address: b.address, lat: b.lat, lon: b.lon }));
 
       out.push({
         id: `district-${district.district_id}`,
@@ -254,13 +271,36 @@ export default function MatchFinder({
       if (out.length === 5) break;
     }
     return out;
-  }, [buildingsWithinBudget, districts, budgetByDistrict, weights, maxRent, maxHomeValue, weightsActive, cityFilter, commuteLimit, work]);
+  }, [buildingsWithinBudget, districts, budgetByDistrict, weights, maxRent, maxHomeValue, weightsActive, cityFilter, commuteLimit, work, wantApartments]);
+
+  // Houses inside each recommended region, fetched from Supabase PostGIS
+  // once per region/home-type combination.
+  const [housesByRegion, setHousesByRegion] = useState<Record<string, MatchRegionBuilding[]>>({});
+  const houseFetchKey = regions.map((r) => `${r.id}@${r.center.lat},${r.center.lon}`).join('|') + '#' + houseTypes.join(',');
+  useEffect(() => {
+    let cancelled = false;
+    Promise.all(
+      regions.map(async (r) => [r.id, await housesInRegion(r.center, r.radiusMeters, houseTypes)] as const)
+    ).then((entries) => {
+      if (!cancelled) setHousesByRegion(Object.fromEntries(entries));
+    });
+    return () => {
+      cancelled = true;
+    };
+    // houseFetchKey captures everything in regions/houseTypes this depends on.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [houseFetchKey]);
+
+  const regionsWithHouses: MatchRegion[] = useMemo(
+    () => regions.map((r) => ({ ...r, buildings: [...r.buildings, ...(housesByRegion[r.id] ?? [])] })),
+    [regions, housesByRegion]
+  );
 
   const onRegionsChangeRef = useRef(onRegionsChange);
   onRegionsChangeRef.current = onRegionsChange;
   useEffect(() => {
-    onRegionsChangeRef.current(regions);
-  }, [regions]);
+    onRegionsChangeRef.current(regionsWithHouses);
+  }, [regionsWithHouses]);
 
   return (
     <div className="match-finder-panel">
@@ -465,7 +505,7 @@ export default function MatchFinder({
           </>
         )}
         <div style={{ fontSize: '11px', color: '#999', marginBottom: '6px' }}>
-          Budget is checked against each area's Census median; bedrooms and the filters above only apply to the Zillow links.
+          Budget is checked against each area's Census median; home type also filters the buildings shown in each area; bedrooms, pets and amenities only apply to the Zillow links.
         </div>
         {excludedCount > 0 && (
           <div className="match-finder-excluded-note">
@@ -510,7 +550,7 @@ export default function MatchFinder({
         <div className="match-finder-section">
           <div className="match-finder-section-title">Top 5 recommended areas</div>
           <ol className="match-finder-listings">
-            {regions.map((region) => (
+            {regionsWithHouses.map((region) => (
               <li key={region.id} className="match-finder-listing-item">
                 <button
                   type="button"
@@ -522,7 +562,7 @@ export default function MatchFinder({
                     {region.districtName}
                     <span className="match-finder-result-address">
                       {' '}
-                      ({region.buildings.length} building{region.buildings.length === 1 ? '' : 's'} nearby
+                      ({describeBuildings(region.buildings)} nearby
                       {work ? ` · ~${estimateCommute(region.center, work).driveMin} min drive` : ''})
                     </span>
                   </span>

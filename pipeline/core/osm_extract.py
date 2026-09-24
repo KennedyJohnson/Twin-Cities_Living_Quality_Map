@@ -94,8 +94,14 @@ class _ElementCollector(osmium.SimpleHandler):
     """Collects nodes/ways matching caller-supplied tag predicates into
     Overpass-`elements`-shaped dicts."""
 
-    def __init__(self, node_matcher, way_matcher, want_way_geometry, bbox):
+    def __init__(self, node_matcher, way_matcher, want_way_geometry, bbox, way_geometry_filter=None,
+                 relation_member_ways=None):
         super().__init__()
+        self.way_geometry_filter = way_geometry_filter
+        # way id -> coords, for outer ways of matched multipolygon relations
+        # (see _RelationScanner); filled regardless of way_matcher.
+        self.relation_member_ways = relation_member_ways or set()
+        self.member_coords = {}
         self.node_matcher = node_matcher
         self.way_matcher = way_matcher
         self.want_way_geometry = want_way_geometry
@@ -113,6 +119,11 @@ class _ElementCollector(osmium.SimpleHandler):
             self.elements.append({"type": "node", "id": n.id, "lat": lat, "lon": lon, "tags": tags})
 
     def way(self, w):
+        if w.id in self.relation_member_ways:
+            try:
+                self.member_coords[w.id] = [(nd.location.lat, nd.location.lon) for nd in w.nodes if nd.location.valid()]
+            except osmium.InvalidLocationError:
+                pass
         if self.way_matcher is None:
             return
         tags = dict(w.tags)
@@ -123,6 +134,8 @@ class _ElementCollector(osmium.SimpleHandler):
         except osmium.InvalidLocationError:
             return
         if not coords or not any(_in_bbox(lat, lon, self.bbox) for lat, lon in coords):
+            return
+        if self.way_geometry_filter and not self.way_geometry_filter(tags, coords):
             return
 
         element = {"type": "way", "id": w.id, "tags": tags}
@@ -136,12 +149,34 @@ class _ElementCollector(osmium.SimpleHandler):
         self.elements.append(element)
 
 
+class _RelationScanner(osmium.SimpleHandler):
+    """First pass for relation_matcher: finds multipolygon relations whose
+    tags match and records their outer member way ids. Relations come after
+    ways in a .pbf, so their geometry has to be picked up in a second pass
+    (_ElementCollector.member_coords)."""
+
+    def __init__(self, relation_matcher):
+        super().__init__()
+        self.relation_matcher = relation_matcher
+        self.relations = []  # (id, tags, [outer way ids])
+
+    def relation(self, r):
+        tags = dict(r.tags)
+        if tags.get("type") != "multipolygon" or not self.relation_matcher(tags):
+            return
+        outer = [m.ref for m in r.members if m.type == "w" and m.role in ("outer", "")]
+        if outer:
+            self.relations.append((r.id, tags, outer))
+
+
 def _query_cache_path(cache_key):
     safe_key = "".join(c if c.isalnum() or c in "-_" else "_" for c in cache_key)
-    return QUERY_CACHE_DIR / f"{safe_key}.json"
+    # "_r" suffix: caches written before relation support must not be reused.
+    return QUERY_CACHE_DIR / f"{safe_key}_r.json"
 
 
-def query_osm(node_matcher=None, way_matcher=None, want_way_geometry=False, bbox=DEFAULT_BBOX, cache_key=None):
+def query_osm(node_matcher=None, way_matcher=None, want_way_geometry=False, bbox=DEFAULT_BBOX, cache_key=None,
+              way_geometry_filter=None, relation_matcher=None):
     """
     Query the local OSM extract for nodes/ways matching the given
     predicates, restricted to bbox.
@@ -154,6 +189,16 @@ def query_osm(node_matcher=None, way_matcher=None, want_way_geometry=False, bbox
             if False, they carry a single averaged "center" point (like
             Overpass's "out center;")
         bbox: (south, west, north, east)
+        way_geometry_filter: optional callable(tags, coords) -> bool, where
+            coords is the way's [(lat, lon), ...]; runs after way_matcher so
+            a caller can filter on shape (e.g. footprint area) without
+            keeping every matched way's full geometry
+        relation_matcher: optional callable(tags) -> bool for multipolygon
+            relations (places mapped as multi-part areas, e.g. some school
+            campuses and hospitals, which nodes/ways alone miss). Matches are
+            returned as {"type": "relation", "id", "tags", "center"}, center
+            being the mean of the outer ways' points; needs an extra
+            relations-only pass over the extract
         cache_key: if given, cache the resulting elements list to disk under
             this key (see QUERY_CACHE_DIR above) so a repeat call — e.g. the
             same cleaner running once per city — reuses it instead of
@@ -173,9 +218,27 @@ def query_osm(node_matcher=None, way_matcher=None, want_way_geometry=False, bbox
             with open(cache_path, "r", encoding="utf-8") as f:
                 return json.load(f)
 
-    collector = _ElementCollector(node_matcher, way_matcher, want_way_geometry, bbox)
+    relations = []
+    if relation_matcher is not None:
+        scanner = _RelationScanner(relation_matcher)
+        scanner.apply_file(str(extract_path))
+        relations = scanner.relations
+
+    member_ways = {wid for _, _, outer in relations for wid in outer}
+    collector = _ElementCollector(node_matcher, way_matcher, want_way_geometry, bbox, way_geometry_filter,
+                                  relation_member_ways=member_ways)
     collector.apply_file(str(extract_path), locations=True)
     elements = collector.elements
+
+    for rel_id, tags, outer in relations:
+        coords = [c for wid in outer for c in collector.member_coords.get(wid, [])]
+        if not coords or not any(_in_bbox(lat, lon, bbox) for lat, lon in coords):
+            continue
+        elements.append({
+            "type": "relation", "id": rel_id, "tags": tags,
+            "center": {"lat": sum(c[0] for c in coords) / len(coords),
+                       "lon": sum(c[1] for c in coords) / len(coords)},
+        })
 
     if cache_key:
         QUERY_CACHE_DIR.mkdir(parents=True, exist_ok=True)

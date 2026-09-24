@@ -153,6 +153,7 @@ function computeClusters(
   return { individual, clusters };
 }
 import type { Neighborhood } from '@/types/neighborhood';
+import { supabase, HOUSES_MIN_ZOOM, fetchHousesInBbox } from '@/lib/supabase';
 import 'leaflet/dist/leaflet.css';
 
 function escapeHtml(str: string): string {
@@ -207,6 +208,9 @@ interface NeighborhoodMapProps {
   // "Find Your Match" is open — see NeighborhoodMap's apartment-layer effect.
   apartmentBuildingsVisible?: boolean;
   onSelectApartmentBuilding?: (building: ApartmentBuildingPoint) => void;
+  // Houses layer (~100K OSM houses in Supabase PostGIS), fetched per
+  // viewport and only at HOUSES_MIN_ZOOM+ — see the houses-layer effect.
+  housesVisible?: boolean;
   // Set while the user hovers a letter grade in the legend's scale strip —
   // districts matching that grade get emphasized and all others dimmed.
   highlightedGrade?: LetterGrade | null;
@@ -260,6 +264,7 @@ function MapContent({
   onSelectRegion,
   apartmentBuildingsVisible = false,
   onSelectApartmentBuilding,
+  housesVisible = false,
   highlightedGrade = null,
 }: NeighborhoodMapProps) {
   const map = useMap();
@@ -1442,17 +1447,14 @@ function MapContent({
     }
     const group = L.layerGroup();
     const seen = new Set<string>();
-    const addMarker = (b: { id: string; name: string; lat: number; lon: number }) => {
+    const addMarker = (b: { id: string; name: string; lat: number; lon: number; kind?: 'apartment' | 'house' }) => {
       if (seen.has(b.id)) return;
       seen.add(b.id);
-      const marker = L.circleMarker([b.lat, b.lon], {
-        renderer: canvasRendererRef.current!,
-        radius: 5,
-        color: '#333',
-        weight: 2,
-        fillColor: '#fff',
-        fillOpacity: 1,
-      });
+      // Houses in a Find Your Match region use the Houses layer's styling.
+      const style = b.kind === 'house'
+        ? { radius: 4, color: '#7a5c3e', weight: 1, fillColor: '#d9b48f', fillOpacity: 0.9 }
+        : { radius: 5, color: '#333', weight: 2, fillColor: '#fff', fillOpacity: 1 };
+      const marker = L.circleMarker([b.lat, b.lon], { renderer: canvasRendererRef.current!, ...style });
       marker.bindTooltip(escapeHtml(b.name), { direction: 'top', offset: [0, -8] });
       marker.on('click', (e) => {
         // Path layers bubble click events to the map by default; without
@@ -1474,6 +1476,64 @@ function MapContent({
     group.addTo(map);
     apartmentLayerGroupRef.current = group;
   }, [apartmentBuildingsVisible, apartmentDataVersion, map, excludedDistrictIds, activeRegion]);
+
+  // Houses layer: fetched from Supabase's houses_in_bbox() RPC for just the
+  // visible viewport on each pan/zoom, since ~100K houses can't ship as
+  // static JSON the way apartment buildings do. Draws into the shared
+  // canvas renderer for the same click-stacking reason as apartments above.
+  useEffect(() => {
+    if (!housesVisible || !supabase) return;
+    const group = L.layerGroup().addTo(map);
+    let requestId = 0;
+    const refresh = async () => {
+      const id = ++requestId;
+      group.clearLayers();
+      if (map.getZoom() < HOUSES_MIN_ZOOM) return;
+      const b = map.getBounds();
+      const data = await fetchHousesInBbox(
+        { minLon: b.getWest(), minLat: b.getSouth(), maxLon: b.getEast(), maxLat: b.getNorth() },
+        10000
+      );
+      // A newer pan/zoom already superseded this request.
+      if (id !== requestId || !data) return;
+      if (!canvasRendererRef.current) {
+        canvasRendererRef.current = L.canvas({ padding: 0.5, pane: 'markerPane' });
+      }
+      for (const h of data) {
+        L.circleMarker([h.lat, h.lon], {
+          renderer: canvasRendererRef.current,
+          radius: 4,
+          color: '#7a5c3e',
+          weight: 1,
+          fillColor: '#d9b48f',
+          fillOpacity: 0.9,
+        })
+          .bindTooltip(escapeHtml(h.address || (h.building_type === 'inferred_house' ? 'Likely house' : h.building_type.replace('_', ' '))), { direction: 'top', offset: [0, -4] })
+          .on('click', (e) => {
+            // Same selection flow as an apartment-building dot (fly-to, place
+            // marker, 1-mile radius score); stop propagation so the map's own
+            // click handler doesn't overwrite it.
+            L.DomEvent.stopPropagation(e);
+            onSelectApartmentBuildingRef.current?.({
+              id: h.osm_id,
+              name: h.address || (h.building_type === 'inferred_house' ? 'Likely house' : 'House'),
+              address: h.address,
+              lat: h.lat,
+              lon: h.lon,
+              district_id: 0,
+            });
+          })
+          .addTo(group);
+      }
+    };
+    refresh();
+    map.on('moveend', refresh);
+    return () => {
+      requestId++;
+      map.off('moveend', refresh);
+      map.removeLayer(group);
+    };
+  }, [housesVisible, map]);
 
   return (
     <>
@@ -1542,6 +1602,7 @@ export default function NeighborhoodMap({
   onSelectRegion,
   apartmentBuildingsVisible,
   onSelectApartmentBuilding,
+  housesVisible,
   highlightedGrade,
 }: NeighborhoodMapProps) {
   return (
@@ -1576,6 +1637,7 @@ export default function NeighborhoodMap({
         onSelectRegion={onSelectRegion}
         apartmentBuildingsVisible={apartmentBuildingsVisible}
         onSelectApartmentBuilding={onSelectApartmentBuilding}
+        housesVisible={housesVisible}
         highlightedGrade={highlightedGrade}
       />
     </MapContainer>

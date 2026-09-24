@@ -25,7 +25,7 @@ function DriverBars({ result, limit }: { result: Result; limit?: number }) {
           <div style={{ flex: 1, background: '#eee', borderRadius: '3px', height: '12px' }}>
             <div style={{ width: `${(100 * d.share_pct) / max}%`, background: '#756bb1', height: '100%', borderRadius: '3px' }} />
           </div>
-          <span style={{ width: '90px', textAlign: 'right', color: '#555' }}>
+          <span style={{ minWidth: '110px', textAlign: 'right', color: '#555', whiteSpace: 'nowrap' }}>
             {d.share_pct}% · ±{d.mean_abs_shap} pts
           </span>
         </div>

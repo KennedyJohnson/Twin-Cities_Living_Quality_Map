@@ -125,13 +125,17 @@ function characterTags(p: AreaGuideProps): string[] {
   const tags: string[] = [];
   const hi = (k: string) => (p.percentiles[k] ?? 50) >= 70;
   const lo = (k: string) => (p.percentiles[k] ?? 50) <= 30;
+  // Walkability (street grid/destinations) and transportation (transit stops,
+  // trails) are scored separately, so an area can be low on one and high on
+  // the other — say that in one tag instead of two that read as contradictory.
+  const transitHi = hi('transportation');
   if (hi('walkability_score')) tags.push('Very walkable');
-  else if (lo('walkability_score')) tags.push('More car-dependent');
+  else if (lo('walkability_score')) tags.push(transitHi ? 'Spread out, but good transit & trails' : 'More car-dependent');
   if (hi('amenities')) tags.push('Lots of shops, restaurants & services');
   else if (lo('amenities')) tags.push('Quieter, fewer amenities nearby');
   if (hi('safety')) tags.push('Lower crime & crash rates');
   else if (lo('safety')) tags.push('Higher crime or crash rates');
-  if (hi('transportation')) tags.push('Good transit & trails');
+  if (transitHi && !lo('walkability_score')) tags.push('Good transit & trails');
   if (p.homeownershipRate != null) {
     if (p.homeownershipRate >= 60) tags.push('Mostly owner-occupied homes');
     else if (p.homeownershipRate <= 40) tags.push('Mostly renters / apartments');

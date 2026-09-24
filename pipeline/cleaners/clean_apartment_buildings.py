@@ -16,6 +16,8 @@ from pathlib import Path as _BootstrapPath
 sys.path.insert(0, str(_BootstrapPath(__file__).resolve().parent.parent))
 
 
+import math
+import re
 import time
 from pathlib import Path
 
@@ -37,11 +39,48 @@ def _is_apartment_building(tags):
     return tags.get("building") == "apartments"
 
 
+# Many apartment buildings aren't tagged building=apartments: bulk-imported
+# footprints are building=yes/residential (93% of buildings in Highland Park,
+# e.g.). Also count (a) large building=residential footprints (a single
+# house is well under 600 m^2 — explicitly tagged houses/detached run
+# ~75-280 m^2) and (b) generic buildings named like an apartment building
+# with no tag suggesting a shop/amenity/office use.
+APARTMENT_MIN_RESIDENTIAL_M2 = 600
+_APARTMENT_NAME_RE = re.compile(
+    r"(apartments?|apts|flats|lofts|residences|senior (living|housing)|townhomes)", re.I)
+_NON_RESIDENTIAL_KEYS = {"amenity", "shop", "office", "craft", "tourism", "healthcare", "leisure"}
+
+
+def _is_apartment_way_candidate(tags):
+    b = tags.get("building")
+    if b == "apartments":
+        return True
+    if b not in ("yes", "residential") or _NON_RESIDENTIAL_KEYS & tags.keys():
+        return False
+    return b == "residential" or bool(_APARTMENT_NAME_RE.search(tags.get("name", "")))
+
+
+def _footprint_m2(coords):
+    lat0 = math.radians(coords[0][0])
+    pts = [(lon * 111320 * math.cos(lat0), lat * 110540) for lat, lon in coords]
+    return abs(sum(x1 * y2 - x2 * y1 for (x1, y1), (x2, y2) in zip(pts, pts[1:] + pts[:1]))) / 2
+
+
+def _is_apartment_way(tags, coords):
+    """Geometry-stage check: an unnamed building=residential only counts when
+    its footprint is apartment-sized."""
+    if tags.get("building") == "apartments" or _APARTMENT_NAME_RE.search(tags.get("name", "")):
+        return True
+    return _footprint_m2(coords) >= APARTMENT_MIN_RESIDENTIAL_M2
+
+
 def _fetch_nodes():
     """Fetch apartment-building nodes/ways from the local OSM extract (see
     core/osm_extract.py) — replaces the live Overpass query this used to
     make, which was slow/flaky on the public instance."""
-    return query_osm(node_matcher=_is_apartment_building, way_matcher=_is_apartment_building, cache_key="apartment_buildings")
+    return query_osm(node_matcher=_is_apartment_building, way_matcher=_is_apartment_way_candidate,
+                     way_geometry_filter=_is_apartment_way, relation_matcher=_is_apartment_building,
+                     cache_key="apartment_buildings")
 
 
 def _building_name_address(tags):

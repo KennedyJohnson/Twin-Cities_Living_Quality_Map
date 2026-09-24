@@ -50,8 +50,8 @@
           "rate_per_1000": 223807.79
         },
         "healthcare_pc": {
-          "raw_count": 6,
-          "rate_per_1000": 0.69
+          "raw_count": 8,
+          "rate_per_1000": 0.91
         },
         "chronic_disease_pc": {
           "raw_count": 6105,
@@ -69,10 +69,10 @@
       "indices": {
         "safety": 39,
         "opportunity": 31,
-        "amenities": 45,
+        "amenities": 47,
         "transportation": 55,
         "affordability": 38,
-        "walkability_score": 54,
+        "walkability_score": 55,
         "education_score": 51,
         "commute_score": 56,
         "broadband_score": 23
@@ -113,8 +113,8 @@
           "rate_per_1000": 0.48
         },
         "grocery_pc": {
-          "raw_count": 4,
-          "rate_per_1000": 0.19
+          "raw_count": 6,
+          "rate_per_1000": 0.29
         },
         "restaurants_pc": {
           "raw_count": 130,
@@ -129,8 +129,8 @@
           "rate_per_1000": 111332.11
         },
         "healthcare_pc": {
-          "raw_count": 8,
-          "rate_per_1000": 0.38
+          "raw_count": 10,
+          "rate_per_1000": 0.48
         },
         "chronic_disease_pc": {
           "raw_count": 12695,
@@ -148,15 +148,15 @@
       "indices": {
         "safety": 59,
         "opportunity": 55,
-        "amenities": 49,
+        "amenities": 51,
         "transportation": 47,
         "affordability": 56,
-        "walkability_score": 57,
+        "walkability_score": 59,
         "education_score": 63,
         "commute_score": 45,
         "broadband_score": 42
       },
-      "health_score": 53
+      "health_score": 54
     },
     {
       "district_id": 55103,
@@ -267,8 +267,8 @@
           "rate_per_1000": 9.39
         },
         "schools_pc": {
-          "raw_count": 42,
-          "rate_per_1000": 1.0
+          "raw_count": 44,
+          "rate_per_1000": 1.05
         },
         "grocery_pc": {
           "raw_count": 24,
@@ -385,7 +385,7 @@
       "indices": {
         "safety": 65,
         "opportunity": 78,
-        "amenities": 52,
+        "amenities": 51,
         "transportation": 51,
         "affordability": 54,
         "walkability_score": 59,
@@ -464,7 +464,7 @@
       "indices": {
         "safety": 56,
         "opportunity": 48,
-        "amenities": 41,
+        "amenities": 40,
         "transportation": 42,
         "affordability": 61,
         "walkability_score": 47,
@@ -622,7 +622,7 @@
       "indices": {
         "safety": 57,
         "opportunity": 58,
-        "amenities": 73,
+        "amenities": 72,
         "transportation": 40,
         "affordability": 38,
         "walkability_score": 56,
@@ -662,8 +662,8 @@
           "rate_per_1000": 7.69
         },
         "schools_pc": {
-          "raw_count": 24,
-          "rate_per_1000": 0.88
+          "raw_count": 26,
+          "rate_per_1000": 0.95
         },
         "grocery_pc": {
           "raw_count": 8,
@@ -780,7 +780,7 @@
       "indices": {
         "safety": 53,
         "opportunity": 52,
-        "amenities": 41,
+        "amenities": 40,
         "transportation": 41,
         "affordability": 54,
         "walkability_score": 51,
@@ -858,7 +858,7 @@
         "amenities": 29,
         "transportation": 58,
         "affordability": 56,
-        "walkability_score": 56,
+        "walkability_score": 57,
         "education_score": 23,
         "commute_score": 51,
         "broadband_score": 52
@@ -934,7 +934,7 @@
       "indices": {
         "safety": 34,
         "opportunity": 50,
-        "amenities": 65,
+        "amenities": 64,
         "transportation": 73,
         "affordability": 59,
         "walkability_score": 67,
@@ -986,8 +986,8 @@
           "rate_per_1000": 4.16
         },
         "entertainment_pc": {
-          "raw_count": 30,
-          "rate_per_1000": 1.27
+          "raw_count": 32,
+          "rate_per_1000": 1.36
         },
         "traffic_vkm_pc": {
           "raw_count": 2011173,
@@ -1073,8 +1073,8 @@
           "rate_per_1000": 91853.19
         },
         "healthcare_pc": {
-          "raw_count": 28,
-          "rate_per_1000": 0.97
+          "raw_count": 30,
+          "rate_per_1000": 1.03
         },
         "chronic_disease_pc": {
           "raw_count": 23969,
@@ -1179,7 +1179,7 @@
         "commute_score": 49,
         "broadband_score": 63
       },
-      "health_score": 59
+      "health_score": 58
     },
     {
       "district_id": 55406,
@@ -1302,16 +1302,16 @@
           "rate_per_1000": 3.41
         },
         "entertainment_pc": {
-          "raw_count": 14,
-          "rate_per_1000": 0.36
+          "raw_count": 16,
+          "rate_per_1000": 0.41
         },
         "traffic_vkm_pc": {
           "raw_count": 774915,
           "rate_per_1000": 20042.83
         },
         "healthcare_pc": {
-          "raw_count": 22,
-          "rate_per_1000": 0.57
+          "raw_count": 24,
+          "rate_per_1000": 0.62
         },
         "chronic_disease_pc": {
           "raw_count": 24706,
@@ -1381,8 +1381,8 @@
           "rate_per_1000": 7.11
         },
         "entertainment_pc": {
-          "raw_count": 28,
-          "rate_per_1000": 0.75
+          "raw_count": 30,
+          "rate_per_1000": 0.81
         },
         "traffic_vkm_pc": {
           "raw_count": 1491412,
@@ -1416,7 +1416,7 @@
         "commute_score": 34,
         "broadband_score": 73
       },
-      "health_score": 51
+      "health_score": 50
     },
     {
       "district_id": 55409,
@@ -1855,16 +1855,16 @@
           "rate_per_1000": 7.73
         },
         "entertainment_pc": {
-          "raw_count": 8,
-          "rate_per_1000": 1.03
+          "raw_count": 10,
+          "rate_per_1000": 1.29
         },
         "traffic_vkm_pc": {
           "raw_count": 249396,
           "rate_per_1000": 32151.1
         },
         "healthcare_pc": {
-          "raw_count": 4,
-          "rate_per_1000": 0.52
+          "raw_count": 6,
+          "rate_per_1000": 0.77
         },
         "chronic_disease_pc": {
           "raw_count": 3392,
@@ -1882,7 +1882,7 @@
       "indices": {
         "safety": 41,
         "opportunity": 43,
-        "amenities": 54,
+        "amenities": 57,
         "transportation": 68,
         "affordability": 46,
         "walkability_score": 68,
@@ -1890,7 +1890,7 @@
         "commute_score": 84,
         "broadband_score": 81
       },
-      "health_score": 50
+      "health_score": 51
     },
     {
       "district_id": 55419,
@@ -2128,7 +2128,7 @@
   ],
   "metadata": {
     "total_districts": 27,
-    "data_generated": "2026-09-22T21:42:18.823500",
+    "data_generated": "2026-09-23T19:51:54.720326",
     "note": "Zip-level snapshot: every ZIP in the metro normalized in one pool against every other ZIP, finer-grained than the district-level map"
   }
 }

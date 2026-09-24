@@ -67,6 +67,7 @@ export default function Home() {
   const [matchRegions, setMatchRegions] = useState<MatchRegion[]>([]);
   const [activeRegionId, setActiveRegionId] = useState<string | null>(null);
   const [apartmentBuildingsVisible, setApartmentBuildingsVisible] = useState(false);
+  const [housesVisible, setHousesVisible] = useState(false);
 
   // Compare mode: once selectedDistrict is set, "Compare" arms picking a
   // second district/ZIP (via map click or search) of the SAME type
@@ -393,6 +394,7 @@ export default function Home() {
           onSelectRegion={handleSelectRegion}
           apartmentBuildingsVisible={apartmentBuildingsVisible}
           onSelectApartmentBuilding={handleSelectApartmentBuilding}
+          housesVisible={housesVisible}
           highlightedGrade={highlightedGrade}
         />
         <Legend
@@ -421,9 +423,12 @@ export default function Home() {
             userOverriddenSourcesRef.current = new Set();
             setHiddenSources(new Set(allKeys));
             setApartmentBuildingsVisible(false);
+            setHousesVisible(false);
           }}
           apartmentBuildingsVisible={apartmentBuildingsVisible}
           onToggleApartmentBuildings={() => setApartmentBuildingsVisible((v) => !v)}
+          housesVisible={housesVisible}
+          onToggleHouses={() => setHousesVisible((v) => !v)}
         />
         <div className={`map-controls-stack${matchFinderOpen ? ' match-finder-active' : ''}`}>
           {!matchFinderOpen && (
@@ -550,9 +555,19 @@ export default function Home() {
           )}
         </div>
         <nav className="map-nav">
-          <Link href="/trends">Trends</Link>
-          <Link href="/home-value-model">Home Price Prediction</Link>
-          <Link href="/about">About</Link>
+          {/* Short labels swap in on narrow maps so the pill doesn't wrap into the legend. */}
+          {([
+            ['/trends', 'Trends', 'Trends'],
+            ['/home-value-model', 'Home Price Prediction', 'Home Prices'],
+            ['/score-drivers', 'Score Drivers', 'Drivers'],
+            ['/data-sources', 'Data Sources', 'Sources'],
+            ['/about', 'How Scores Work', 'Methods'],
+          ] as const).map(([href, long, short]) => (
+            <Link key={href} href={href} title={long}>
+              <span className="nav-long">{long}</span>
+              <span className="nav-short">{short}</span>
+            </Link>
+          ))}
         </nav>
       </div>
       <div className="sidebar-wrapper" style={{ width: sidebarWidth }}>

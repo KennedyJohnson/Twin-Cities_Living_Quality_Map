@@ -15,6 +15,7 @@ import {
 import MetricTrendChart from './MetricTrendChart';
 import AffordabilityTrendChart from './AffordabilityTrendChart';
 import IndexComparisonChart from './IndexComparisonChart';
+import ScoreHistoryChart from './ScoreHistoryChart';
 import TopDistrictsRanking from './TopDistrictsRanking';
 import GradeBadge from './GradeBadge';
 import { percentileRank, getLetterGrade } from '@/lib/letterGrade';
@@ -363,6 +364,10 @@ export default function NeighborhoodSidebar({ district, onSelectDistrict, granul
         district={district}
         onSelectIndex={(key) => setExpandedIndex(expandedIndex === key ? null : key)}
       />
+
+      {!district.is_radius && (
+        <ScoreHistoryChart areaType={district.is_zip ? 'zip' : 'district'} areaId={district.district_id} />
+      )}
 
       <div style={{ marginBottom: '20px' }}>
         <div style={{ fontSize: '13px', fontWeight: '600', marginBottom: '10px', color: '#666' }}>

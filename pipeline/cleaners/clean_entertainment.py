@@ -49,7 +49,7 @@ def _is_entertainment_way(tags):
 def _fetch_nodes():
     """Fetch entertainment-venue nodes+ways from the local OSM extract (see
     core/osm_extract.py)."""
-    return query_osm(node_matcher=_is_entertainment_node, way_matcher=_is_entertainment_way, cache_key="entertainment")
+    return query_osm(node_matcher=_is_entertainment_node, way_matcher=_is_entertainment_way, relation_matcher=_is_entertainment_way, cache_key="entertainment")
 
 
 def clean_entertainment(fallback_behavior="exclude_from_scoring_if_geography_fails", city="stpaul", granularity="district"):

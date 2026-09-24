@@ -292,7 +292,7 @@ export default function HomeValueModelPage() {
 
           <p style={{ fontSize: '13px', color: '#888' }}>
             Color the <Link href="/" style={{ color: PURPLE }}>map</Link> by &quot;Home Value Growth since{' '}
-            {c.start_year}&quot; to see this geographically. See <Link href="/about" style={{ color: PURPLE }}>About</Link>{' '}
+            {c.start_year}&quot; to see this geographically. See <Link href="/about" style={{ color: PURPLE }}>How Scores Work</Link>{' '}
             for the Living Quality Score methodology.
           </p>
         </>
