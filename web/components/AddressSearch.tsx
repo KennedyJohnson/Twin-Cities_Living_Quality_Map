@@ -20,16 +20,21 @@ interface AddressSearchProps {
     label: string,
     isNamedPlace: boolean
   ) => void;
+  initialQuery?: string | null;
 }
 
 function shortLabel(result: SearchResult): { label: string; isNamedPlace: boolean } {
   if (result.name && result.name.trim().length > 0) {
     return { label: result.name.trim(), isNamedPlace: true };
   }
-  return { label: result.display_name.split(',')[0].trim(), isNamedPlace: false };
+  // Nominatim puts the house number in its own field ("123, West 35th Street, ..."),
+  // so join it with the street rather than labeling the place just "123".
+  const parts = result.display_name.split(',').map((p) => p.trim());
+  const label = /^\d+[A-Za-z]?$/.test(parts[0]) && parts[1] ? `${parts[0]} ${parts[1]}` : parts[0];
+  return { label, isNamedPlace: false };
 }
 
-export default function AddressSearch({ onAddressSelect }: AddressSearchProps) {
+export default function AddressSearch({ onAddressSelect, initialQuery }: AddressSearchProps) {
   const [searchInput, setSearchInput] = useState('');
   const [suggestions, setSuggestions] = useState<SearchResult[]>([]);
   const [selectedAddress, setSelectedAddress] = useState('');
@@ -136,6 +141,7 @@ export default function AddressSearch({ onAddressSelect }: AddressSearchProps) {
         setError('No location found within the mapped St. Paul/Minneapolis districts');
       }
       setSuggestions(inBoundsResults);
+      return inBoundsResults;
     } catch (err) {
       setError('Failed to search addresses');
       setSuggestions([]);
@@ -179,6 +185,17 @@ export default function AddressSearch({ onAddressSelect }: AddressSearchProps) {
       onAddressSelect(result.display_name, result.lat, result.lon, neighborhood, label, isNamedPlace);
     }
   };
+
+  // Deep link (?q=...), e.g. from the property-assessment site: search once
+  // and select the top in-bounds match.
+  useEffect(() => {
+    if (!initialQuery) return;
+    setSearchInput(initialQuery);
+    searchAddresses(initialQuery).then((results) => {
+      if (results && results.length > 0) handleSelectAddress(results[0]);
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialQuery]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();

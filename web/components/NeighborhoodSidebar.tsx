@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import AreaGuide from '@/components/AreaGuide';
+import AssessmentCard from '@/components/AssessmentCard';
 import {
   getMetricLabel,
   getMetricUnit,
@@ -326,6 +327,7 @@ export default function NeighborhoodSidebar({ district, onSelectDistrict, granul
         medianAge={districtAffordability?.median_age}
         filters={{ maxRent, maxHomeValue, mode: housingMode, minBeds, prefs: listingPrefs }}
       />
+      <AssessmentCard district={district} />
 
 
       {colorMetric && (() => {

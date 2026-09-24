@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { POINT_LAYER_COLORS, POINT_LAYER_LABELS } from '@/lib/pointLayerColors';
 import { SCORE_METRIC_LABELS, ScoreMetricKey } from '@/lib/scoreMetric';
 import { COLOR_METRICS, ColorMetricKey } from '@/lib/colorMetric';
@@ -63,8 +63,20 @@ export default function Legend({
   // of the percentile range. See letterGrade.ts / NeighborhoodMap.tsx.
   const grades: LetterGrade[] = ['F', 'D', 'C', 'B', 'A'];
 
+  // Publish the legend's height so .map-controls-stack (top-left) can stop
+  // above it instead of overlapping on shorter screens.
+  const legendRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = legendRef.current;
+    if (!el) return;
+    const root = document.documentElement.style;
+    const ro = new ResizeObserver(() => root.setProperty('--legend-h', `${el.offsetHeight}px`));
+    ro.observe(el);
+    return () => { ro.disconnect(); root.removeProperty('--legend-h'); };
+  }, []);
+
   return (
-    <div className="legend">
+    <div className="legend" ref={legendRef}>
       <div className="legend-title">{colorMetric ? COLOR_METRICS[colorMetric].label : SCORE_METRIC_LABELS[scoreMetric]}</div>
       <div className="legend-scale">
         {grades.map((grade) => {

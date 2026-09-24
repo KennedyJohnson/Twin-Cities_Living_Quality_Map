@@ -31,6 +31,11 @@ const NeighborhoodMap = dynamic(() => import('@/components/NeighborhoodMap'), {
 export default function Home() {
   const [selectedDistrict, setSelectedDistrict] = useState<Neighborhood | null>(null);
   const [flyToLocation, setFlyToLocation] = useState<{ lat: number; lon: number } | null>(null);
+  // ?q=<address> deep link (the property-assessment site links here this way).
+  const [initialQuery, setInitialQuery] = useState<string | null>(null);
+  useEffect(() => {
+    setInitialQuery(new URLSearchParams(window.location.search).get('q'));
+  }, []);
   const [searchMarker, setSearchMarker] = useState<{ lat: number; lon: number; label: string; isNamedPlace: boolean; address?: string } | null>(null);
   const [scoreMetric, setScoreMetric] = useState<ScoreMetricKey>('health_score');
   const [colorMetric, setColorMetric] = useState<ColorMetricKey | null>(null);
@@ -433,7 +438,7 @@ export default function Home() {
         <div className={`map-controls-stack${matchFinderOpen ? ' match-finder-active' : ''}`}>
           {!matchFinderOpen && (
             <>
-              <AddressSearch onAddressSelect={handleAddressSelect} />
+              <AddressSearch onAddressSelect={handleAddressSelect} initialQuery={initialQuery} />
               <ScoreSelector value={scoreMetric} onChange={setScoreMetric} colorMetric={colorMetric} onColorMetricChange={setColorMetric} />
               <div className="click-mode-toggle">
                 <div className="click-mode-toggle-row">

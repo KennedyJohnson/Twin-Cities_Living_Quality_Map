@@ -6,6 +6,7 @@ Includes a sanity check and smoke-test validation for each city.
 """
 
 import json
+import shutil
 import pandas as pd
 from pathlib import Path
 from core.aggregate import aggregate_all_combined, aggregate_all_zip
@@ -319,6 +320,10 @@ if __name__ == "__main__":
     print("-" * 70)
     export_city_outlines()
     print()
+
+    # The sidebar's property-assessment card rolls the companion assessment
+    # site's per-neighborhood stats up into communities with this crosswalk.
+    shutil.copy(REPO_DIR / "pipeline" / "config" / "mpls_neighborhood_to_community.json", WEB_DATA_DIR)
 
     print("Aggregating all ZIPs in the metro into one pooled normalization...")
     print("-" * 70)

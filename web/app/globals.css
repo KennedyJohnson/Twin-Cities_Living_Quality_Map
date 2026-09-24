@@ -305,18 +305,12 @@ body {
   flex-direction: column;
   align-items: flex-start;
   gap: 10px;
-  max-height: calc(100% - 40px);
+  /* Stop above the bottom-left Data Points legend (its live height is set
+     as --legend-h by Legend.tsx) so the stack scrolls instead of growing
+     over it and hiding the legend's checkboxes on shorter screens. */
+  max-height: calc(100% - 50px - var(--legend-h, 0px));
   overflow-y: auto;
   overflow-x: hidden;
-}
-
-/* The Find Your Match panel's slider/budget/results content is tall enough
-   to grow this stack down over the Data Points legend, which sits
-   bottom-left with its own fixed position (see .legend) — reserve room
-   above it so both stay independently usable/visible at once instead of
-   the taller z-index winning and hiding the legend's checkboxes. */
-.map-controls-stack.match-finder-active {
-  max-height: calc(100% - 40px - 300px);
 }
 
 .address-search {
@@ -987,6 +981,18 @@ input[type='checkbox'] { accent-color: var(--accent); }
   box-shadow: -8px 0 24px rgba(20, 24, 40, 0.06);
 }
 .sidebar { padding: 20px 22px 28px; background: var(--surface); }
+
+.assessment-card {
+  margin: 4px 0 14px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  font-size: 13px;
+  color: #444;
+}
+.assessment-card p { margin: 4px 0 6px; }
+.assessment-card a { font-weight: 600; }
+.assessment-card-title { font-size: 12px; font-weight: 600; color: #666; }
 
 .hero-banner {
   padding: 16px 22px 14px;
