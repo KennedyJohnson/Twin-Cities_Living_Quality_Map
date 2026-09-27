@@ -81,6 +81,28 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
+          # Always changes, so every run commits: shows freshness on the site and
+          # keeps the repo active so GitHub doesn't disable this cron after 60 days.
+          echo "{\"updated\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}" > web/public/data/last_updated.json
           git add web/public/data pipeline/data
           git diff --staged --quiet || git commit -m "chore: refresh pipeline data [automated]"
           git push
+
+  alert-on-failure:
+    needs: refresh
+    if: failure()
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.issues.create({
+              ...context.repo,
+              title: `Data refresh failed (${new Date().toISOString().slice(0,10)})`,
+              body: `The monthly refresh failed, so site data is going stale.
+
+Run: ${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`,
+              labels: ['stale-data'],
+            });

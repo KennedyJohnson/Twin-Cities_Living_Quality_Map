@@ -117,3 +117,6 @@ The project today is an ETL pipeline + composite-score dashboard, plus the home 
 - **"Crime/Permits/etc. from ArcGIS failed"** → ArcGIS temporarily down, will retry on next run
 - **"No neighborhoods matched to districts"** → Spatial join issue with boundaries, check boundary geometries
 - **Slow first run** → Normal, fetching all historical data (~5-10 min). Subsequent runs faster due to HTTP caching
+## Freshness automation
+- `refresh-data.yml` (monthly, 1st 08:00 UTC) writes `web/public/data/last_updated.json` every run (also keeps the cron alive past GitHub's 60-day inactivity cutoff). On failure it opens a `stale-data` issue.
+- `web/components/DataFreshness.tsx` shows a top banner site-wide when data is >45 days old, and a "Data updated" line on /data-sources.

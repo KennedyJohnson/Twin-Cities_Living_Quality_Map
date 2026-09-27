@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import TechRow from '@/components/TechRow';
+import DataFreshness from '@/components/DataFreshness';
 
 export default function DataSourcesPage() {
   return (
@@ -10,6 +11,7 @@ export default function DataSourcesPage() {
       <h1 style={{ fontSize: '24px', fontWeight: 700, margin: '12px 0 24px' }}>
         Data Sources
       </h1>
+      <DataFreshness inline />
 
       <p style={{ marginBottom: '20px' }}>
         Data is refreshed automatically on the 1st of every month via a scheduled GitHub Actions pipeline run.

@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import { Analytics } from '@vercel/analytics/next';
 import { Inter } from 'next/font/google';
 import './globals.css';
+import DataFreshness from '@/components/DataFreshness';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-sans', display: 'swap' });
 
@@ -23,6 +24,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={inter.variable}>
       <body>
+        <DataFreshness />
         {children}
         <Analytics />
       </body>
