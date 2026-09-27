@@ -1,6 +1,6 @@
 """
 Unit tests for the health-score math in health_score.py. These test pure
-functions/logic only — no network calls (Census/ArcGIS/Overpass) — so they
+functions/logic only - no network calls (Census/ArcGIS/Overpass) - so they
 run fast and deterministically in CI.
 """
 

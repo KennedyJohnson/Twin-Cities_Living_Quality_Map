@@ -1,4 +1,4 @@
-# Home Value Prediction — An 8-Model Bake-Off
+# Home Value Prediction - An 8-Model Bake-Off
 
 A small model-comparison study built on top of the Living Quality Map's
 existing Census pipeline: given a district's features in year *t*, predict
@@ -6,7 +6,7 @@ its median home value in year *t+1*, then compare 8 scikit-learn
 model families on genuinely held-out, forward-in-time data using
 leave-one-year-out cross-validation.
 
-This is a standalone analysis, not part of the site's map/score pipeline —
+This is a standalone analysis, not part of the site's map/score pipeline -
 it doesn't run in `build.py` or the scheduled refresh. Run it manually when
 you want to regenerate the results.
 
@@ -14,7 +14,7 @@ you want to regenerate the results.
 
 The map's own affordability trend charts (`export_affordability_timeseries.py`)
 now cover 2017-2024 (widened from an original 2018-2022 at the same time as
-this analysis, once more years were confirmed to fetch cleanly — see that
+this analysis, once more years were confirmed to fetch cleanly - see that
 script's comments), but that's still only enough for a line chart, not to
 train a model. This analysis pulls the same ACS loader
 (`cleaners/clean_housing_price.py`) across 2017-2024 into a dedicated panel
@@ -23,10 +23,10 @@ train a model. This analysis pulls the same ACS loader
 
 ## Files
 
-- `fetch_panel.py` — builds `data/panel.csv` from the Census API. Needs
+- `fetch_panel.py` - builds `data/panel.csv` from the Census API. Needs
   `CENSUS_API_KEY`; only rerun this if you want to refresh the underlying
   data.
-- `train.py` — reads `data/panel.csv` (no API key needed), builds
+- `train.py` - reads `data/panel.csv` (no API key needed), builds
   year-over-year district transitions, runs leave-one-year-out (LOYO)
   cross-validated forward feature selection, then:
   runs the LOYO bake-off (`MODEL_CANDIDATES`), and fits the top 3 plus

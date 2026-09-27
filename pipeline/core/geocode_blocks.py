@@ -1,13 +1,13 @@
 """
 Geocode St. Paul's crime BLOCK strings (e.g. "184X WORDSWORTH AV" or
 "CASE AV & EDGERTON") to an approximate point, since the Crime Incident
-Report FeatureServer carries no coordinates — only a block-level address
+Report FeatureServer carries no coordinates - only a block-level address
 or intersection description. A "184X" block is converted to its midpoint
 address (1845) before geocoding, so the resulting point is a block-center
 approximation, not the true incident location.
 
 Results are cached indefinitely in pipeline/core/.cache/ (gitignored) keyed
-by the raw BLOCK string, since a street block's location never changes —
+by the raw BLOCK string, since a street block's location never changes -
 this avoids re-geocoding the same few thousand unique blocks on every
 pipeline run.
 """
@@ -27,7 +27,7 @@ NOMINATIM_USER_AGENT = "TwinCitiesLivingQualityMap/1.0 (https://github.com/Kenne
 # Every block here is appended ", Saint Paul, MN", but a geocoder can still
 # match an ambiguous/misspelled street to a same-named street elsewhere in
 # the state (e.g. "PARK ST" resolving near Lino Lakes, ~15 miles north of
-# St. Paul) with no error — it just returns a confident, wrong point. Bound
+# St. Paul) with no error - it just returns a confident, wrong point. Bound
 # accepted results to St. Paul's city limits (with a small buffer) and treat
 # anything outside as a failed geocode rather than plot it in the wrong city.
 ST_PAUL_BBOX = (44.87, -93.20, 45.03, -92.97)  # (south, west, north, east)
@@ -74,7 +74,7 @@ def _to_address(block):
         midpoint = int(block_num) * 10 + 5
         return f"{midpoint} {street}, Saint Paul, MN", False
 
-    # Already looks like a plain address — geocode as-is
+    # Already looks like a plain address - geocode as-is
     return f"{block}, Saint Paul, MN", False
 
 
@@ -138,7 +138,7 @@ def geocode_blocks(blocks):
         coords = None
         if address:
             # Census geocoder handles plain street addresses well but is
-            # unreliable for intersections — try Nominatim first for those.
+            # unreliable for intersections - try Nominatim first for those.
             if is_intersection:
                 coords = _geocode_nominatim(address)
                 time.sleep(1)  # Nominatim usage policy: max 1 request/sec

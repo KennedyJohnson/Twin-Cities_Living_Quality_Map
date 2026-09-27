@@ -2,8 +2,8 @@
 // the most, year-over-year, on the handful of metrics that actually HAVE
 // multi-year history (crime, permits, and the Census affordability fields).
 // Most of the Living Quality Score's inputs (schools, groceries, transit,
-// chronic disease, crash rate, etc.) are single-snapshot-only — there's no
-// historical archive to build an "Overall Score over time" ranking from —
+// chronic disease, crash rate, etc.) are single-snapshot-only - there's no
+// historical archive to build an "Overall Score over time" ranking from -
 // so this deliberately stays scoped to metrics with real year-by-year data
 // instead of reconstructing a misleading synthetic score history.
 
@@ -54,7 +54,7 @@ interface NeighborhoodLite {
 }
 
 // The current year's crime/permit counts are a partial-year total (data
-// collection is ongoing), not a real annual figure — including it as the
+// collection is ongoing), not a real annual figure - including it as the
 // "latest" value would show every district as a ~100% drop the moment the
 // calendar rolls over, same reason TimeSeriesComparisonChart excludes it.
 const CURRENT_YEAR = new Date().getFullYear();

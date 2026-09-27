@@ -2,12 +2,12 @@
 Export Census tract-level affordability AND safety rows (centroid + fields,
 no district rollup) so the frontend can compute a figure for an arbitrary
 1-mile radius by averaging whichever tracts fall inside it, population-weighted
-— the same weighting `clean_housing_price.py` uses to roll tracts up to
+- the same weighting `clean_housing_price.py` uses to roll tracts up to
 districts, just against a circle instead of a district polygon.
 
 Chronic disease burden (CDC PLACES) and natural hazard risk (FEMA NRI) are
 tract-level sources too (like the Census affordability fields), not
-point/line geometry — a district's Safety score already blends them in
+point/line geometry - a district's Safety score already blends them in
 alongside crime/crashes (see config/sources.json), but a 1-mile radius
 "place" score previously couldn't, since neither had a client-side export.
 Bundled into this same tract file (joined by geoid) rather than a separate

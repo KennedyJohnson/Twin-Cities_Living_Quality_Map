@@ -76,7 +76,7 @@ export default function Home() {
 
   // Compare mode: once selectedDistrict is set, "Compare" arms picking a
   // second district/ZIP (via map click or search) of the SAME type
-  // (district-vs-district or zip-vs-zip only — the two granularities are
+  // (district-vs-district or zip-vs-zip only - the two granularities are
   // normalized in separate pools, see NeighborhoodSidebar's comparisonPool
   // comment, so a district-vs-zip comparison wouldn't be on a shared scale).
   // Radius/place selections can't be compared since they have no stable
@@ -185,15 +185,15 @@ export default function Home() {
   );
 
   // Grocery stores and restaurants/bars are the two point layers most
-  // relevant to "what's near this place" — auto-reveal them (without
+  // relevant to "what's near this place" - auto-reveal them (without
   // touching any other layer the user has toggled) whenever a place gets
   // selected, so results show up without digging into the layer control.
   // Only the ones this actually turned on (not ones already visible) are
   // remembered, so deselecting the place can hide them again symmetrically
-  // instead of leaving them on — and re-checking the box after that isn't
+  // instead of leaving them on - and re-checking the box after that isn't
   // fighting a reveal that silently re-fires on the next render.
   const autoRevealedSourcesRef = useRef<Set<string>>(new Set());
-  // Sources the user has explicitly checked/unchecked themselves — once a
+  // Sources the user has explicitly checked/unchecked themselves - once a
   // layer is here, auto-reveal must leave it alone so it doesn't override a
   // deliberate uncheck the next time a place gets selected.
   const userOverriddenSourcesRef = useRef<Set<string>>(new Set());
@@ -290,7 +290,7 @@ export default function Home() {
 
   const handleMapClick = async (lat: number, lon: number) => {
     // Clicking back near the currently-selected place deselects it instead
-    // of re-searching — mirrors the toggle-off behavior district mode
+    // of re-searching - mirrors the toggle-off behavior district mode
     // already has when you click the same district twice.
     if (searchMarker) {
       const dLat = (lat - searchMarker.lat) * 111320;
@@ -307,13 +307,13 @@ export default function Home() {
     // reverse-geocode calls (run in parallel, not sequentially) resolve.
     setSearchMarker({ lat, lon, label: 'Loading…', isNamedPlace: false });
     revealNearbyLayers();
-    // Resolve the snap and the label independently — waiting on both via
+    // Resolve the snap and the label independently - waiting on both via
     // Promise.all made the label sit at "Loading…" until the slower of the
     // two (usually the Overpass building-snap query) finished, even though
     // the label only depends on the Nominatim reverse-geocode call.
     // The building-snap (Overpass) and named-place (local index) lookups
     // race independently and both want to move the marker. Without
-    // coordination, whichever happens to resolve LAST wins — so a
+    // coordination, whichever happens to resolve LAST wins - so a
     // fast-resolving named-place match could get silently overwritten by a
     // slower snap call falling back to the raw click point, making the
     // final marker position (and therefore the 1-mile-radius score) depend
@@ -344,7 +344,7 @@ export default function Home() {
   // Picking one of "Find Your Match"'s top-5 recommended areas flies the map
   // to that district's recommendation radius (drawn by NeighborhoodMap from
   // matchRegions) and reveals the apartment buildings inside it as clickable
-  // markers — the region itself is the recommendation, not any one building.
+  // markers - the region itself is the recommendation, not any one building.
   const handleSelectRegion = (region: MatchRegion) => {
     setActiveRegionId(region.id);
     // Populate the sidebar with the recommended district itself, same as
@@ -360,7 +360,7 @@ export default function Home() {
   // Clicking an apartment-building dot (the always-on layer, or one inside
   // an active Find Your Match region) shows it via the same place-mode
   // search-pin flow as an address search (marker, 1-mile radius circle,
-  // nearby grocery/restaurant layers) — its score is computed live by
+  // nearby grocery/restaurant layers) - its score is computed live by
   // NeighborhoodMap's radius-score effect rather than reused from any match
   // ranking, same as any other map click.
   const handleSelectApartmentBuilding = (building: ApartmentBuildingPoint) => {

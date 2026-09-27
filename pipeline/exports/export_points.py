@@ -44,12 +44,12 @@ MAX_POINTS_PER_SOURCE = 3000
 # sidewalks/stairs that _is_real_trail lets through because they can't be
 # distinguished from a short trail spur by tags alone). Named ways and every
 # other trail-like highway type (path/cycleway/pedestrian/track/bridleway)
-# are always kept in full — they're a few tens of thousands at most across
+# are always kept in full - they're a few tens of thousands at most across
 # the wider metro bbox and are the actual trails users are looking for.
 MAX_WAYS = 60000
 MAX_UNNAMED_FOOTWAY_STEPS = 5000
 
-# Trail geometry precision/simplification — trails were by far the largest
+# Trail geometry precision/simplification - trails were by far the largest
 # exported file (~7.5MB), almost entirely raw coordinate bytes. Neither
 # change removes any trail or visibly alters its shape on the map:
 # - COORD_DECIMALS=6 is ~11cm of precision, already far finer than a trail
@@ -141,13 +141,13 @@ def _find_district(lon, lat, boundary_map):
 
 # Point-layer node sources (transit, schools, groceries, healthcare,
 # restaurants) come from a single metro-wide Overpass query, not a
-# per-city one — so a node just outside every district polygon of BOTH
+# per-city one - so a node just outside every district polygon of BOTH
 # cities (a boundary sliver, a neighboring suburb, an unmapped gap) used to
 # get silently dropped from both exports. That meant a 1-mile radius search
 # near a city edge could miss real nearby bars/groceries/etc. Now such
 # points are classified once against both cities' boundaries and, if they
 # match neither, kept in a separate "unassigned" file the frontend also
-# loads — so they still render and still count toward a radius search.
+# loads - so they still render and still count toward a radius search.
 def _classify_by_district(nodes, stpaul_map, mpls_map, source, build_title_details):
     stpaul_records, mpls_records, unassigned_records = [], [], []
     for el in nodes:
@@ -175,7 +175,7 @@ def _classify_by_district(nodes, stpaul_map, mpls_map, source, build_title_detai
 # Pedestrian/cyclist crash locations (MnDOT VRU crashes) are metro-wide like
 # the shared OSM node sources above, but come from an ArcGIS FeatureServer
 # with a different element shape (geometry.x/y + a flat attributes dict
-# instead of Overpass's lat/lon + tags) — same classify-by-district idea as
+# instead of Overpass's lat/lon + tags) - same classify-by-district idea as
 # _classify_by_district, adapted to that shape.
 def _classify_arcgis_by_district(features, stpaul_map, mpls_map, source, build_title_details):
     stpaul_records, mpls_records, unassigned_records = [], [], []
@@ -369,7 +369,7 @@ CRIME_FIELDS_STPAUL = {
 
 
 def _export_stpaul_crime_records():
-    """St. Paul's crime feed has no true coordinates — only a block-level
+    """St. Paul's crime feed has no true coordinates - only a block-level
     BLOCK string, which clean_crime_with_points() geocodes to a block-center
     approximation (see core/geocode_blocks.py). Every exported point is
     flagged with an explicit "Precision" detail so the map popup never
@@ -384,7 +384,7 @@ def _export_stpaul_crime_records():
         for _, r in crime.iterrows():
             title = _clean(r.get("INCIDENT_TYPE")) or _clean(r.get("INCIDENT")) or "Crime Incident"
             details = _details(r, CRIME_FIELDS_STPAUL)
-            details["Precision"] = "Approximate — block-level estimate, not exact location"
+            details["Precision"] = "Approximate - block-level estimate, not exact location"
             records.append((r["longitude"], r["latitude"], "crime", title, details, r.get("district_id")))
     return records
 
@@ -397,7 +397,7 @@ TRAIL_BUFFER_DEG = 1609.34 / 111_000
 
 # Crime records rely on a geocoded/source point that occasionally lands far
 # from where it should (see core/geocode_blocks.py's own bounding-box check
-# for St. Paul's block-level geocoding) — a wrong match can silently place an
+# for St. Paul's block-level geocoding) - a wrong match can silently place an
 # incident miles from its real neighborhood. Rather than only keep points
 # strictly inside a district polygon (which would drop legitimate incidents
 # right at a city's edge), keep anything within 5 miles of the combined
@@ -457,7 +457,7 @@ def _export_trail_lines(boundary_union):
             continue
         tags = el.get("tags", {})
         if not tags.get("highway"):
-            # leisure=park/track ways are polygon-ish features, not trails —
+            # leisure=park/track ways are polygon-ish features, not trails -
             # useful for the walkability score but not for the trail layer.
             continue
         raw_coords = [(pt["lon"], pt["lat"]) for pt in geometry]
@@ -490,8 +490,8 @@ def main():
         list(stpaul_map.values()) + list(mpls_map.values())
     ).buffer(CRIME_SANITY_BUFFER_DEG)
 
-    # St. Paul's crime feed has no geocoded lat/lon — only a district and a
-    # block-level address string — so incidents are plotted at a geocoded
+    # St. Paul's crime feed has no geocoded lat/lon - only a district and a
+    # block-level address string - so incidents are plotted at a geocoded
     # block-center approximation (clean_crime_with_points(), backed by
     # core/geocode_blocks.py) rather than a true location. Each point's
     # popup carries an explicit "Precision" note flagging this. MPLS crime
@@ -499,7 +499,7 @@ def main():
     #
     # Building permits, service requests, and housing production are
     # intentionally excluded from the map's point layers (too granular /
-    # low user interest) — they're still used in health score aggregation,
+    # low user interest) - they're still used in health score aggregation,
     # just not plotted as markers.
     print("Fetching shared point sources (transit, schools, groceries, healthcare, restaurants, entertainment)...")
     stpaul_records, mpls_records, unassigned_records = _fetch_and_classify_all(stpaul_map, mpls_map)

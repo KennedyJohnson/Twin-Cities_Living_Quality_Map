@@ -5,7 +5,7 @@ traveled (AADT x segment length) within each district.
 
 Like walkability, this is a line-geometry metric: instead of counting
 incidents, we sum (AADT * clipped length in km) for each road segment that
-falls inside a district's boundary — a proxy for total traffic exposure,
+falls inside a district's boundary - a proxy for total traffic exposure,
 analogous to vehicle-miles-traveled. Higher traffic volume per capita is
 treated as a Quality of Life negative (noise, safety, walkability), so this
 source is registered with rate_direction="invert".

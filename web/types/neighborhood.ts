@@ -27,12 +27,12 @@ export interface Neighborhood {
   health_score: number;
   is_radius?: boolean;
   // For a radius/place selection (is_radius: true), the real district the
-  // point falls within — there's no per-location history, so trend charts
+  // point falls within - there's no per-location history, so trend charts
   // fall back to this district's historical data as the closest available
   // proxy for "what has this area looked like over time."
   containing_district_id?: number;
   // True for a ZIP-granularity selection (district_id is a ZIP code, not a
-  // St. Paul District Council / Minneapolis Community id) — set client-side
+  // St. Paul District Council / Minneapolis Community id) - set client-side
   // in loadNeighborhoodData.ts when loading the 'zip' pool, since ZIP codes
   // and district ids share the same numeric field but come from a
   // separately-normalized pool (see NeighborhoodMap.tsx's layerPoolsRef).

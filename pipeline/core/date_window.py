@@ -5,7 +5,7 @@ Minneapolis.
 
 Why this exists: without it, each city's raw record count reflects however
 many years of history that particular ArcGIS/Socrata dataset happens to
-carry — St. Paul's crime data went back to 2014 while Minneapolis's only
+carry - St. Paul's crime data went back to 2014 while Minneapolis's only
 had real coverage from ~2019, and Minneapolis's 311 requests were fetched
 from a single-year FeatureServer while St. Paul's spanned 2015-2025. A
 longer history window inflates a city's per-capita rate independent of
@@ -18,7 +18,7 @@ import datetime
 import pandas as pd
 
 # Trailing complete years to include, plus whatever's happened so far in
-# the current (partial) year — 3 was chosen as long enough to smooth out
+# the current (partial) year - 3 was chosen as long enough to smooth out
 # single-year noise while staying within what every source can supply on
 # both sides (Minneapolis's 311 data is only available one year per
 # FeatureServer, so a very long window means many extra fetches).

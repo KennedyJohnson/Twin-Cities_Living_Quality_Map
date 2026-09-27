@@ -47,7 +47,7 @@ def _is_transit_node(tags):
 
 def _fetch_nodes():
     """Fetch transit stop/station nodes from the local OSM extract (see
-    core/osm_extract.py) — replaces the live Overpass query this used to
+    core/osm_extract.py) - replaces the live Overpass query this used to
     make, which was slow/flaky on the public instance."""
     return query_osm(node_matcher=_is_transit_node, cache_key="transit")
 

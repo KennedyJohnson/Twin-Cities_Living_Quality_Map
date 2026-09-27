@@ -5,7 +5,7 @@ Match" feature to recommend actual buildings instead of whole districts.
 
 Point-record source like clean_schools.py: one row per building, assigned to
 a district via point-in-polygon. Unlike clean_schools.py this is NOT wired
-into sources.json / aggregate_by_source() — it isn't a health-score input,
+into sources.json / aggregate_by_source() - it isn't a health-score input,
 just location data that gets its own 1-mile-radius score computed separately
 (see core/radius_score.py) and shipped to the frontend as
 web/public/data/apartment_buildings_{city}.json (see build.py).
@@ -42,7 +42,7 @@ def _is_apartment_building(tags):
 # Many apartment buildings aren't tagged building=apartments: bulk-imported
 # footprints are building=yes/residential (93% of buildings in Highland Park,
 # e.g.). Also count (a) large building=residential footprints (a single
-# house is well under 600 m^2 — explicitly tagged houses/detached run
+# house is well under 600 m^2 - explicitly tagged houses/detached run
 # ~75-280 m^2) and (b) generic buildings named like an apartment building
 # with no tag suggesting a shop/amenity/office use.
 APARTMENT_MIN_RESIDENTIAL_M2 = 600
@@ -76,7 +76,7 @@ def _is_apartment_way(tags, coords):
 
 def _fetch_nodes():
     """Fetch apartment-building nodes/ways from the local OSM extract (see
-    core/osm_extract.py) — replaces the live Overpass query this used to
+    core/osm_extract.py) - replaces the live Overpass query this used to
     make, which was slow/flaky on the public instance."""
     return query_osm(node_matcher=_is_apartment_building, way_matcher=_is_apartment_way_candidate,
                      way_geometry_filter=_is_apartment_way, relation_matcher=_is_apartment_building,
@@ -111,7 +111,7 @@ def _reverse_geocode_address(lat, lon):
         return None
 
     # A bare road name with no house number (Nominatim falls back to this
-    # when it can't pin down the exact parcel) isn't a usable address — it
+    # when it can't pin down the exact parcel) isn't a usable address - it
     # doesn't identify this building any more specifically than "somewhere
     # on this street," but if accepted here it gets stored as both the
     # row's address AND name, so the frontend ends up displaying e.g. just
@@ -130,7 +130,7 @@ def _fill_missing_addresses(rows):
     they show up in the UI/listing links as something more specific than
     a generic "Apartment Building" placeholder. Buildings that still have
     neither a real name nor a full house-number address afterward are
-    dropped entirely — see _reverse_geocode_address's docstring — rather
+    dropped entirely - see _reverse_geocode_address's docstring - rather
     than shown with a misleading bare-street-name label."""
     missing = [row for row in rows if row["address"] is None and row["name"] == "Apartment Building"]
     if missing:

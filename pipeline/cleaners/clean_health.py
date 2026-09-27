@@ -2,7 +2,7 @@
 Fetch tract-level chronic disease prevalence (obesity, diabetes) from the
 CDC PLACES dataset (free, no API key required) and convert to an estimated
 affected-resident count per district, as a Quality of Life health-outcomes
-signal — more residents affected lowers Quality of Life.
+signal - more residents affected lowers Quality of Life.
 
 Converting prevalence% to an estimated count (prevalence x tract
 population) lets this plug into the same count-based aggregate_by_source()

@@ -6,7 +6,7 @@ const nextConfig = {
   // production build either way (Strict Mode's double-invoke is dev-only).
   reactStrictMode: false,
   // Next 16 otherwise regenerates web/AGENTS.md + web/CLAUDE.md on every
-  // dev/build run — this repo already has its own root CLAUDE.md.
+  // dev/build run - this repo already has its own root CLAUDE.md.
   agentRules: false,
   // Hides the dev-only "N" build-info badge (route/bundler/preferences) in
   // the corner while running `next dev`. Never appears in production.
@@ -14,11 +14,11 @@ const nextConfig = {
   async headers() {
     return [
       {
-        // web/public/data/*.json + *.geojson — the pipeline's exported
+        // web/public/data/*.json + *.geojson - the pipeline's exported
         // datasets. Not content-hashed (same URL every deploy), and the
         // weekly refresh (.github/workflows/refresh-data.yml) redeploys with
         // updated content at that same URL, so this can't be `immutable`
-        // like a hashed build asset — that would let browsers/CDN keep
+        // like a hashed build asset - that would let browsers/CDN keep
         // serving pre-refresh data indefinitely. A 1-hour edge/browser cache
         // with a day of stale-while-revalidate still cuts repeat-visit
         // network time way down (no more re-fetching the same ~20MB of

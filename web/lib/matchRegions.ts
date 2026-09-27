@@ -2,7 +2,7 @@
 // the top 5 districts that fit the user's weighted criteria and budget, each
 // represented as a 1-mile-radius region centered on that district's
 // highest-scoring apartment building. The center building is only a
-// placement anchor — every apartment building inside the radius is shown as
+// placement anchor - every apartment building inside the radius is shown as
 // a clickable point so the user can explore the area themselves rather than
 // being steered toward one listing.
 

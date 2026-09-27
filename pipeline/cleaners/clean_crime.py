@@ -24,7 +24,7 @@ def clean_crime(crosswalk_file="crosswalks/crime_neighborhood_to_district.json",
     """
     Clean crime data and assign district_id via crosswalk (district
     granularity), or via point-in-polygon against zip boundaries using
-    geocoded block-center coordinates (zip granularity — the crosswalk
+    geocoded block-center coordinates (zip granularity - the crosswalk
     only resolves to a district, not a zip, so zip mode geocodes the BLOCK
     field instead; see clean_crime_with_points()).
 
@@ -42,7 +42,7 @@ def clean_crime(crosswalk_file="crosswalks/crime_neighborhood_to_district.json",
         crime = crime[~crime["INCIDENT"].astype(str).str.strip().isin(NON_CRIME_INCIDENTS)]
     # Restricted to a shared recent-years window so St. Paul's longer crime
     # history doesn't inflate its rate relative to Minneapolis's shorter
-    # one — see core/date_window.py.
+    # one - see core/date_window.py.
     crime = filter_recent_years(crime, "DATE", epoch_ms=True)
 
     if granularity == "zip":
@@ -105,7 +105,7 @@ def clean_crime_with_points(crosswalk_file="crosswalks/crime_neighborhood_to_dis
     per incident by geocoding the BLOCK field's block-level address or
     intersection description. St. Paul's crime feed has no true coordinates,
     so these points are block-center approximations, not exact incident
-    locations — see core/geocode_blocks.py.
+    locations - see core/geocode_blocks.py.
     """
     crime = clean_crime(crosswalk_file)
 

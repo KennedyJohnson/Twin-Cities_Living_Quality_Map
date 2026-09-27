@@ -5,7 +5,7 @@ runs several times per session, so both sources of overhead are worth
 cutting:
 
 - Interpreter/import startup (pandas, numpy, shapely, etc.) paid once per
-  `python` invocation — six separate invocations means paying it six times.
+  `python` invocation - six separate invocations means paying it six times.
 - Independent exports' network-bound work (Overpass, ArcGIS, Census, CDC)
   was fully serialized even though nothing in one script's fetch depends on
   another's. Running them concurrently overlaps that waiting instead of
@@ -13,7 +13,7 @@ cutting:
 
 export_radius_baseline.py reads the points/lines files export_points.py
 writes (to discover which sources have raw geometry shipped to the
-browser — see its own docstring), so it's the one real ordering dependency:
+browser - see its own docstring), so it's the one real ordering dependency:
 export_points.py must finish first. Every other export only reads from the
 pipeline's cleaners/aggregation, not from another export's output, so they
 run in parallel.
@@ -21,11 +21,11 @@ run in parallel.
 export_radius_score_samples.py runs last, on its own: it scores a sample
 grid of points via RadiusScoringContext, which itself reads
 radius_baseline_{city}.json, points_{city}.json/lines_trails.json, and
-tracts_affordability_{city}.json — i.e. the outputs of export_radius_baseline,
+tracts_affordability_{city}.json - i.e. the outputs of export_radius_baseline,
 export_points, and export_tracts_affordability all have to already be on
 disk, so it can't join the parallel group above.
 
-None of this changes what gets fetched or written — pipeline/core/http_cache.py's
+None of this changes what gets fetched or written - pipeline/core/http_cache.py's
 existing 6-hour cache is what actually avoids redundant network calls
 across exports (and across build.py) that ask for the same data; this just
 stops making them wait on each other.

@@ -75,13 +75,13 @@ export async function resolveNeighborhoodForPoint(lat: number, lon: number): Pro
 // (same OSM service AddressSearch uses for forward search).
 // `isNamedPlace` is true only when Nominatim returned a real POI name (a
 // business, park, etc.) rather than falling back to a bare street address or
-// raw coordinates — those fallbacks aren't things Google Maps has a reviews
+// raw coordinates - those fallbacks aren't things Google Maps has a reviews
 // page for, so callers use this to decide whether to show a reviews link.
 export async function reverseGeocode(
   lat: number,
   lon: number
 ): Promise<{ label: string; isNamedPlace: boolean; address?: string }> {
-  // Check the local named-place index first (see findNearestNamedPlace) —
+  // Check the local named-place index first (see findNearestNamedPlace) -
   // it's already an in-memory static-file fetch, so this avoids a live
   // Nominatim call whenever the click already lands on/near a place we
   // indexed at build time.
@@ -92,7 +92,7 @@ export async function reverseGeocode(
 
   try {
     // Routed through our own /api/reverse-geocode rather than calling
-    // Nominatim directly — Nominatim's usage policy requires requests to
+    // Nominatim directly - Nominatim's usage policy requires requests to
     // identify the application via User-Agent, which a browser fetch() can't
     // set itself (see that route's comment), so a direct client-side call
     // here would silently violate the policy on every place-mode map click.
@@ -125,7 +125,7 @@ let placeIndexCache: Promise<PlaceIndexEntry[]> | null = null;
 // The named-place index is built once per pipeline run (see
 // pipeline/exports/export_place_index.py) from the same local OSM extract the
 // pipeline's other cleaners use, so this is a single static-file fetch
-// instead of a live Overpass query — no per-click network round trip, no
+// instead of a live Overpass query - no per-click network round trip, no
 // rate limiting, and it stays in sync with everything else the build derives
 // from OSM.
 function loadPlaceIndex(): Promise<PlaceIndexEntry[]> {
@@ -185,7 +185,7 @@ export async function findNearestNamedPlace(
 
 // Snap a clicked point to the centroid of the nearest OSM building, store,
 // or park within ~40m, so a slightly-off click still lands on the place the
-// user meant. Deliberately excludes roads/paths (highway=*) — only tagged
+// user meant. Deliberately excludes roads/paths (highway=*) - only tagged
 // places (buildings, shops, amenities, parks) count as snap targets. Falls
 // back to the original point if nothing is found nearby.
 export async function snapToNearestBuilding(lat: number, lon: number): Promise<{ lat: number; lon: number }> {

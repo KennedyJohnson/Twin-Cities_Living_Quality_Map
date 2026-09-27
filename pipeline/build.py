@@ -27,7 +27,7 @@ CITY_LABELS = {"stpaul": "ST. PAUL", "mpls": "MINNEAPOLIS"}
 def build(city, aggregated, health_scores):
     """Build orchestration for a single city, from data already aggregated
     and scored across BOTH cities together (see core/health_score.py's
-    compute_health_scores_combined — St. Paul and Minneapolis are
+    compute_health_scores_combined - St. Paul and Minneapolis are
     normalized as one 28-district set so their scores are actually
     comparable, then split back out per-city here just for file output)."""
     label = CITY_LABELS.get(city, city.upper())
@@ -131,7 +131,7 @@ def build(city, aggregated, health_scores):
     print("-" * 70)
 
     # Count total records from each aggregated source, restricted to this
-    # city's district_ids — `aggregated` is the combined 28-district dict,
+    # city's district_ids - `aggregated` is the combined 28-district dict,
     # shared across both cities' build() calls.
     city_district_ids = {int(d) for d in population["district_id"]}
     for source_id, source_data in aggregated.items():
@@ -168,7 +168,7 @@ def build_apartment_buildings(city):
     Uses the SAME 1-mile-radius scoring algorithm as a map-click "place"
     search (core/radius_score.py, ported from web/lib/radiusScore.ts), fed
     by the previous run's exported client data files (points/trails/tracts/
-    baseline) — see radius_score.py's module docstring for why that's an
+    baseline) - see radius_score.py's module docstring for why that's an
     acceptable staleness tradeoff. If those files aren't present yet (e.g. a
     fresh checkout before the first export run), buildings are skipped with
     a warning rather than failing the whole build."""

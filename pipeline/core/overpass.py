@@ -3,7 +3,7 @@ Shared Overpass API client with mirror fallback.
 
 The public overpass-api.de instance is frequently overloaded/unreachable
 (seen repeatedly as 120s+ connect timeouts during full pipeline runs, once
-for every OSM-based source at both district and zip granularity — this can
+for every OSM-based source at both district and zip granularity - this can
 add tens of minutes to a single build). Every OSM-based cleaner used to
 retry that same single endpoint 2-3 times with backoff, which just waits
 out the same dead server repeatedly instead of trying an alternative.
@@ -19,7 +19,7 @@ import time
 from core.http_cache import cached_post
 
 # All run the same Overpass QL API. Order is a rough preference (the
-# canonical instance first), not a guarantee of uptime — any dead mirror is
+# canonical instance first), not a guarantee of uptime - any dead mirror is
 # just skipped quickly relative to the old same-server retry loop.
 OVERPASS_MIRRORS = [
     "https://overpass-api.de/api/interpreter",
@@ -44,7 +44,7 @@ def fetch_overpass(query, timeout=120, ttl_seconds=None, attempts_per_mirror=1, 
         timeout: per-request timeout in seconds
         ttl_seconds: cache TTL passed to cached_post (None uses its default)
         attempts_per_mirror: retries per mirror before moving to the next
-            (kept at 1 by default — moving to a different mirror is a more
+            (kept at 1 by default - moving to a different mirror is a more
             useful use of time than re-hitting one that just failed)
         retry_sleep_seconds: pause between attempts
 

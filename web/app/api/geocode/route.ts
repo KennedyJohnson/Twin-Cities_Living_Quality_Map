@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-// Proxies Nominatim search so requests carry a proper User-Agent — browsers
+// Proxies Nominatim search so requests carry a proper User-Agent - browsers
 // won't let client-side fetch() set one, and Nominatim's usage policy
 // requires it to identify the app, so direct client calls can be silently
 // rate-limited/blocked even when the same query works server-side.

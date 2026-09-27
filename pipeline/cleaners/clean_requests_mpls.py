@@ -29,14 +29,14 @@ FEATURE_SERVER = MPLS_SOURCES["requests_311"]["featureServer"]
 _FEATURE_SERVER_YEAR_PLACEHOLDER = "2025"
 
 # St. Paul's Resident Service Requests dataset (clean_requests.py) is scoped
-# to physical property/neighborhood livability complaints — garbage, tall
+# to physical property/neighborhood livability complaints - garbage, tall
 # grass, graffiti, snow/ice, abandoned vehicles, potholes, etc. Minneapolis's
 # 311 feed is a much broader all-purpose city contact-center system that also
 # logs categories St. Paul's dataset has no equivalent for: licensing/permit
 # paperwork, utility billing, department callbacks, and police-adjacent
 # reports. Left unfiltered, MPLS's request_rate_pc came out ~3x St. Paul's
 # not because Minneapolis has more livability issues, but because its 311
-# system simply logs more TYPES of citizen contact under one feed — since
+# system simply logs more TYPES of citizen contact under one feed - since
 # request_rate_pc is inverted (more = worse) in the Amenities score, that
 # scope mismatch structurally penalized Minneapolis. This keyword filter
 # excludes the administrative/non-livability categories so the remaining
@@ -69,7 +69,7 @@ def _is_livability_request(request_type):
 import re
 
 # Minneapolis's 311 taxonomy logs the same underlying complaint TYPE under
-# separate categories per intake channel — e.g. "Parking Violation
+# separate categories per intake channel - e.g. "Parking Violation
 # Complaint" (call center) vs "Parking Violation - Open311" (app/API), or
 # "Graffiti - Open311" vs "Graffiti complaint / reporting". Stripping the
 # channel suffix collapses these into one base category so
@@ -91,7 +91,7 @@ def _base_request_category(request_type):
 
 def _dedupe_same_day_location(svc):
     """Collapse rows that share the same base complaint category, calendar
-    day, and rounded coordinate (~1 city block, ~0.001 deg) into one row —
+    day, and rounded coordinate (~1 city block, ~0.001 deg) into one row -
     a proxy for the same real-world issue reported through more than one
     311 channel on the same day. This is a heuristic: it can also merge two
     unrelated but genuinely separate complaints of the same type filed on
@@ -119,7 +119,7 @@ def _feature_server_for_year(year):
 def _web_mercator_to_wgs84(x, y):
     """Convert EPSG:3857 (Web Mercator) coordinates to WGS84 lon/lat.
     XCOORD/YCOORD are plain attribute fields (not the query geometry), so
-    _fetch_arcgis_paginated's outSR=4326 request doesn't reproject them —
+    _fetch_arcgis_paginated's outSR=4326 request doesn't reproject them -
     this manual conversion is still needed."""
     origin_shift = 20037508.34
     lon = (x / origin_shift) * 180.0
@@ -131,7 +131,7 @@ def _web_mercator_to_wgs84(x, y):
 def _fetch_all_features(out_fields="CASEID,TYPENAME,OPENEDDATETIME,XCOORD,YCOORD,TITLE,REASONNAME,CASESTATUS"):
     # Unlike a single-endpoint source, matching St. Paul's shared
     # recent-years window here means fetching several per-year
-    # FeatureServers and concatenating them — previously this only ever
+    # FeatureServers and concatenating them - previously this only ever
     # queried the 2025 one, so Minneapolis's 311 rate was computed from one
     # year of data while St. Paul's spanned a decade. See clean_crime_mpls.py
     # for why each per-year fetch goes through the shared, non-truncating
@@ -206,7 +206,7 @@ def clean_requests_mpls(granularity="district"):
     })
 
     # Restrict to categories comparable to St. Paul's livability/code-
-    # enforcement scope — see _EXCLUDED_REQUEST_TYPE_KEYWORDS above.
+    # enforcement scope - see _EXCLUDED_REQUEST_TYPE_KEYWORDS above.
     before_scope_filter = len(svc)
     svc = svc[svc["request_type"].map(_is_livability_request)]
     excluded_count = before_scope_filter - len(svc)
@@ -217,7 +217,7 @@ def clean_requests_mpls(granularity="district"):
     svc = _dedupe_same_day_location(svc)
 
     # Safety net in case a per-year FeatureServer contains stray out-of-year
-    # rows — see core/date_window.py.
+    # rows - see core/date_window.py.
     svc = filter_recent_years(svc, "opened_date", epoch_ms=True)
 
     cols = ["district_id", "case_id", "request_type", "opened_date"]

@@ -18,7 +18,7 @@ cleaner output:
 These files are regenerated weekly by exports/export_all.py, which runs
 *after* build.py in the refresh workflow, so a RadiusScoringContext built
 during build.py reads the previous run's copies (already committed to the
-repo) — a small, acceptable staleness, the same tradeoff already implicit in
+repo) - a small, acceptable staleness, the same tradeoff already implicit in
 any pipeline step that reads one of its own prior outputs. If a file is
 missing entirely (e.g. a fresh checkout before the first export run),
 scoring degrades gracefully to an empty/unavailable result rather than
@@ -119,7 +119,7 @@ def _compute_component_index(lat, lon, component, points, trails, tracts):
         if source.get("geometry_type") == "tract":
             # Population-weighted average of a Census-tract field (e.g.
             # chronic disease prevalence, FEMA hazard risk) across tracts
-            # within the radius — same treatment as _compute_affordability,
+            # within the radius - same treatment as _compute_affordability,
             # since these are already rates/scores, not point counts to sum.
             tract_field = source.get("tract_field")
             valid = [
@@ -244,7 +244,7 @@ def compute_radius_neighborhood(lat, lon, label, baseline, points, trails, tract
 
 class RadiusScoringContext:
     """Loads one city's baseline + raw point/trail/tract data once, then
-    scores many points cheaply (no re-reading/re-parsing JSON per point) —
+    scores many points cheaply (no re-reading/re-parsing JSON per point) -
     used to batch-score hundreds of apartment buildings in build.py."""
 
     def __init__(self, city):

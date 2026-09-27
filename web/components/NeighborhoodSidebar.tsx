@@ -29,7 +29,7 @@ import { COLOR_METRICS, ColorMetricKey } from '@/lib/colorMetric';
 
 // Below this magnitude a vs-average difference reads as noise rather than a
 // meaningful strength/weakness, so it stays neutral gray instead of
-// green/red — a +3% and a +45% shouldn't look equally "good."
+// green/red - a +3% and a +45% shouldn't look equally "good."
 const DIFF_PCT_NEUTRAL_THRESHOLD = 10;
 
 function diffColor(diffPct: number | null, isGood: boolean): string {
@@ -106,7 +106,7 @@ const RAW_ROWS: Record<string, { key: keyof Affordability; label: string; fmt: (
   ],
 };
 
-// Demographics with no scoring category — shown under Economic Profile,
+// Demographics with no scoring category - shown under Economic Profile,
 // labeled as not used in scoring.
 const CONTEXT_ROWS: { key: keyof Affordability; label: string; fmt: (v: number) => string }[] = [
   { key: 'median_age', label: 'Median Age', fmt: (v) => `${v}` },
@@ -125,7 +125,7 @@ export default function NeighborhoodSidebar({ district, onSelectDistrict, granul
 
   // Resets whenever the selected district itself changes (not just a
   // re-render with the same one) so a previously-expanded component panel
-  // — and any map layers it auto-revealed — doesn't carry over to a newly
+  // - and any map layers it auto-revealed - doesn't carry over to a newly
   // selected district.
   useEffect(() => {
     setExpandedIndex(district && scoreMetric && scoreMetric !== 'health_score' ? scoreMetric : null);
@@ -137,7 +137,7 @@ export default function NeighborhoodSidebar({ district, onSelectDistrict, granul
     }
   }, [district, scoreMetric]);
 
-  // Only depends on expandedIndex itself — onExpandedIndexChange is read
+  // Only depends on expandedIndex itself - onExpandedIndexChange is read
   // through a ref instead of being a dependency, since page.tsx passes a
   // plain (non-memoized) inline function that gets a new identity every
   // render. Depending on it directly caused an infinite loop: this effect
@@ -174,7 +174,7 @@ export default function NeighborhoodSidebar({ district, onSelectDistrict, granul
       .catch(() => setAllNeighborhoods([]));
 
     // ZIP-granularity selections are normalized in their own separate pool
-    // (compute_health_scores_zip — every metro ZIP against every other
+    // (compute_health_scores_zip - every metro ZIP against every other
     // ZIP), so grading/averaging a ZIP against the 28-district pool below
     // would compare it against the wrong distribution.
     loadNeighborhoodData('zip')
@@ -182,14 +182,14 @@ export default function NeighborhoodSidebar({ district, onSelectDistrict, granul
       .catch(() => setAllZips([]));
 
     // A radius/place click (search, map click in "place" mode, an apartment
-    // building) scores on a visibly different scale than a district or ZIP —
+    // building) scores on a visibly different scale than a district or ZIP -
     // fewer metrics are available client-side (Opportunity's permits/
     // unemployment and Walk/Bike Score's distance decay aren't shipped to
     // the browser, so their weight redistributes onto what's left), and
     // pipeline/tests/sanity_check_place_scoring.py shows radius health_score
     // running ~6 points below the same spot's district score city-wide.
     // Grading a radius result against the district/ZIP pool below therefore
-    // reads as unfairly harsh (routinely D/F even inside an "A" district) —
+    // reads as unfairly harsh (routinely D/F even inside an "A" district) -
     // it needs its own distribution of other radius scores to rank against
     // instead. See pipeline/exports/export_radius_score_samples.py.
     fetch('/data/radius_score_samples.json')
@@ -280,7 +280,7 @@ export default function NeighborhoodSidebar({ district, onSelectDistrict, granul
   }
 
   // For a radius/place selection, fall back to the enclosing district's
-  // affordability trend — there's no location-specific ACS history for an
+  // affordability trend - there's no location-specific ACS history for an
   // arbitrary point, so the surrounding district is the closest available.
   const trendDistrictId = district.is_radius ? district.containing_district_id : district.district_id;
   const districtAffordability = trendDistrictId != null ? affordability[String(trendDistrictId)] : undefined;
@@ -491,7 +491,7 @@ export default function NeighborhoodSidebar({ district, onSelectDistrict, granul
               )
             ) : (
               (() => {
-                // broadband_score and walkability_score aren't top-level components — they're
+                // broadband_score and walkability_score aren't top-level components - they're
                 // sub-scores folded into amenities (85/15) and transportation (60/25/15)
                 // respectively, so they're shown nested under those two instead of getting
                 // their own top-level card.

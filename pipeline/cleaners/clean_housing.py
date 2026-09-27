@@ -39,7 +39,7 @@ def clean_housing(fallback_behavior="exclude_from_scoring_if_geography_fails", g
         DataFrame with columns: housing_id (or index), district_id (may be NaN), ...
     """
     housing = load_housing()
-    # Restricted to a shared recent-years window — see core/date_window.py.
+    # Restricted to a shared recent-years window - see core/date_window.py.
     housing = filter_recent_years(housing, "ProjectPermitIssueDate", epoch_ms=True)
     boundaries = resolve_boundaries(city="stpaul", granularity=granularity)
 
@@ -114,7 +114,7 @@ def clean_housing(fallback_behavior="exclude_from_scoring_if_geography_fails", g
             housing["district_id"] = None
             print("[WARNING] Housing data has no coordinate columns; all records marked for exclusion from scoring")
 
-    # Sum actual new dwelling units per project rather than counting rows —
+    # Sum actual new dwelling units per project rather than counting rows -
     # a single project permit can cover a multi-unit building, so counting
     # rows undercounts large developments and overcounts single-unit
     # remodel/addition permits equally with new construction. "value" is

@@ -1,7 +1,7 @@
 """
 Sanity checks for the home value prediction analysis
 (analysis/home_value_prediction). Only exercises train.py against the
-already-committed data/panel.csv — no network calls or CENSUS_API_KEY
+already-committed data/panel.csv - no network calls or CENSUS_API_KEY
 needed, so this runs in CI like the rest of pipeline/tests.
 """
 

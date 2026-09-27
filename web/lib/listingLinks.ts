@@ -83,14 +83,14 @@ export interface ListingFilters {
   maxRent: number | null;
   maxHomeValue: number | null;
   minBeds?: number | null;
-  // Renter vs. buyer mode from Find Your Match — only that mode's Zillow
+  // Renter vs. buyer mode from Find Your Match - only that mode's Zillow
   // link is shown. Undefined shows both.
   mode?: 'rent' | 'buy';
   prefs?: ListingPrefs;
 }
 
 // Extra Zillow-only filters from Find Your Match. None of these affect our
-// own area rankings — Census/OSM data has nothing on pets, laundry or HOAs.
+// own area rankings - Census/OSM data has nothing on pets, laundry or HOAs.
 export type HomeType = 'house' | 'townhome' | 'condo' | 'apartment' | 'multifamily';
 export interface ListingPrefs {
   minBaths?: number | null;

@@ -35,7 +35,7 @@ def _is_restaurant_way(tags):
 
 def _fetch_nodes():
     """Fetch restaurant/bar/cafe nodes+ways from the local OSM extract (see
-    core/osm_extract.py) — replaces the live Overpass query this used to
+    core/osm_extract.py) - replaces the live Overpass query this used to
     make, which was slow/flaky on the public instance."""
     return query_osm(node_matcher=_is_restaurant_node, way_matcher=_is_restaurant_way, relation_matcher=_is_restaurant_way, cache_key="restaurants")
 

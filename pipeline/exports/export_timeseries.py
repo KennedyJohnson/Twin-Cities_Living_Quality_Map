@@ -1,6 +1,6 @@
 """
 Export yearly counts of crime, permits, service requests, and housing
-production — both citywide and per-district — for time-series charts on the
+production - both citywide and per-district - for time-series charts on the
 frontend (web/public/data/timeseries_<city>.json).
 
 Trend data is limited to sources that carry a real historical date field
@@ -34,7 +34,7 @@ from core.load import load_population
 PIPELINE_DIR = Path(__file__).resolve().parent.parent
 OUT_DIR = PIPELINE_DIR.parent / "web" / "public" / "data"
 
-# Keep only plausible years — raw source data occasionally has stray
+# Keep only plausible years - raw source data occasionally has stray
 # far-past/far-future dates from data entry errors.
 MIN_YEAR = 2005
 MAX_YEAR = 2026
@@ -111,7 +111,7 @@ def _citywide_population(city):
 def export_stpaul_timeseries():
     # St. Paul's ArcGIS date fields now come back as epoch milliseconds
     # (same format Minneapolis always used), not the string dates they used
-    # to be — so these all use the epoch-ms parser now, like MPLS below.
+    # to be - so these all use the epoch-ms parser now, like MPLS below.
     crime = clean_crime()
     crime["year"] = _years_from_epoch_ms(crime["DATE"])
 

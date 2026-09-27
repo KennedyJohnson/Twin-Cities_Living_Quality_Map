@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { haversineMeters } from '@/lib/matchRegions';
 
 // "Near my job" commute estimate. There's no routing API behind this (real
-// transit times would need a paid one) — it's straight-line distance times a
+// transit times would need a paid one) - it's straight-line distance times a
 // typical road-network detour factor, divided by rough average metro speeds
 // plus fixed overhead (parking / waiting for a bus). Good enough to tell a
 // 10-minute commute from a 40-minute one, and labeled as an estimate
@@ -53,7 +53,7 @@ export function setWorkLocation(loc: WorkLocation | null): void {
     if (loc) localStorage.setItem(STORAGE_KEY, JSON.stringify(loc));
     else localStorage.removeItem(STORAGE_KEY);
   } catch {
-    // Storage blocked (private window) — still update this tab's listeners.
+    // Storage blocked (private window) - still update this tab's listeners.
   }
   window.dispatchEvent(new CustomEvent(CHANGE_EVENT, { detail: loc }));
 }

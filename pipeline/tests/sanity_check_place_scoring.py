@@ -1,6 +1,6 @@
 """
 End-to-end sanity check for the "place" (1-mile radius click/search) scoring
-system — the thing that broke silently before (Safety & Health clustering
+system - the thing that broke silently before (Safety & Health clustering
 near the top for nearly every click) with nothing catching it short of a
 person clicking around the map and noticing.
 
@@ -9,7 +9,7 @@ normalization math), this exercises the actual radius-scoring path
 (core/radius_score.py's RadiusScoringContext, fed by the real exported
 points/trails/tracts/baseline files) against a dense grid of sample points
 across each city, and flags distribution shapes that indicate a broken
-comparison (everything clustered at one end, near-zero variance, NaNs) —
+comparison (everything clustered at one end, near-zero variance, NaNs) -
 the same symptoms the circle-vs-district and pooled-normalization bugs
 produced. Not a replacement for eyeballing the map, but catches the class of
 bug that already happened once without needing a human to notice first.
@@ -41,7 +41,7 @@ INDEX_KEYS = ["safety", "opportunity", "amenities", "transportation", "affordabi
 
 # Opportunity's inputs (permits, unemployment) aren't shipped to the client
 # for radius/place scoring at all (see radius_score.py's docstring / About
-# page) — its weight is redistributed among the other components instead.
+# page) - its weight is redistributed among the other components instead.
 # So "no data for opportunity" here is an intentional, documented gap, not
 # a regression to flag.
 EXPECTED_MISSING_RADIUS_INDICES = {"opportunity"}
@@ -53,7 +53,7 @@ TOP_HEAVY_FRACTION_THRESHOLD = 0.5
 TOP_HEAVY_SCORE_THRESHOLD = 80
 
 # An index whose sampled values barely spread out at all suggests the
-# normalization collapsed to ~50 everywhere (the pooled-normalization bug) —
+# normalization collapsed to ~50 everywhere (the pooled-normalization bug) -
 # real 1-mile circles across a whole city should show real variation.
 LOW_VARIANCE_STD_THRESHOLD = 8
 
@@ -84,13 +84,13 @@ def check_city(city):
 
     boundaries = _load_boundaries(city)
     if not boundaries:
-        issues.append(f"[MISSING] No boundaries file for {city} — skipping.")
+        issues.append(f"[MISSING] No boundaries file for {city} - skipping.")
         print(issues[-1])
         return issues
 
     context = RadiusScoringContext(city)
     if not context.available:
-        issues.append(f"[MISSING] No radius baseline for {city} (radius_baseline_{city}.json) — skipping.")
+        issues.append(f"[MISSING] No radius baseline for {city} (radius_baseline_{city}.json) - skipping.")
         print(issues[-1])
         return issues
 
@@ -156,24 +156,24 @@ def check_city(city):
             flag = f"  <-- {top_heavy_frac:.0%} of points >= {TOP_HEAVY_SCORE_THRESHOLD}"
             issues.append(
                 f"[FAIL] {city}/{key}: {top_heavy_frac:.0%} of sampled points score >= "
-                f"{TOP_HEAVY_SCORE_THRESHOLD} — looks like the old circle-vs-district clustering bug."
+                f"{TOP_HEAVY_SCORE_THRESHOLD} - looks like the old circle-vs-district clustering bug."
             )
         # health_score is a weighted BLEND of several components, so its
         # variance is naturally compressed relative to any single component
         # (averaging several semi-independent ~15-std components produces a
-        # ~4-6 std composite, not a bug) — only flag low variance on the
+        # ~4-6 std composite, not a bug) - only flag low variance on the
         # individual components themselves.
         if key != "health_score" and std < LOW_VARIANCE_STD_THRESHOLD:
             flag += f"  <-- std={std:.1f} (collapsed?)"
             issues.append(
-                f"[WARN] {city}/{key}: std={std:.1f} across {n} points, suspiciously low — "
+                f"[WARN] {city}/{key}: std={std:.1f} across {n} points, suspiciously low - "
                 "check for a pooled-normalization regression."
             )
         print(f"{key:<18}{n:>6}{vmin:>8.1f}{mean:>8.1f}{median:>8.1f}{vmax:>8.1f}{std:>8.1f}{flag}")
 
     # District-vs-radius consistency: a 1-mile circle's score shouldn't
     # routinely blow past its own district's official score by a huge
-    # margin — some divergence is expected (radius scoring is a different,
+    # margin - some divergence is expected (radius scoring is a different,
     # finer-grained baseline), but a big systematic gap in one direction
     # suggests the two scoring paths have drifted apart again.
     if district_scores and by_district_radius_scores:
@@ -191,7 +191,7 @@ def check_city(city):
             if abs(mean_diff) > 15:
                 issues.append(
                     f"[WARN] {city}: radius scores average {mean_diff:+.1f} vs. their own district's "
-                    "official score — systematic bias, not just point-to-point noise."
+                    "official score - systematic bias, not just point-to-point noise."
                 )
 
     return issues

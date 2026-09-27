@@ -2,7 +2,7 @@ name: Refresh Pipeline Data
 
 # Monthly: 08:00 UTC on the 1st. Also runnable manually. Data sources here
 # (Census, OSM, CDC, FEMA) barely change week to week, so monthly matches
-# core/osm_extract.py's own EXTRACT_MAX_AGE_DAYS=30 re-download cadence —
+# core/osm_extract.py's own EXTRACT_MAX_AGE_DAYS=30 re-download cadence -
 # no point refreshing more often than the OSM extract itself refreshes.
 on:
   schedule:
@@ -34,7 +34,7 @@ jobs:
       # checkout and pays the full ~80-130min cost of re-downloading the
       # ~285MB Minnesota OSM extract and re-scanning it for every source
       # (schools, groceries, healthcare, restaurants, entertainment,
-      # transit, trails, apartment buildings, street network) — see
+      # transit, trails, apartment buildings, street network) - see
       # core/osm_extract.py's query cache. Persisting pipeline/core/.cache
       # here means only the first run each month pays that cost; the
       # extract's own mtime-based staleness check (EXTRACT_MAX_AGE_DAYS)

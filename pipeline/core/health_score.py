@@ -47,7 +47,7 @@ def min_max_normalize(values):
     values = np.array(values, dtype=float)
     # A single NaN here poisons mean/std for the WHOLE array, silently
     # turning every district/zip's normalized value NaN for this metric (and
-    # from there, the component index and overall health_score) — this has
+    # from there, the component index and overall health_score) - this has
     # happened in practice from an upstream per-capita rate dividing by a
     # missing/zero population. Fail loudly here instead of writing NaN into
     # the exported JSON, where it's invalid JSON that silently breaks the
@@ -56,7 +56,7 @@ def min_max_normalize(values):
     if np.isnan(values).any():
         raise ValueError(
             f"min_max_normalize received {np.isnan(values).sum()} NaN value(s) out of {len(values)} "
-            "— check upstream per-capita rate calculations for a population of 0/NaN"
+            "- check upstream per-capita rate calculations for a population of 0/NaN"
         )
     mean_val = np.mean(values)
     std_val = np.std(values)
@@ -73,7 +73,7 @@ def compute_component_index(aggregated_metrics, component_name, sources_config):
     the normalized (comparable-scale) values are weight-averaged per
     district. Previously all of a component's raw rates (e.g. crime rate
     per 1,000 alongside pedestrian-crash rate per 1,000) were pooled into
-    one flat list and normalized together — since those rates differ by
+    one flat list and normalized together - since those rates differ by
     orders of magnitude, the mean/std was dominated by the largest-magnitude
     metric, so smaller metrics collapsed to a near-constant value (~0.2
     points of spread across all districts) regardless of their configured
@@ -216,7 +216,7 @@ def _affordability_index_from_df(df):
 def compute_affordability_index_zip():
     """
     Same as compute_affordability_index, but computed per ZIP and pooled
-    into ONE normalization across every zip in the metro (not per city) —
+    into ONE normalization across every zip in the metro (not per city) -
     see compute_health_scores_zip. A zip is joined against each city's own
     county tracts separately (Ramsey for St. Paul, Hennepin for
     Minneapolis), so a boundary zip spanning both counties gets a row from
@@ -390,7 +390,7 @@ def compute_health_scores(aggregated_metrics, city="stpaul"):
 
     Args:
         aggregated_metrics: dict of aggregated data
-        city: 'stpaul' or 'mpls' — selects which sources config to score against
+        city: 'stpaul' or 'mpls' - selects which sources config to score against
 
     Returns:
         dict: {district_id: {safety: X, opportunity: Y, amenities: Z, affordability: A, health_score: W}}
@@ -442,7 +442,7 @@ def compute_health_scores_combined(aggregated_metrics_combined):
     """
     Compute health scores for all 28 districts (St. Paul + Minneapolis)
     pooled into ONE normalization, so scores and rankings are actually
-    comparable across cities — this is the canonical scoring path used by
+    comparable across cities - this is the canonical scoring path used by
     build.py. See Severity 1 in the pipeline fairness audit.
 
     Uses sources.json as the canonical component/weight/direction config;
@@ -501,7 +501,7 @@ def compute_health_scores_combined(aggregated_metrics_combined):
 def compute_health_scores_zip(aggregated_metrics_zip):
     """
     Compute health scores for every ZIP code in the metro, pooled into ONE
-    normalization — mirrors compute_health_scores_combined() but at zip
+    normalization - mirrors compute_health_scores_combined() but at zip
     granularity, giving finer-than-district geographic comparison where
     every zip is scored directly against every other zip in both cities,
     not just the zips within its own city.

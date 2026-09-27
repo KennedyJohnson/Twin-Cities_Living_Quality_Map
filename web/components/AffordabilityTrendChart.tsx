@@ -84,7 +84,7 @@ export default function AffordabilityTrendChart({ districtId, field, label }: Af
       <div style={{ fontSize: '11px', color: '#666', marginBottom: '2px', display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
         <span>{label} by year (vs. citywide average)</span>
         {yoyPct != null && (
-          <span style={{ fontSize: '11px', fontWeight: 600, color: '#666' }} title="Direction only — whether this is 'good' depends on the metric">
+          <span style={{ fontSize: '11px', fontWeight: 600, color: '#666' }} title="Direction only - whether this is 'good' depends on the metric">
             {yoyPct > 0 ? '▲' : yoyPct < 0 ? '▼' : '–'} {Math.abs(yoyPct).toFixed(0)}% vs {prev.year}
           </span>
         )}

@@ -1,5 +1,5 @@
 // inverted: true means a HIGHER raw rate is worse (crime, unemployment,
-// etc.) — matches how these metrics are inverted before scoring in
+// etc.) - matches how these metrics are inverted before scoring in
 // pipeline/core/health_score.py. Used to flip the "vs. all-district avg"
 // diff color in NeighborhoodSidebar so a worse-than-average value always
 // reads red, regardless of which direction "worse" points for that metric.
@@ -63,7 +63,7 @@ export const metricLabels: Record<string, { label: string; unit: string; source:
     source: 'Zillow Research: For-Sale Inventory (monthly)',
     component: 'opportunity',
     // More listings relative to population means a LOOSER (less in-demand)
-    // market, which reads as lower Opportunity — see weights.json.
+    // market, which reads as lower Opportunity - see weights.json.
     inverted: true,
   },
   healthcare_pc: {

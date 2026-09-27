@@ -70,7 +70,7 @@ export default function TrendsPage() {
       </section>
 
       <section style={{ marginBottom: '24px' }}>
-        <SectionTitle subtitle="Census ACS Gini index (0 = perfect equality, 1 = maximum inequality), most unequal district first — not part of the Living Quality Score">
+        <SectionTitle subtitle="Census ACS Gini index (0 = perfect equality, 1 = maximum inequality), most unequal district first - not part of the Living Quality Score">
           Income Inequality by District
         </SectionTitle>
         <InequalityRanking />

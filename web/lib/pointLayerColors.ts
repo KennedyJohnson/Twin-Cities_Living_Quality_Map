@@ -1,6 +1,6 @@
 // Colorblind-safe, high-contrast palette (Okabe-Ito based) so each source
 // is easy to tell apart at a glance. Building permits are intentionally not
-// a point-layer source (too granular / low user interest) — it still feeds
+// a point-layer source (too granular / low user interest) - it still feeds
 // the health score, just isn't plotted. Service requests and housing
 // production were removed from the health score entirely (see weights.json)
 // due to data-comparability problems between the two cities' source

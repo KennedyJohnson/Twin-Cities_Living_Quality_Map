@@ -1,5 +1,5 @@
 -- houses_in_bbox() returned a row set, which PostgREST silently caps at the
--- project's API max-rows (1000 by default) — dense viewports and Find Your
+-- project's API max-rows (1000 by default) - dense viewports and Find Your
 -- Match regions were missing most of their houses. Return one compact JSON
 -- array of [osm_id, building_type, address, lat, lon] instead: a single
 -- value isn't subject to the row cap, and it's ~3x smaller on the wire.

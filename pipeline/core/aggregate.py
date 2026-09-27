@@ -28,12 +28,12 @@ def load_config(city="stpaul"):
 # Sources where a district missing from the cleaned data genuinely means
 # "we have no data for this district" (e.g. Zillow's ZIP-code coverage
 # doesn't reach every district) rather than "this district has zero of the
-# thing" — these keep the old drop-and-rescale-weight behavior instead of
+# thing" - these keep the old drop-and-rescale-weight behavior instead of
 # zero-fill. Every other count/sum-based source (crime, permits, requests,
 # housing, schools, groceries, restaurants, healthcare, transit, trails,
 # crashes, disaster risk, chronic disease, traffic) DOES successfully join
 # every district's geometry, so an absent district there means a real zero
-# (e.g. zero grocery stores) — treating that as "excused from scoring"
+# (e.g. zero grocery stores) - treating that as "excused from scoring"
 # instead of "scored as zero" silently rewards zero over a low-but-nonzero
 # count, and lets districts within the same city be scored on different
 # metric sets. See Severity 5 in the pipeline fairness audit.
@@ -60,14 +60,14 @@ def aggregate_by_source(source_id, cleaned_data, population_df):
         grouped = cleaned_data.groupby("district_id").size().reset_index(name="raw_count")
 
     if source_id in NO_ZERO_FILL_SOURCES:
-        # Inner join against population — NOT left. A source like Zillow's
+        # Inner join against population - NOT left. A source like Zillow's
         # housing_market can carry raw ZIP codes that aren't in our scored
         # zip set (e.g. one that failed the district-coverage filter in
         # load_zip_boundaries, or a zero-population zip already dropped from
         # population_df); a left join here would keep that row with
         # population=NaN, producing rate_per_1000=NaN. A single NaN in the
         # rates list poisons min_max_normalize's mean/std for EVERY district/
-        # zip sharing that metric, not just the offending one — silently
+        # zip sharing that metric, not just the offending one - silently
         # zeroing out an entire component (e.g. Opportunity) and the overall
         # health_score for the whole pool. Inner join drops any row whose
         # district/zip isn't a real, scored one, same as the fillna(0) branch
@@ -171,14 +171,14 @@ def aggregate_all_combined():
     Aggregate both cities and merge into one per-source dict spanning all 28
     districts, so scoring can normalize St. Paul and Minneapolis together
     instead of each city only against itself (see Severity 1 in the
-    pipeline fairness audit — two independently-normalized 0-100 scales
+    pipeline fairness audit - two independently-normalized 0-100 scales
     aren't actually comparable even though the frontend displays and ranks
     them as if they were).
 
     St. Paul district_ids (1-17) and Minneapolis's (101-111) never collide,
     so merging is a plain dict union per source_id. Both cities' source
     configs define the same 16 source ids with matching health_component/
-    rate_direction/weight_in_component (verified) — they only differ in
+    rate_direction/weight_in_component (verified) - they only differ in
     metric_name/label text and loader_module, which don't affect scoring.
 
     Returns:
@@ -207,13 +207,13 @@ def aggregate_all_zip():
     """
     Aggregate all registered data sources by ZIP code, pooling both cities
     into ONE set of zips (not split per city) so every zip in the metro is
-    compared directly against every other zip — see
+    compared directly against every other zip - see
     core/health_score.py's compute_health_scores_zip.
 
     Each source is loaded once per city (the underlying raw data is
     fetched per city, e.g. St. Paul's crime feed vs Minneapolis's), each
     joined to the SAME shared zip boundary set, then concatenated before
-    counting — a boundary zip that catches records from both cities' feeds
+    counting - a boundary zip that catches records from both cities' feeds
     gets both cities' counts correctly summed, rather than one city's
     result silently overwriting the other's contribution to that zip (the
     dict-union approach aggregate_all_combined() uses for districts would

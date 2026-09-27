@@ -13,7 +13,7 @@ Both are flaky/rate-limited in a browser (Overpass has no caching there, and
 Nominatim's public policy caps at 1 req/sec app-wide). Since we already
 download the whole metro-area extract for the pipeline's OSM cleaners, we can
 pull every named node/way once at build time and ship a small static index
-instead — the frontend then does a local nearest/substring match with zero
+instead - the frontend then does a local nearest/substring match with zero
 extra network calls, and address search only calls the Nominatim proxy for
 the free-text/parcel-address matching a name index can't do.
 
@@ -33,7 +33,7 @@ PIPELINE_DIR = Path(__file__).resolve().parent.parent
 WEB_DATA_DIR = PIPELINE_DIR.parent / "web" / "public" / "data"
 
 # Only categories worth surfacing as a "named place" a user might search for
-# or expect a map click to resolve to — kept narrow so the index stays small
+# or expect a map click to resolve to - kept narrow so the index stays small
 # and every entry is a real destination, not e.g. a named stretch of curb.
 _NAMED_CATEGORIES = {
     "amenity": None,      # any amenity=* with a name (school, library, hospital, restaurant, ...)
@@ -84,7 +84,7 @@ def build_place_index(bbox=DEFAULT_BBOX):
         if lat is None or lon is None:
             continue
 
-        # Dedupe by (name, ~11m grid cell) — the same physical place is often
+        # Dedupe by (name, ~11m grid cell) - the same physical place is often
         # tagged on both a node (e.g. a sign) and its enclosing way.
         key = (name.strip().lower(), round(lat, 4), round(lon, 4))
         if key in seen:

@@ -1,7 +1,7 @@
 """
 Fetch tract-level natural hazard risk from FEMA's National Risk Index (NRI)
 ArcGIS FeatureServer (free, no API key required) and convert to an
-estimated at-risk-resident count per district, as a Safety signal — higher
+estimated at-risk-resident count per district, as a Safety signal - higher
 composite risk lowers Safety.
 
 Converting the tract's RISK_SCORE (0-100 composite across 18 hazards) into

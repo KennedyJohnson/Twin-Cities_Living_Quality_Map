@@ -60,7 +60,7 @@ TRAIL_WEIGHT = 0.15
 
 def _fetch_street_ways():
     """Fetch real street ways (not trails/paths) from the local OSM extract
-    (see core/osm_extract.py) so we can derive intersection density —
+    (see core/osm_extract.py) so we can derive intersection density -
     replaces the live Overpass query this used to make."""
     return query_osm(way_matcher=_is_street_way, want_way_geometry=True, cache_key="streets")
 
@@ -219,7 +219,7 @@ def _raw_walk_components(city):
 def _raw_walk_components_zip():
     """
     Same computation as _raw_walk_components(), but over the whole metro's
-    ZIP boundary set in one pass rather than per-city — ZIP boundaries are
+    ZIP boundary set in one pass rather than per-city - ZIP boundaries are
     already metro-wide (not split by city), so looping per city would
     recompute the same zip grids twice.
 

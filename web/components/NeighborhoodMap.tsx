@@ -30,7 +30,7 @@ function makeRegionCenterIcon(rank: number, color: string, active: boolean): L.D
 }
 
 // Raw shape of web/public/data/apartment_buildings_{city}.json (see
-// pipeline/build.py's build_apartment_buildings()) — only the fields this
+// pipeline/build.py's build_apartment_buildings()) - only the fields this
 // always-on map layer needs.
 export interface ApartmentBuildingPoint {
   id: string;
@@ -42,7 +42,7 @@ export interface ApartmentBuildingPoint {
 }
 
 // Same ray-casting approach as lib/geo.ts's pointInPolygon, extended to
-// handle MultiPolygon geometries (some district/ZIP boundaries are one) —
+// handle MultiPolygon geometries (some district/ZIP boundaries are one) -
 // used to filter Data Points/trails down to the selected shape.
 function ringContains(ring: [number, number][], lon: number, lat: number): boolean {
   let inside = false;
@@ -78,7 +78,7 @@ function makeMarkerIcon(color: string, emoji: string): L.DivIcon {
 
 // Markers only bundle into a cluster bubble when a local area (a fixed-size
 // pixel cell at the current zoom) actually has more than this many markers
-// in it — otherwise every marker renders individually, even if several are
+// in it - otherwise every marker renders individually, even if several are
 // close together. Recomputed on zoom change since pixel distance between
 // two fixed points grows as you zoom in, naturally splitting clusters apart.
 const CLUSTER_MIN_COUNT = 50;
@@ -109,7 +109,7 @@ type PointMarker = L.Marker | L.CircleMarker;
 // when selecting through a high-volume layer. getElement() is undefined until
 // the marker's group has actually been added to the map, in which case there
 // is nothing to hide yet. Canvas circle markers have no DOM element per
-// marker to toggle — visibility for those is handled by add/remove instead
+// marker to toggle - visibility for those is handled by add/remove instead
 // (see renderAllLabels), which is cheap for canvas layers since there's no
 // icon to rebuild.
 function setMarkerVisible(marker: PointMarker, visible: boolean) {
@@ -169,7 +169,7 @@ const POINT_LAYER_FILES: { key: string; url: string }[] = [
   { key: 'points_stpaul', url: '/data/points_stpaul.json' },
   { key: 'points_mpls', url: '/data/points_mpls.json' },
   // Points that fell outside every district polygon in both cities (a
-  // boundary sliver, a neighboring suburb) — still real and still within
+  // boundary sliver, a neighboring suburb) - still real and still within
   // reach of a 1-mile radius search near a city edge, so they're rendered
   // and counted too, just with no district assignment.
   { key: 'points_unassigned', url: '/data/points_unassigned.json' },
@@ -183,7 +183,7 @@ interface NeighborhoodMapProps {
   onDistrictSelect: (district: Neighborhood | null) => void;
   selectedDistrict: Neighborhood | null;
   // The second district picked while comparing (NeighborhoodSidebar's
-  // Compare flow) — outlined on the map alongside selectedDistrict so both
+  // Compare flow) - outlined on the map alongside selectedDistrict so both
   // sides of the comparison are visible, not just the first pick.
   compareDistrict?: Neighborhood | null;
   flyToLocation?: { lat: number; lon: number } | null;
@@ -205,13 +205,13 @@ interface NeighborhoodMapProps {
   onSelectRegion?: (region: MatchRegion) => void;
   // Apartment-building dots are an always-available map layer (toggled from
   // the legend like any other Data Points source), independent of whether
-  // "Find Your Match" is open — see NeighborhoodMap's apartment-layer effect.
+  // "Find Your Match" is open - see NeighborhoodMap's apartment-layer effect.
   apartmentBuildingsVisible?: boolean;
   onSelectApartmentBuilding?: (building: ApartmentBuildingPoint) => void;
   // Houses layer (~100K OSM houses in Supabase PostGIS), fetched per
-  // viewport and only at HOUSES_MIN_ZOOM+ — see the houses-layer effect.
+  // viewport and only at HOUSES_MIN_ZOOM+ - see the houses-layer effect.
   housesVisible?: boolean;
-  // Set while the user hovers a letter grade in the legend's scale strip —
+  // Set while the user hovers a letter grade in the legend's scale strip -
   // districts matching that grade get emphasized and all others dimmed.
   highlightedGrade?: LetterGrade | null;
 }
@@ -273,9 +273,9 @@ function MapContent({
   const onPlaceScoreComputedRef = useRef(onPlaceScoreComputed);
   onPlaceScoreComputedRef.current = onPlaceScoreComputed;
   // Two independent normalization pools: "district" (St. Paul + Minneapolis
-  // boundaries, pooled together — see health_score.py's
+  // boundaries, pooled together - see health_score.py's
   // compute_health_scores_combined) and "zip" (every ZIP in the metro,
-  // pooled separately — compute_health_scores_zip). Each pool gets its own
+  // pooled separately - compute_health_scores_zip). Each pool gets its own
   // color-scale min/max, since they're normalized independently on the
   // backend too. Only one pool's layers are ever attached to the map at a
   // time, toggled by the granularity prop (see applyGranularityVisibility).
@@ -284,8 +284,8 @@ function MapContent({
   >([]);
   const granularityRef = useRef<MapGranularity>(granularity);
   // The outer city-outline border switches shape with granularity too (the
-  // ZIP pool's outer edge isn't the same shape as the district pool's — see
-  // export_city_outline.py) — kept separate from layerPoolsRef since these
+  // ZIP pool's outer edge isn't the same shape as the district pool's - see
+  // export_city_outline.py) - kept separate from layerPoolsRef since these
   // aren't score-colored district/zip layers, just the perimeter overlay.
   const outlineLayersRef = useRef<{ district: L.Layer[]; zip: L.Layer[] }>({ district: [], zip: [] });
   const searchMarkerRef = useRef<L.Marker | null>(null);
@@ -298,7 +298,7 @@ function MapContent({
   const onSelectApartmentBuildingRef = useRef(onSelectApartmentBuilding);
   onSelectApartmentBuildingRef.current = onSelectApartmentBuilding;
   // All markers per label, keyed by point-layer label (e.g. "Transit
-  // Stops"). Never added to the map directly — renderLabel() decides, per
+  // Stops"). Never added to the map directly - renderLabel() decides, per
   // zoom level and current filter, which subset gets grouped into cluster
   // bubbles vs. shown individually, and populates labelGroupsRef[label].
   const labelEntriesRef = useRef<Record<string, { marker: PointMarker; districtId: number | null; source: string }[]>>({});
@@ -309,10 +309,10 @@ function MapContent({
   const clusterMarkersRef = useRef<Record<string, L.Marker[]>>({});
   // Canvas circle markers currently added to the map per label (individual,
   // non-clustered). Canvas markers have no display style to toggle, so
-  // visibility is tracked here and applied via incremental add/remove —
+  // visibility is tracked here and applied via incremental add/remove -
   // cheap for canvas layers since there's no DOM icon to rebuild.
   const canvasMarkersShownRef = useRef<Record<string, Set<L.CircleMarker>>>({});
-  // Shared by both point markers AND district/ZIP polygons (see below) —
+  // Shared by both point markers AND district/ZIP polygons (see below) -
   // boundary polygons render as canvas rather than SVG so Leaflet isn't
   // rebuilding the entire SVG <path> DOM (every vertex) on every zoomend,
   // the main cause of visible stutter right as a zoom settles with these
@@ -324,12 +324,12 @@ function MapContent({
   // <canvas> element into their own pane, and whichever pane sits higher
   // ('markerPane', where every point-marker layer lives) physically
   // occludes the other for native click hit-testing across the ENTIRE map,
-  // not just where something is actually drawn — so as soon as any Data
+  // not just where something is actually drawn - so as soon as any Data
   // Points layer had a marker on screen, its 'markerPane' canvas silently
   // ate every click meant for a district/ZIP polygon underneath, anywhere
   // on the map. Same class of bug already hit once with region circles vs.
   // this canvas (see 'regionPane' below) and with two independent marker
-  // canvases racing each other (see the apartment-buildings effect) — the
+  // canvases racing each other (see the apartment-buildings effect) - the
   // fix is the same: one shared renderer/pane so Leaflet's own per-shape
   // hit-testing decides what was clicked instead of DOM stacking order.
   const canvasRendererRef = useRef<L.Canvas | null>(null);
@@ -352,7 +352,7 @@ function MapContent({
   // every render of the page; with them in the dep array, any page state
   // change (selecting a district, a sidebar update, a hover) tore down and
   // re-ran the whole loadMap effect, which ends with
-  // map.fitBounds(TWIN_CITIES_BOUNDS) — visibly snapping the user back to the
+  // map.fitBounds(TWIN_CITIES_BOUNDS) - visibly snapping the user back to the
   // initial zoomed-out extent mid-interaction.
   const onDistrictSelectRef = useRef(onDistrictSelect);
   onDistrictSelectRef.current = onDistrictSelect;
@@ -370,10 +370,10 @@ function MapContent({
   const districtBoundsRef = useRef<Record<number, L.LatLngBounds>>({});
   // Raw GeoJSON geometry per district/zip id, so Data Points (crime, trails,
   // etc.) can be filtered down to exactly the selected boundary's shape when
-  // a district/ZIP is selected — a bounding-box or attribute-based check
+  // a district/ZIP is selected - a bounding-box or attribute-based check
   // isn't precise/available for ZIPs (points only carry a district_id, not a
-  // zip code), which previously let points/trails outside — sometimes far
-  // outside — the selected shape show up whenever a component score was
+  // zip code), which previously let points/trails outside - sometimes far
+  // outside - the selected shape show up whenever a component score was
   // clicked (see geometryContains below).
   const boundaryGeometryRef = useRef<{ district: Record<number, any>; zip: Record<number, any> }>({
     district: {},
@@ -382,8 +382,8 @@ function MapContent({
   const [isLoading, setIsLoading] = useState(true);
 
   // Leaflet only re-measures its container on window resize. This map's width
-  // also changes without one — the draggable sidebar handle in page.tsx, and
-  // any post-paint layout settling (fonts/scrollbar) right after mount — which
+  // also changes without one - the draggable sidebar handle in page.tsx, and
+  // any post-paint layout settling (fonts/scrollbar) right after mount - which
   // leaves Leaflet with a stale size and renders tiles/markers at the wrong
   // offset until the next interaction. Re-measure on mount and on any container
   // size change.
@@ -532,7 +532,7 @@ function MapContent({
   }, [clickMode]);
 
   // Show only the layers for the active granularity (district boundaries vs.
-  // ZIP boundaries) — both pools are built once up front (see the main load
+  // ZIP boundaries) - both pools are built once up front (see the main load
   // effect below) and kept off the map until selected, so switching back and
   // forth doesn't refetch anything.
   const applyGranularityVisibility = () => {
@@ -562,7 +562,7 @@ function MapContent({
   useEffect(() => {
     // Deferred a frame so this (re-clustering every point layer, an O(total
     // markers) pass) doesn't compete with the browser's own paint of the
-    // just-settled zoom frame — running it synchronously in the zoomend
+    // just-settled zoom frame - running it synchronously in the zoomend
     // handler was blocking that paint and read as part of the zoom stutter.
     const onZoomEnd = () => requestAnimationFrame(() => renderAllLabels());
     map.on('zoomend', onZoomEnd);
@@ -572,14 +572,14 @@ function MapContent({
   }, [map]);
 
   // Clicking anywhere on the map (including on a district polygon, or a
-  // building/point within it) drops a search-style pin at that spot — same
+  // building/point within it) drops a search-style pin at that spot - same
   // marker, 1-mile radius, and nearby-groceries behavior as an address
-  // search — so a click stands in for "search this place".
+  // search - so a click stands in for "search this place".
   //
   // District-mode selection is normally handled by each polygon's own
   // layer.on('click', ...) below. But a high-volume point layer renders as
   // canvas markers in 'markerPane' (above the polygons) so those markers stay
-  // clickable — and since a canvas element is one solid rectangle covering
+  // clickable - and since a canvas element is one solid rectangle covering
   // the whole view, it becomes the actual native click target everywhere,
   // not just where a marker is drawn. When it doesn't hit a marker, Leaflet
   // falls back to firing the map's own click event rather than the polygon
@@ -588,7 +588,7 @@ function MapContent({
   useEffect(() => {
     const onClick = (e: L.LeafletMouseEvent) => {
       const mode = clickModeRef.current;
-      // A click that landed on the existing search pin means "deselect" — the
+      // A click that landed on the existing search pin means "deselect" - the
       // marker's own handler does that. Never treat it as a request to drop a
       // new pin, even if the event still reaches the map.
       const target = e.originalEvent?.target as Node | null;
@@ -598,7 +598,7 @@ function MapContent({
         onMapClick?.(e.latlng.lat, e.latlng.lng);
         return;
       }
-      // Only resolves against district boundaries — a click that misses
+      // Only resolves against district boundaries - a click that misses
       // every polygon's own handler (e.g. a canvas marker layer stealing the
       // click) in ZIP granularity just falls through unhandled rather than
       // incorrectly selecting a district while viewing the ZIP layer.
@@ -617,7 +617,7 @@ function MapContent({
   }, [map]);
 
   // District name labels are permanent tooltips. At the map's fully-zoomed-
-  // out view (minZoom, 11) all 28 districts' labels — several multi-word —
+  // out view (minZoom, 11) all 28 districts' labels - several multi-word -
   // are visible at once, so they're shrunk down there instead of hidden,
   // then step up in size at the next two zoom levels (12, 13) before
   // reaching full size once zoomed in enough that labels have their own room.
@@ -637,7 +637,7 @@ function MapContent({
   }, [map]);
 
   // Zoom control defaults to top-left, which the address search box and
-  // score selector already occupy — move it to top-right instead, where it
+  // score selector already occupy - move it to top-right instead, where it
   // stacks neatly above the data-layer toggle control.
   useEffect(() => {
     const zoomControl = L.control.zoom({ position: 'topright' });
@@ -672,7 +672,7 @@ function MapContent({
             : 50;
           const isOverBudget = excludedDistrictIdsRef.current?.has(districtId) ?? false;
           // Colored by the same discrete letter-grade band as the badges
-          // (not a continuous gradient) — a continuous scale bunches A and B
+          // (not a continuous gradient) - a continuous scale bunches A and B
           // districts into near-identical dark shades since both sit at the
           // high end of the percentile range. Discrete bands guarantee same
           // grade = same color, different grade = visibly different color.
@@ -689,8 +689,8 @@ function MapContent({
             weight: isSelected || isCompare ? 5 : 2,
             opacity: isSelected || isCompare ? 1 : 0.5,
             // Path layers bubble clicks to the map by default. Without this,
-            // every polygon click also fired the map's own click event —
-            // which now also runs the district-select fallback below — and
+            // every polygon click also fired the map's own click event -
+            // which now also runs the district-select fallback below - and
             // since that fallback's point-in-polygon lookup is async, it
             // resolved just after the polygon's own handler had selected the
             // district, immediately toggling it back off.
@@ -763,7 +763,7 @@ function MapContent({
         districtPoolEntries.push({ layer: stpaulLayer, neighborhoodMap: stpaulNeighborhoodMap });
         layersToClean.push(stpaulLayer);
 
-        // Minneapolis district boundaries — colored/clickable like St. Paul
+        // Minneapolis district boundaries - colored/clickable like St. Paul
         // when neighborhoods_mpls.json has health-score data available.
         try {
           const mplsResponse = await fetch('/data/boundaries_mpls.geojson');
@@ -782,7 +782,7 @@ function MapContent({
         if (cancelled) return;
         layerPoolsRef.current.push({ kind: 'district', entries: districtPoolEntries });
 
-        // ZIP-level boundaries — a separate, finer-grained normalization
+        // ZIP-level boundaries - a separate, finer-grained normalization
         // pool (every ZIP in the metro scored against every other ZIP, not
         // just districts). Optional: older builds may not have generated
         // these files yet, so a missing/failed fetch just skips ZIP view
@@ -812,7 +812,7 @@ function MapContent({
         applyGranularityVisibility();
 
         // Light outer border around the current granularity's coverage area
-        // (dissolved district or ZIP boundaries at build time — see
+        // (dissolved district or ZIP boundaries at build time - see
         // pipeline/exports/export_city_outline.py) so the two cities (or the
         // ZIP pool's own edge, which isn't the same shape) read as distinct
         // areas at a glance. Only the pool matching the active granularity
@@ -853,7 +853,7 @@ function MapContent({
             for (const layer of layers) (layer as L.GeoJSON).bringToFront();
           }
 
-          // The St. Paul/Minneapolis shared border specifically — a thin
+          // The St. Paul/Minneapolis shared border specifically - a thin
           // filled strip (see export_city_outline.py; it's a ~40m-wide
           // polygon, not a single line, since the two cities' independently-
           // digitized boundaries don't share exact vertices) drawn on top of
@@ -907,7 +907,7 @@ function MapContent({
 
         // Default view: zoomed out enough to see all of St. Paul + Minneapolis
         // at once, centered on the pannable area (TWIN_CITIES_BOUNDS below).
-        // animate: false — this runs right as the map first becomes
+        // animate: false - this runs right as the map first becomes
         // interactive (isLoading clears right after). Left animated, a user
         // who scrolls/zooms in that instant interrupts the in-flight pan/zoom
         // transition, which Leaflet doesn't handle cleanly (tiles render at
@@ -921,7 +921,7 @@ function MapContent({
         }
 
         // The map itself (boundaries, districts, outlines) is fully usable at
-        // this point — clear the spinner here instead of waiting on the much
+        // this point - clear the spinner here instead of waiting on the much
         // larger point/line overlay files below (~12MB combined), which are
         // all hidden by default anyway (see page.tsx's initial hiddenSources)
         // and load in the background instead of blocking perceived load time.
@@ -930,7 +930,7 @@ function MapContent({
         // Load point/line data-source layers (crime, permits, requests,
         // housing, transit, schools, trails) as toggleable overlays.
         // Fetched in parallel (not one-by-one) since these are independent
-        // files — network latency no longer stacks up across all of them.
+        // files - network latency no longer stacks up across all of them.
         const overlays: Record<string, L.Layer> = {};
         labelEntriesRef.current = {};
         labelGroupsRef.current = {};
@@ -949,7 +949,7 @@ function MapContent({
         );
         // Yield to the browser between chunks below (instead of building all
         // ~12MB of markers across every file in one uninterrupted synchronous
-        // pass) so the main thread stays responsive — otherwise the map
+        // pass) so the main thread stays responsive - otherwise the map
         // looks loaded (isLoading already cleared above) but freezes for a
         // beat before it responds to clicks/drags.
         const yieldToBrowser = () =>
@@ -1011,7 +1011,7 @@ function MapContent({
               const useCanvas = features.length > CANVAS_MARKER_THRESHOLD;
               if (useCanvas && !canvasRendererRef.current) {
                 // Default renderer pane is 'overlayPane', shared with the
-                // district polygons — same-pane stacking let clicks fall
+                // district polygons - same-pane stacking let clicks fall
                 // through to the polygon underneath instead of the marker.
                 // 'markerPane' sits above it (same pane the old divIcon
                 // markers used), so canvas markers win clicks again.
@@ -1030,7 +1030,7 @@ function MapContent({
                           fillColor: color,
                           fillOpacity: 0.85,
                           // Unlike L.Marker, Path layers bubble click events
-                          // to the map by default — without this, clicking a
+                          // to the map by default - without this, clicking a
                           // circle marker also fired the map's own click
                           // handler (drop search pin / select district),
                           // which stole the popup before it could show.
@@ -1074,7 +1074,7 @@ function MapContent({
                   source,
                 });
                 if (!useCanvas) {
-                  // Added once, permanently — renderAllLabels() toggles
+                  // Added once, permanently - renderAllLabels() toggles
                   // display via setMarkerVisible() rather than re-adding, so
                   // Leaflet never has to rebuild the icon DOM node per filter
                   // change (the cause of selection lag on large layers).
@@ -1259,7 +1259,7 @@ function MapContent({
       searchRadiusCircleRef.current = circle;
 
       // Compute a 1-mile-radius score for the sidebar, on a comparable 0-100
-      // scale to district scores — see web/lib/radiusScore.ts for the method
+      // scale to district scores - see web/lib/radiusScore.ts for the method
       // and its limitations (per-area, not per-capita; only sources with
       // client-side raw geometry are included).
       if (onPlaceScoreComputedRef.current) {
@@ -1295,7 +1295,7 @@ function MapContent({
     }
     // NOTE: deliberately does NOT depend on onClearSearchMarker (read through
     // a ref instead). It's an inline arrow in the parent, so a dependency on
-    // it re-ran this effect on every parent render — tearing down and
+    // it re-ran this effect on every parent render - tearing down and
     // recreating the marker's DOM element constantly. That both swallowed
     // clicks on the marker (a native click needs mousedown and mouseup on the
     // same element) and re-fired the radius-score computation, whose result is
@@ -1304,12 +1304,12 @@ function MapContent({
   }, [searchMarker, map]);
 
   // "Find Your Match" area recommendations: a numbered, colored circle per
-  // recommended district — its 1-mile radius, anchored on that district's
+  // recommended district - its 1-mile radius, anchored on that district's
   // highest-scoring apartment building. The buildings themselves are shown
   // by the always-on apartment-buildings layer below, not drawn here.
   useEffect(() => {
     // Region circles/markers need to sit above the canvas layer that point
-    // sources (groceries, restaurants, etc.) render into — that canvas lives
+    // sources (groceries, restaurants, etc.) render into - that canvas lives
     // in 'markerPane' (z-index 600) and covers the whole map as one DOM
     // element, which otherwise swallows clicks on a circle's open area
     // (SVG paths default to the lower-z 'overlayPane') before they ever
@@ -1327,13 +1327,13 @@ function MapContent({
     if (!matchRegions || matchRegions.length === 0) return;
 
     // regionPane sits above markerPane so a click anywhere in the circle's
-    // filled area (not just its stroke) reaches Leaflet at all — but that
+    // filled area (not just its stroke) reaches Leaflet at all - but that
     // means the circle's own DOM element also sits above, and fully
     // occludes, the apartment-building dots drawn into markerPane's canvas
     // underneath it, so those dots never receive the native click. Rather
     // than let the circle just reselect the region every time, check
     // whether the click landed on (or very near) one of the region's own
-    // buildings first and route it to the building-select handler instead —
+    // buildings first and route it to the building-select handler instead -
     // that's how a click on a dot "inside" the circle still opens that
     // building, same as it would outside any region.
     const BUILDING_HIT_RADIUS_PX = 10;
@@ -1394,7 +1394,7 @@ function MapContent({
 
   // Always-available "Apartment Buildings" point layer (toggled from the
   // legend like any other Data Points source, independent of "Find Your
-  // Match"). Loaded once and rendered as canvas dots — same reason every
+  // Match"). Loaded once and rendered as canvas dots - same reason every
   // other high-volume point layer uses canvas instead of DOM markers (see
   // CANVAS_MARKER_THRESHOLD above): ~3,500 buildings across both cities
   // would visibly stutter panning as real DOM icons.
@@ -1437,7 +1437,7 @@ function MapContent({
     // Reuse the single shared canvas renderer (canvasRendererRef) that every
     // other high-volume point layer draws into. Two separate L.Canvas
     // instances in the same pane each create their own full-map <canvas>
-    // element and bind click handling directly to it — whichever one ends
+    // element and bind click handling directly to it - whichever one ends
     // up on top in the DOM silently swallows every click across the whole
     // map for hit-testing, including clicks over the other canvas's
     // markers, which never fire at all. A single shared renderer avoids
@@ -1572,7 +1572,7 @@ const TWIN_CITIES_BOUNDS: L.LatLngBoundsExpression = [
 // ~640px wide on screen, i.e. far narrower than a typical map viewport. When a
 // map's viewport is larger than its maxBounds, Leaflet's center-clamping
 // (_limitCenter, hard-applied because maxBoundsViscosity is 1.0) has no valid
-// center to pick and fights every pan/zoom — the view visibly snaps/jumps at
+// center to pick and fights every pan/zoom - the view visibly snaps/jumps at
 // the end of a zoom and dragging rubber-bands back. That's the "looks weird
 // when you zoom right after loading" symptom, and it disappears on its own once
 // you're zoomed in past ~12 (viewport finally smaller than the bounds), which

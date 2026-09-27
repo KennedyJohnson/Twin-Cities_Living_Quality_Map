@@ -4,7 +4,7 @@ answers the same kind of node/way tag queries the pipeline used to send to
 the public Overpass API, but reading it locally instead.
 
 Why this exists: the public Overpass instance (overpass-api.de) was
-frequently overloaded/unreachable — a full pipeline build could stall for
+frequently overloaded/unreachable - a full pipeline build could stall for
 25-55+ minutes waiting out repeated ~120s connection timeouts across the
 ~8 OSM-based sources (schools, groceries, restaurants, healthcare, transit,
 trails, apartment buildings, and the walk-score street network), each
@@ -13,7 +13,7 @@ mirror-fallback helper mitigated that; this module removes the live network
 dependency entirely for these sources. Every query answered here is local
 CPU work over an already-downloaded file, with zero timeout risk.
 
-The .pbf is re-downloaded when it's older than EXTRACT_MAX_AGE_DAYS (30 days —
+The .pbf is re-downloaded when it's older than EXTRACT_MAX_AGE_DAYS (30 days -
 building/amenity/trail data doesn't meaningfully change week to week, so this
 is intentionally slower than the project's weekly refresh cadence, see
 .github/workflows/refresh-data.yml) so a scheduled run doesn't re-fetch
@@ -22,7 +22,7 @@ is intentionally slower than the project's weekly refresh cadence, see
 Returns element lists shaped like Overpass's `elements` array (the same
 shape core/overpass.py's fetch_overpass returns), so each cleaner's
 existing post-processing (tag inspection, _is_real_trail filtering, etc.)
-works unchanged — only the fetch call itself changes.
+works unchanged - only the fetch call itself changes.
 """
 
 import sys
@@ -47,7 +47,7 @@ EXTRACT_MAX_AGE_DAYS = 30  # OSM building/amenity/trail data barely changes week
 # osmium.apply_file pass), which takes minutes even though it's pure local
 # CPU work with no network risk. Cleaners call query_osm() once per city
 # (and walkability/walk_score once per granularity too) with the exact same
-# matcher/bbox each time — the boundary/district filtering that actually
+# matcher/bbox each time - the boundary/district filtering that actually
 # varies by city happens downstream on the returned elements, not in the
 # query itself. So the raw elements list is cacheable per (cache_key, bbox)
 # to disk, keyed off the extract's own mtime: a cache entry is valid as long
@@ -56,7 +56,7 @@ EXTRACT_MAX_AGE_DAYS = 30  # OSM building/amenity/trail data barely changes week
 # extract (weekly, or whenever the local copy is stale/missing).
 QUERY_CACHE_DIR = CACHE_DIR / "query_cache"
 
-# Twin Cities bounding box (south, west, north, east) — matches the bbox
+# Twin Cities bounding box (south, west, north, east) - matches the bbox
 # every OSM-based cleaner used in its Overpass query, plus the 1-mile-radius
 # margin clean_walkability.py already widened to.
 DEFAULT_BBOX = (44.78, -93.50, 45.15, -92.80)
@@ -200,13 +200,13 @@ def query_osm(node_matcher=None, way_matcher=None, want_way_geometry=False, bbox
             being the mean of the outer ways' points; needs an extra
             relations-only pass over the extract
         cache_key: if given, cache the resulting elements list to disk under
-            this key (see QUERY_CACHE_DIR above) so a repeat call — e.g. the
-            same cleaner running once per city — reuses it instead of
+            this key (see QUERY_CACHE_DIR above) so a repeat call - e.g. the
+            same cleaner running once per city - reuses it instead of
             re-scanning the whole extract. Pass a name unique to the
             matcher/bbox combination (each cleaner uses its own).
 
     Returns:
-        list of element dicts, shaped like Overpass's `elements` array —
+        list of element dicts, shaped like Overpass's `elements` array -
         {"type": "node", "id", "lat", "lon", "tags"} or
         {"type": "way", "id", "tags", "center"|"geometry"}
     """

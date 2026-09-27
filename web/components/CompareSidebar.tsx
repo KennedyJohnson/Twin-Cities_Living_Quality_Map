@@ -29,7 +29,7 @@ interface CompareSidebarProps {
 const COMPONENT_KEYS = ['safety', 'opportunity', 'amenities', 'transportation', 'affordability'] as const;
 
 // Green/red only kicks in once the gap is big enough to read as a real
-// difference rather than noise — mirrors NeighborhoodSidebar's vs-average
+// difference rather than noise - mirrors NeighborhoodSidebar's vs-average
 // diff-coloring threshold.
 const DIFF_PCT_NEUTRAL_THRESHOLD = 10;
 
@@ -65,10 +65,10 @@ function ScoreRow({
     <div className="compare-row" style={{ display: 'grid', gridTemplateColumns: '1fr auto auto', gap: '8px', alignItems: 'baseline', padding: '6px 0', borderBottom: '1px solid #eee' }}>
       <span style={{ fontSize: '12px', color: '#666' }}>{label}</span>
       <span style={{ fontSize: '13px', fontWeight: 600, color: valueA != null && diffPct != null ? diffColor(diffPct, aIsGood) : '#333', textAlign: 'right', minWidth: '48px' }}>
-        {valueA != null ? format(valueA) : '—'}
+        {valueA != null ? format(valueA) : '-'}
       </span>
       <span style={{ fontSize: '13px', fontWeight: 600, color: valueB != null && diffPct != null ? diffColor(diffPct, bIsGood) : '#333', textAlign: 'right', minWidth: '48px' }}>
-        {valueB != null ? format(valueB) : '—'}
+        {valueB != null ? format(valueB) : '-'}
       </span>
     </div>
   );

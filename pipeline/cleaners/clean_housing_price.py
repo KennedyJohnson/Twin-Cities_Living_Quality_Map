@@ -231,7 +231,7 @@ def clean_housing_price(city="stpaul", year=ACS_YEAR, granularity="district"):
 
     Note on tract vintage: TIGERweb's "current" tract boundaries are 2020
     Census vintage. ACS years >= 2020 match that vintage; earlier years use
-    2010-vintage tract GEOIDs, which are mostly but not always identical —
+    2010-vintage tract GEOIDs, which are mostly but not always identical -
     a handful of tracts may fail to join for years before 2020.
 
     Returns:
@@ -278,7 +278,7 @@ def clean_housing_price(city="stpaul", year=ACS_YEAR, granularity="district"):
             "unemployment_rate_pc": weighted_mean(group, "unemployment_rate_pc"),
             # Population-weighted average of tract Gini values, not a
             # recomputed district-level Gini (which would need household
-            # income microdata, not published at tract level) — an
+            # income microdata, not published at tract level) - an
             # approximation suitable for relative comparison across
             # districts, not an exact inequality measure.
             "gini_index": weighted_mean(group, "gini_index", decimals=3),

@@ -13,7 +13,7 @@ export interface RadiusBaselineSource {
   geometry_type: 'point' | 'line' | 'tract';
   tract_field?: string;
   // Mean/std are per-source (each source's raw rate has its own scale), not
-  // shared across a whole component — see pipeline/exports/export_radius_baseline.py.
+  // shared across a whole component - see pipeline/exports/export_radius_baseline.py.
   mean: number;
   std: number;
 }
@@ -30,7 +30,7 @@ export interface RadiusBaselineAffordabilityField {
 
 export interface RadiusBaseline {
   // Keyed by whatever health-score components sources.json defines (safety,
-  // opportunity, amenities, transportation, ...) — not a fixed list,
+  // opportunity, amenities, transportation, ...) - not a fixed list,
   // so a newly added component shows up automatically once the pipeline
   // export recognizes it, with no frontend code change needed.
   components: Record<string, RadiusBaselineComponent>;
@@ -67,7 +67,7 @@ export interface TrailEntry {
 }
 
 // The map layer tags trail features "trails" (for icons/labels), while
-// sources.json's health-score id for the same data is "walkability" — the
+// sources.json's health-score id for the same data is "walkability" - the
 // one known naming mismatch, mirrored from SOURCE_ID_ALIASES in
 // pipeline/exports/export_radius_baseline.py. Extend both sides together if
 // a future line-geometry source has a similar mismatch.
@@ -94,7 +94,7 @@ function computeComponentIndex(
     if (source.geometry_type === 'tract') {
       // Population-weighted average of a Census-tract field (chronic
       // disease prevalence, FEMA hazard risk) across tracts within the
-      // radius — same treatment as computeAffordability, since these are
+      // radius - same treatment as computeAffordability, since these are
       // already rates/scores, not point counts to sum.
       const field = source.tract_field as keyof TractAffordabilityRow;
       const valid = tracts.filter(
@@ -208,9 +208,9 @@ export function computeRadiusNeighborhood(params: {
   const weights = baseline.health_score_weights;
 
   // Any component with zero client-available sources (e.g. Opportunity has
-  // none today — permits/unemployment aren't shipped to the browser) is
+  // none today - permits/unemployment aren't shipped to the browser) is
   // excluded rather than defaulted to 0, and its weight is redistributed
-  // across whichever components ARE available — same fallback pattern
+  // across whichever components ARE available - same fallback pattern
   // health_score.py already uses when Affordability alone is missing.
   const weighted: { value: number; weight: number }[] = [];
   for (const [key, value] of Object.entries(componentValues)) {

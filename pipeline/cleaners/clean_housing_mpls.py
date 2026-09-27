@@ -114,7 +114,7 @@ def clean_housing_mpls(crosswalk_file=CROSSWALK_FILE, granularity="district"):
         housing["district_id"] = housing["community_name"].map(COMMUNITY_TO_DISTRICT_ID)
 
     # St. Paul's housing_rate_pc counts actual new dwelling units produced,
-    # not permit records — a single MPLS permit can cover a 100-unit
+    # not permit records - a single MPLS permit can cover a 100-unit
     # building, so counting rows (as this used to) badly undercounts large
     # developments and overcounts single-unit remodel permits equally with
     # new construction. "value" is aggregate.py's convention for a column to
@@ -123,7 +123,7 @@ def clean_housing_mpls(crosswalk_file=CROSSWALK_FILE, granularity="district"):
     if "new_dwelling_units" in housing.columns:
         housing["value"] = pd.to_numeric(housing["new_dwelling_units"], errors="coerce").fillna(0)
 
-    # Restricted to a shared recent-years window — see core/date_window.py.
+    # Restricted to a shared recent-years window - see core/date_window.py.
     housing = filter_recent_years(housing, "issue_date", epoch_ms=True)
 
     cols = ["district_id", "permit_number", "issue_date", "permit_type"]

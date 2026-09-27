@@ -19,8 +19,8 @@ export async function loadNeighborhoodData(city: string = 'stpaul'): Promise<Nei
     }
     const data: NeighborhoodsData = await response.json();
     // Tag ZIP entries here (not just in getNeighborhoodMap) so every
-    // consumer — including ones reading data.neighborhoods directly instead
-    // of going through the Map — can tell a ZIP selection apart from a
+    // consumer - including ones reading data.neighborhoods directly instead
+    // of going through the Map - can tell a ZIP selection apart from a
     // district one, rather than misreading a 5-digit ZIP code as a
     // Minneapolis district id (which also happens to be >= 100). See
     // IndexComparisonChart's and NeighborhoodSidebar's district->city /

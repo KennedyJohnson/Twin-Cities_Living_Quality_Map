@@ -4,7 +4,7 @@ export type LetterGrade = 'A' | 'B' | 'C' | 'D' | 'F';
 
 // Health Score and each component index are z-score-normalized against the
 // district set and squashed through a logistic curve (see the About page
-// methodology) — that keeps raw values clustered tightly around 50 even
+// methodology) - that keeps raw values clustered tightly around 50 even
 // for real, meaningful differences between districts, and averaging
 // several such indices into one score compresses the spread further
 // still. Fixed absolute cutoffs (90/80/70/60, like a school grade) would
@@ -28,13 +28,13 @@ export function getLetterGrade(percentile: number): LetterGrade {
 }
 
 // One fixed color per letter grade, sampled from the same purple sequential
-// scale used for the map fill (ColorScale.ts) — so grade badges use the same
+// scale used for the map fill (ColorScale.ts) - so grade badges use the same
 // low->high color language as the rest of the site, while every district
 // sharing a letter grade still renders as the exact same shade (grades are a
 // discrete category, not a continuous value). Stops are evenly spaced across
 // the full scale (rather than at each grade band's percentile midpoint) so
-// adjacent grades — especially A vs. B, both drawn from the dark end of the
-// percentile range — stay visually distinct instead of collapsing into
+// adjacent grades - especially A vs. B, both drawn from the dark end of the
+// percentile range - stay visually distinct instead of collapsing into
 // near-identical dark purple.
 const GRADE_MIDPOINTS: Record<LetterGrade, number> = {
   F: 0,

@@ -18,7 +18,7 @@ test('clicking a district shows details in the sidebar', async ({ page }) => {
   await expect(page.getByText('Click a district on the map to view details')).toBeVisible();
 
   // District polygons are drawn on a canvas (no DOM paths), so click at a
-  // district's name label — the labels are non-interactive DOM markers that
+  // district's name label - the labels are non-interactive DOM markers that
   // pass clicks through to the map underneath.
   const label = page.locator('.district-name-label').first();
   await expect(label).toBeVisible({ timeout: 15000 });

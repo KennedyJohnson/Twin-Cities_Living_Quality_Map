@@ -38,7 +38,7 @@ COMMUNITY_TO_DISTRICT_ID = {
 
 def _fetch_all_features(out_fields="Neighborhood,Offense_Category,Occurred_Date,Offense,Address,Precinct"):
     # _fetch_arcgis_paginated requests outSR=4326 (WGS84), so geometry comes
-    # back as lon/lat directly — no manual Web Mercator conversion needed.
+    # back as lon/lat directly - no manual Web Mercator conversion needed.
     # It also doesn't stop early on a short page (some FeatureServers cap
     # responses below the requested page size regardless), unlike the old
     # hand-rolled loop here that silently truncated on any such cap.
@@ -66,7 +66,7 @@ def clean_crime_mpls(crosswalk_file=CROSSWALK_FILE, granularity="district"):
     """
     Fetch Minneapolis crime data and assign district_id via crosswalk
     (district granularity), or via direct point-in-polygon against zip
-    boundaries using the feed's own longitude/latitude (zip granularity —
+    boundaries using the feed's own longitude/latitude (zip granularity -
     more accurate than the crosswalk anyway, but district granularity keeps
     the crosswalk for continuity with existing scores).
 
@@ -132,7 +132,7 @@ def clean_crime_mpls(crosswalk_file=CROSSWALK_FILE, granularity="district"):
         crime["district_id"] = crime["community_name"].map(COMMUNITY_TO_DISTRICT_ID)
 
     # Restricted to a shared recent-years window so this compares fairly
-    # against St. Paul's longer crime history — see core/date_window.py.
+    # against St. Paul's longer crime history - see core/date_window.py.
     crime = filter_recent_years(crime, "occurred_date", epoch_ms=True)
 
     cols = ["district_id", "offense_category", "occurred_date"]

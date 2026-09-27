@@ -50,7 +50,7 @@ body {
 }
 
 /* At the fully-zoomed-out view, still too far out for every district to
-   have room for a full-size label — shrink them instead of hiding, then
+   have room for a full-size label - shrink them instead of hiding, then
    step the size back up at the next two zoom levels. */
 .zoom-labels-1 .district-name-label {
   font-size: 8px !important;
@@ -363,7 +363,7 @@ body {
   max-width: min(300px, calc(100vw - 40px));
   /* Bounded independently of the parent .map-controls-stack's own
      max-height/overflow (which only adds a scrollbar to the stack once its
-     content exceeds it, rather than shrinking this panel to fit) — without
+     content exceeds it, rather than shrinking this panel to fit) - without
      its own smaller cap, the panel renders at full natural height and can
      visually run into the Data Points legend that sits bottom-left on short
      viewports. 340px leaves room for the legend plus a margin. Floor of
@@ -818,7 +818,7 @@ body {
 }
 
 /* ==========================================================================
-   Visual refresh — a theme layer over the base styles above. Only touches
+   Visual refresh - a theme layer over the base styles above. Only touches
    color, type, radius, shadow and spacing (never layout/positioning), so
    every panel keeps its existing placement and behavior.
    ========================================================================== */

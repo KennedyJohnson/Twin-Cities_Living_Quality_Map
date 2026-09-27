@@ -29,7 +29,7 @@ def clean_requests(granularity="district"):
     requests = load_requests()
     # Restricted to a shared recent-years window (filtered before the
     # spatial join, so there's less to join) so this compares fairly
-    # against Minneapolis's shorter 311 history — see core/date_window.py.
+    # against Minneapolis's shorter 311 history - see core/date_window.py.
     requests = filter_recent_years(requests, "REQUEST_DATE", epoch_ms=True)
     boundaries = resolve_boundaries(city="stpaul", granularity=granularity)
 

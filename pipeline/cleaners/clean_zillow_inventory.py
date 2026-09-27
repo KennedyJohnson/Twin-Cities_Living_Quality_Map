@@ -1,7 +1,7 @@
 """
 Fetch ZIP-level "for-sale home inventory" (active listings) from Zillow
 Research's free public CSV downloads (no API key required) and convert to
-a per-district listing count, as an Opportunity signal — fewer homes on
+a per-district listing count, as an Opportunity signal - fewer homes on
 the market relative to population indicates a tighter, more in-demand
 housing market, so this rate is inverted (lower = higher Opportunity),
 alongside permits and unemployment.
@@ -52,7 +52,7 @@ def _fetch_zillow_inventory(city_name):
 
 def _fetch_zcta_polygons(zips):
     """
-    Fetch full ZCTA (ZIP) polygon geometry, not just a centroid — needed
+    Fetch full ZCTA (ZIP) polygon geometry, not just a centroid - needed
     for area-weighted apportionment (see clean_zillow_inventory's
     docstring for why a centroid-only join badly undercounts district
     coverage).
@@ -79,7 +79,7 @@ def _fetch_zcta_polygons(zips):
 def clean_zillow_inventory(fallback_behavior="exclude_from_scoring_if_geography_fails", city="stpaul", granularity="district"):
     """
     Fetch Zillow's for-sale home inventory per ZIP. At zip granularity, the
-    zip code IS the join key already — no apportionment needed, each ZIP's
+    zip code IS the join key already - no apportionment needed, each ZIP's
     inventory count goes straight to its own district_id (the zip code).
     At district granularity, apportioned to districts by AREA OVERLAP
     between each ZIP polygon and each district polygon (assuming listings
@@ -89,7 +89,7 @@ def clean_zillow_inventory(fallback_behavior="exclude_from_scoring_if_geography_
     Minneapolis's 11) districts, so a single "which district contains this
     ZIP's centroid" lookup put 100% of a ZIP's inventory in whichever one
     district happened to contain that one point, and left every other
-    district the ZIP actually overlaps with zero coverage — 7 of St. Paul's
+    district the ZIP actually overlaps with zero coverage - 7 of St. Paul's
     17 districts had no housing_market data at all under that approach.
     Splitting each ZIP's count across every overlapping district,
     proportional to the overlap area, gives every district a (fractional

@@ -62,7 +62,7 @@ export default function AddressSearch({ onAddressSelect, initialQuery }: Address
       const localMatches = await searchPlaceIndex(query, 5);
 
       // The place index only has an address when the OSM element itself
-      // carried addr:housenumber/addr:street (see export_place_index.py) —
+      // carried addr:housenumber/addr:street (see export_place_index.py) -
       // plenty of named amenities/shops don't. Backfill those via a reverse
       // geocode so results like "Nordstrom" show a street address too,
       // instead of just the bare name. Bounded to the handful of local
@@ -91,7 +91,7 @@ export default function AddressSearch({ onAddressSelect, initialQuery }: Address
         lon: Number(r.lon),
       }));
 
-      // Both sources — and Nominatim on its own — can return several rows
+      // Both sources - and Nominatim on its own - can return several rows
       // for the literal same place (the building itself, an enclosing area,
       // a named point a few meters off). Group everything by name + ~60m
       // proximity and keep only the single most specific row per group (the
@@ -129,7 +129,7 @@ export default function AddressSearch({ onAddressSelect, initialQuery }: Address
 
       // Nominatim's viewbox param is a soft hint, not a hard filter, so it
       // can still return points outside the mapped districts (a suburb, a
-      // lake, a highway interchange) — those have no district/score data
+      // lake, a highway interchange) - those have no district/score data
       // and shouldn't be selectable here. Keep only results that resolve to
       // an actual St. Paul/Minneapolis district.
       const withinBounds = await Promise.all(

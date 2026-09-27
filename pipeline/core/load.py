@@ -78,7 +78,7 @@ def _fetch_arcgis_paginated(feature_server_url, page_size=2000, timeout=60, wher
         timeout: Request timeout in seconds
         where: ArcGIS SQL where-clause filter
         out_fields: comma-separated fields to request, or "*" for all
-        order_by: field(s) to sort by — resultOffset paging without a stable
+        order_by: field(s) to sort by - resultOffset paging without a stable
             sort can duplicate or drop records across pages if the server
             re-evaluates ordering per request. Pass None/"" to omit (only
             safe if the server already guarantees a stable default order).
@@ -125,7 +125,7 @@ def _fetch_arcgis_paginated(feature_server_url, page_size=2000, timeout=60, wher
             offset += len(features)
 
             # Don't stop just because this page came back short of
-            # page_size — some FeatureServers cap responses at their own
+            # page_size - some FeatureServers cap responses at their own
             # maxRecordCount (often 1000) regardless of what's requested,
             # so a short page doesn't mean "last page." Only an empty page
             # (handled above) reliably means there's nothing left.
@@ -467,22 +467,22 @@ def load_zip_boundaries():
     Load ZIP Code Tabulation Area (ZCTA5) boundaries covering the Twin
     Cities metro from Census TIGERweb, for finer-than-district geographic
     comparison (a zip is smaller than a St. Paul district or Minneapolis
-    community). Results are cached for the life of the process — every
+    community). Results are cached for the life of the process - every
     zip-granularity cleaner call hits this.
 
     Fetched via a bounding-box spatial query (ZCTAs aren't nested under a
     county the way tracts are), then filtered to zips that fall (almost)
-    ENTIRELY within St. Paul or Minneapolis's combined district boundaries —
+    ENTIRELY within St. Paul or Minneapolis's combined district boundaries -
     not merely touching them. A zip that only clips a corner of a district
     has most of its area/population outside our data coverage (crime,
     permits, service data all come from the two cities' own feeds), so
     every per-capita rate for that zip would be computed against its full
     population while only counting whatever sliver of incidents happened to
-    fall in the small in-bounds portion — undercounting every rate and
+    fall in the small in-bounds portion - undercounting every rate and
     skewing normalization for that zip specifically. See ZIP_COVERAGE_THRESHOLD.
 
     Tags each feature's "district_id" property with the zip code (as an
-    int) rather than adding a new "zip_id" field — every existing
+    int) rather than adding a new "zip_id" field - every existing
     district_id-keyed cleaner/aggregator/scorer plugs into this unchanged;
     only the caller knows whether a given "district_id" is a district
     number or a zip code.
@@ -517,7 +517,7 @@ def load_zip_boundaries():
     # Real-world administrative boundaries rarely align to the pixel, so
     # exact polygon containment is too strict (a hairline sliver of a zip
     # poking past a district edge would fail it even though the zip is
-    # functionally entirely inside) — require the large majority of the
+    # functionally entirely inside) - require the large majority of the
     # zip's area to fall within the district union instead.
     ZIP_COVERAGE_THRESHOLD = 0.98
 
@@ -559,7 +559,7 @@ def load_zip_boundaries():
 def load_zip_population():
     """
     Population per ZIP (ZCTA), pooled across BOTH Ramsey and Hennepin
-    counties into ONE set rather than split per city — a zip-level score
+    counties into ONE set rather than split per city - a zip-level score
     compares every zip in the metro against every other zip directly,
     unlike the district-level score which (before combining) was
     per-city. Same tract-centroid spatial-join method as load_population().
@@ -642,7 +642,7 @@ def load_zip_population():
     result["population"] = result["population"].astype(int)
 
     # A handful of ZCTAs (e.g. 55450, the MSP airport) have zero residential
-    # population — leaving them in would divide-by-zero into inf/NaN
+    # population - leaving them in would divide-by-zero into inf/NaN
     # per-capita rates in aggregate_by_source, which poisons the z-score
     # normalization for EVERY zip in that metric (mean/std of a list
     # containing inf/NaN is itself NaN), not just the offending zip. Drop
@@ -662,7 +662,7 @@ def resolve_boundaries(city="stpaul", granularity="district"):
     """
     Return the boundary GeoJSON to spatially join against: district
     boundaries (default), or metro-wide ZIP boundaries when
-    granularity="zip" — the `city` argument is ignored in zip mode since
+    granularity="zip" - the `city` argument is ignored in zip mode since
     ZCTAs don't respect district/city lines.
     """
     if granularity == "zip":
@@ -676,7 +676,7 @@ def load_crosswalk(crosswalk_file):
 
     St. Paul's crime API returns no coordinates (NEIGHBORHOOD_NAME only,
     confirmed via direct API inspection), so this mapping cannot be derived
-    dynamically — it is maintained as a static reference file instead,
+    dynamically - it is maintained as a static reference file instead,
     same as Minneapolis's neighborhood->community crosswalk.
     """
     crosswalk_path = PIPELINE_DIR / crosswalk_file

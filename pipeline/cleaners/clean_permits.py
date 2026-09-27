@@ -32,7 +32,7 @@ def clean_permits(granularity="district"):
     """
     permits = load_permits()
     # Restricted to a shared recent-years window so this compares fairly
-    # against Minneapolis's shorter permit history — see core/date_window.py.
+    # against Minneapolis's shorter permit history - see core/date_window.py.
     permits = filter_recent_years(permits, "ISSUEDATE", epoch_ms=True)
     # Keep only permit categories Minneapolis's CCS_Permits feed also
     # contains (building/residential/commercial, plumbing, mechanical,

@@ -3,7 +3,7 @@ Export a per-city normalization baseline so the frontend can score an
 arbitrary 1-mile-radius circle (a "place" click) on a comparable 0-100 scale,
 without shipping the entire pipeline's raw data to the browser.
 
-IMPORTANT — a circle is NEVER compared to a district. Two fairness fixes
+IMPORTANT - a circle is NEVER compared to a district. Two fairness fixes
 live here:
 
 1. Circle-vs-circle, not circle-vs-district. A 1-mile-radius circle is
@@ -15,7 +15,7 @@ live here:
    nearly always landing in the top few percent no matter where you
    clicked). Sampling a grid of same-sized circles and comparing a clicked
    circle against THAT distribution makes it an apples-to-apples
-   comparison — both sides computed the same way, over the same size area,
+   comparison - both sides computed the same way, over the same size area,
    from the same underlying point data the client itself uses.
 
 2. Each source is normalized INDEPENDENTLY, not pooled with other sources
@@ -23,7 +23,7 @@ live here:
    different magnitude (e.g. a crime rate of dozens per sq mi alongside a
    schools rate of a fraction per sq mi) into one shared mean/std lets the
    largest-magnitude source dominate, crushing the others toward a flat,
-   near-constant value regardless of their configured weight — the exact
+   near-constant value regardless of their configured weight - the exact
    "Severity 2" bug core/health_score.py's compute_component_index already
    documents fixing for district scoring. This mirrors that same fix for
    radius/place scoring: each source gets its own mean/std, sources are
@@ -35,7 +35,7 @@ Safety score now blends the same four: crime/crashes as point-count rates
 (circle-vs-circle, per #1 above), and chronic disease / hazard risk as
 Census-tract-level fields (tract-vs-tract within the same city, the same
 population-weighted-average treatment already used for Affordability's
-fields) — see _build_safety_tract_sources. Previously neither had a
+fields) - see _build_safety_tract_sources. Previously neither had a
 client-side export, so a circle's Safety was crime-only: a much narrower,
 noisier signal than a district's 4-source blend, which is a big part of why
 circles looked so extreme.
@@ -45,9 +45,9 @@ hardcoded: this script reads the actual exported point/line files
 (web/public/data/points_{city}.json, points_unassigned.json,
 lines_trails.json) and checks which "source" tags actually appear there, so
 a source with no raw geometry shipped to the client (permits, unemployment,
-traffic — at whatever point that changes) is automatically left out, and any
+traffic - at whatever point that changes) is automatically left out, and any
 NEW point/line export added in the future is automatically picked up here
-with no code change required — as long as its "source" property matches the
+with no code change required - as long as its "source" property matches the
 corresponding id in sources.json (see SOURCE_ID_ALIASES below for the one
 known exception). Sources that remain unavailable have their
 weight-in-component redistributed across whichever sources for that
@@ -56,7 +56,7 @@ uses when Affordability is unavailable for a district.
 
 Note: the Walk/Bike Score blended into Transportation in health_score.py
 (distance-decay amenity proximity + street-intersection density) is NOT
-replicated here — it's a heavier computation that needs point-level
+replicated here - it's a heavier computation that needs point-level
 distances, not a simple per-area rate. Transportation for a radius is
 therefore missing that 30% sub-blend; the frontend labels this explicitly.
 
@@ -92,7 +92,7 @@ OUT_DIR = PIPELINE_DIR.parent / "web" / "public" / "data"
 
 # The map's point/line layers tag features with a "source" property used for
 # icons/labels (see pointLayerColors.ts), which is usually but not always the
-# same string as the matching sources.json health-score source id — bridge
+# same string as the matching sources.json health-score source id - bridge
 # the known exceptions here. Extend this if a future export introduces
 # another mismatched name; everything else is matched by id automatically.
 SOURCE_ID_ALIASES = {"trails": "walkability"}
@@ -101,7 +101,7 @@ SOURCE_ID_ALIASES = {"trails": "walkability"}
 # tracts_affordability_{city}.json / clean_housing_price_tracts (see
 # export_tracts_affordability.py). These are the Safety sources that, like
 # Affordability's fields, are Census-tract-level rather than point/line
-# geometry — handled via tract population/area averaging, not a KDTree.
+# geometry - handled via tract population/area averaging, not a KDTree.
 SAFETY_TRACT_FIELDS = {
     "health": "chronic_disease_prevalence",
     "disaster_risk": "disaster_risk_score",
@@ -173,7 +173,7 @@ def _load_exported_points(city):
 
 
 def _load_exported_trail_segments():
-    """{source_id: [(mid_lat, mid_lon, length_km), ...]} — one row per trail
+    """{source_id: [(mid_lat, mid_lon, length_km), ...]} - one row per trail
     segment, approximated by its midpoint for the radius-membership test
     (segments are already simplified/short, so midpoint-in-radius is a close
     stand-in for "both endpoints in radius", which is what the client uses)."""
@@ -199,7 +199,7 @@ def _load_exported_trail_segments():
 
 def _sample_grid_points(boundaries, spacing_miles=GRID_SPACING_MILES):
     """A grid of (lat, lon) sample circle centers covering this city's own
-    district area — the population of "other nearby circles" every clicked
+    district area - the population of "other nearby circles" every clicked
     circle gets compared against. Returns (points, lat0, lon_scale), where
     lat0/lon_scale are the projection this city's KDTrees are built in."""
     polys = [shape(f["geometry"]) for f in boundaries["features"]]
@@ -290,7 +290,7 @@ def _build_point_line_sources(city, sources_config):
         signed_rates = -per_sqmi if rate_direction == "invert" else per_sqmi
 
         # Each source normalized independently against ITS OWN distribution
-        # across the sampled circles — never pooled with other sources in
+        # across the sampled circles - never pooled with other sources in
         # the component (see module docstring, fix #2).
         result.setdefault(component, []).append({
             "id": source_id,
@@ -329,7 +329,7 @@ _SAFETY_TRACT_VALUE_FETCHERS = {
 
 def _build_safety_tract_sources(city, sources_config):
     """Chronic disease / hazard risk are Census-tract-level, not point/line
-    geometry — normalized the same way Affordability's fields already are
+    geometry - normalized the same way Affordability's fields already are
     (raw per-tract value, mean/std pooled across this city's own tracts),
     tract-vs-tract within the same city rather than vs. any district."""
     sources = []

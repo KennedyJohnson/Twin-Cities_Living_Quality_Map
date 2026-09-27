@@ -30,7 +30,7 @@ python build.py
 # Done! Data fetched from APIs automatically
 ```
 
-**All data is fetched automatically from official APIs — no manual downloads needed.**
+**All data is fetched automatically from official APIs - no manual downloads needed.**
 
 ---
 
@@ -38,11 +38,11 @@ python build.py
 
 A **Living Quality Score** (0–100, where 100 is excellent) measures how well a district is doing across five equally weighted (20% each) components:
 
-1. **Safety** — crime rate, pedestrian/cyclist crash rate, FEMA natural hazard risk, and chronic disease burden (CDC PLACES) — all inverted: lower is better
-2. **Opportunity** — building permit rate, unemployment rate (inverted), and Zillow for-sale inventory (fewer listings = tighter market = higher), blended 85/15 with the share of adults with a bachelor's degree or higher
-3. **Amenities & Services** — schools, grocery stores, restaurants/bars, healthcare, and entertainment venues (OpenStreetMap), blended 85/15 with a Census broadband/internet-access rate
-4. **Transportation** — trail/path length and transit stop rate minus traffic volume (inverted), blended 60/25/15 with a Walk/Bike Score and a Census commute score (commute time and transit/walk/bike share)
-5. **Economic Profile** — home value, rent, poverty rate, housing cost burden, income inequality (Gini), and vacancy rate (all inverted), plus median household income and homeownership rate. (Formerly "Affordability"; renamed because it blends cost with income/ownership.)
+1. **Safety** - crime rate, pedestrian/cyclist crash rate, FEMA natural hazard risk, and chronic disease burden (CDC PLACES) - all inverted: lower is better
+2. **Opportunity** - building permit rate, unemployment rate (inverted), and Zillow for-sale inventory (fewer listings = tighter market = higher), blended 85/15 with the share of adults with a bachelor's degree or higher
+3. **Amenities & Services** - schools, grocery stores, restaurants/bars, healthcare, and entertainment venues (OpenStreetMap), blended 85/15 with a Census broadband/internet-access rate
+4. **Transportation** - trail/path length and transit stop rate minus traffic volume (inverted), blended 60/25/15 with a Walk/Bike Score and a Census commute score (commute time and transit/walk/bike share)
+5. **Economic Profile** - home value, rent, poverty rate, housing cost burden, income inequality (Gini), and vacancy rate (all inverted), plus median household income and homeownership rate. (Formerly "Affordability"; renamed because it blends cost with income/ownership.)
 
 Each metric is z-scored and squashed to 0–100 independently, then weight-blended. Normalization is pooled across all 28 districts of **both** cities, so St. Paul and Minneapolis scores are directly comparable. Crime and permit counts use a shared trailing recent-years window. Full detail is in `pipeline/config/weights.json` and the in-app **[About](/about)** page.
 
@@ -50,13 +50,13 @@ Each metric is z-scored and squashed to 0–100 independently, then weight-blend
 
 ## How to Use the Map
 
-1. **Color by any metric** — use the "Color districts by" selector to recolor the map by the overall score, any component index, or an individual underlying metric.
-2. **Click a district** — view its full score breakdown, click any component score to see what feeds it (and a small trend chart, where historical data exists), see housing affordability figures, and see a bar chart comparing the district against its city's average on each component.
-3. **Toggle data layers** — crime, transit, schools, grocery stores, apartment buildings, and trails render as map markers/lines; toggle each on/off from the layers control.
-4. **Click anywhere on the map, or search an address** — drops a labeled marker, filters nearby data-point markers to a 1-mile radius, and computes a 1-mile-radius Living Quality Score from OpenStreetMap + Census data (its own sidebar panel, comparable to district scores but excluding metrics only available at the district level); click the marker again to clear it.
-5. **Compare & match** — compare districts side by side, or use **Find Your Match** to rank areas against your preferences.
-6. **Trends page** (`/trends`) — multi-year trends and biggest movers.
-7. **Resize the sidebar** — drag the handle on the left edge of the detail panel.
+1. **Color by any metric** - use the "Color districts by" selector to recolor the map by the overall score, any component index, or an individual underlying metric.
+2. **Click a district** - view its full score breakdown, click any component score to see what feeds it (and a small trend chart, where historical data exists), see housing affordability figures, and see a bar chart comparing the district against its city's average on each component.
+3. **Toggle data layers** - crime, transit, schools, grocery stores, apartment buildings, and trails render as map markers/lines; toggle each on/off from the layers control.
+4. **Click anywhere on the map, or search an address** - drops a labeled marker, filters nearby data-point markers to a 1-mile radius, and computes a 1-mile-radius Living Quality Score from OpenStreetMap + Census data (its own sidebar panel, comparable to district scores but excluding metrics only available at the district level); click the marker again to clear it.
+5. **Compare & match** - compare districts side by side, or use **Find Your Match** to rank areas against your preferences.
+6. **Trends page** (`/trends`) - multi-year trends and biggest movers.
+7. **Resize the sidebar** - drag the handle on the left edge of the detail panel.
 
 ---
 
@@ -75,7 +75,7 @@ Each metric is z-scored and squashed to 0–100 independently, then weight-blend
 
 **Fully automated:** All data is fetched from official APIs with no manual downloads. The only required key is the free Census API key.
 
-Some sources are intentionally excluded from the map's point layers (permits) — too granular for the map — but still feed the score.
+Some sources are intentionally excluded from the map's point layers (permits) - too granular for the map - but still feed the score.
 
 **Known limitations:**
 - St. Paul's crime data has no geocoded address, only a district, so individual incidents aren't plotted as markers (Minneapolis crime does include coordinates).
@@ -89,7 +89,7 @@ Some sources are intentionally excluded from the map's point layers (permits) �
 ### Prerequisites
 - Python 3.11+
 - Census API key (free, 2 min to get): https://api.census.gov/data/key_signup.html
-- No manual data downloads needed — all APIs are automated
+- No manual data downloads needed - all APIs are automated
 
 ### Local Development (5 minutes)
 
@@ -146,10 +146,10 @@ To manually trigger:
 Twin Cities Living Quality Map
 ├── pipeline/                    (data processing, run locally or via GitHub Actions)
 │   ├── build.py                 (orchestrate: aggregate → score → output neighborhoods*.json)
-│   ├── cleaners/                (clean_*.py — standardize, geocode, join to districts, one file per source)
+│   ├── cleaners/                (clean_*.py - standardize, geocode, join to districts, one file per source)
 │   ├── core/                    (load.py, aggregate.py, health_score.py, walk_score.py, radius_score.py, osm_extract.py, date_window.py, http_cache.py)
 │   ├── exports/                 (export_all.py, export_points.py, export_affordability*.py, export_timeseries.py, export_radius_baseline.py, export_place_index.py)
-│   ├── diagnostics/             (diagnostic_geography.py, verify_crosswalk.py, discover_socrata_ids.py — standalone dev utilities)
+│   ├── diagnostics/             (diagnostic_geography.py, verify_crosswalk.py, discover_socrata_ids.py - standalone dev utilities)
 │   ├── config/                  (sources.json, sources_mpls.json, weights.json, mpls_neighborhood_to_community.json, stpaul_sources.json)
 │   ├── boundaries/, crosswalks/, data/ (raw boundary GeoJSON, geo crosswalks, population CSVs; /data/ is optional fallback)
 │   └── tests/                   (pytest unit tests for the scoring math)
@@ -171,7 +171,7 @@ Extensible per-city registry of data sources. Each entry defines:
 - `id` / `loader_module`: unique identifier and the Python module that cleans it
 - `geo_join_method`: how records are mapped to districts (spatial join, crosswalk, point-in-polygon, line-intersection)
 - `rate_direction`: `"direct"` (higher = better) or `"invert"` (higher = worse)
-- `health_component`: which index this feeds (`safety`, `opportunity`, `amenities`, `transportation`, `affordability` — the Economic Profile key)
+- `health_component`: which index this feeds (`safety`, `opportunity`, `amenities`, `transportation`, `affordability` - the Economic Profile key)
 - `weight_in_component`: relative weight within that component
 
 Adding a new data source: create a `cleaners/clean_<source>.py` loader, add one entry to `sources.json` (and `sources_mpls.json` for city parity), then re-run `pipeline/build.py`.
@@ -185,10 +185,10 @@ Health score component weights (currently 20% Safety / 20% Opportunity / 20% Ame
 
 Code is released under the [MIT License](LICENSE). Data is **not** covered by that license; each source keeps its own terms:
 
-- **OpenStreetMap** — © OpenStreetMap contributors, available under the [Open Database License (ODbL)](https://www.openstreetmap.org/copyright). Derived layers here (trails, transit, amenities, buildings, street network) must keep this attribution, which the map displays.
-- **City of St. Paul / City of Minneapolis** — open data portals; crime and permit records are used under each city's open data terms.
-- **U.S. Census Bureau (ACS)** and **CDC PLACES** — U.S. government public-domain data. This product uses the Census Bureau Data API but is not endorsed or certified by the Census Bureau.
-- **MnDOT** (traffic counts, crash locations) and **FEMA** (National Risk Index) — public government data.
-- **Zillow Research** — for-sale inventory from [Zillow's public research data](https://www.zillow.com/research/data/), subject to Zillow's terms of use.
+- **OpenStreetMap** - © OpenStreetMap contributors, available under the [Open Database License (ODbL)](https://www.openstreetmap.org/copyright). Derived layers here (trails, transit, amenities, buildings, street network) must keep this attribution, which the map displays.
+- **City of St. Paul / City of Minneapolis** - open data portals; crime and permit records are used under each city's open data terms.
+- **U.S. Census Bureau (ACS)** and **CDC PLACES** - U.S. government public-domain data. This product uses the Census Bureau Data API but is not endorsed or certified by the Census Bureau.
+- **MnDOT** (traffic counts, crash locations) and **FEMA** (National Risk Index) - public government data.
+- **Zillow Research** - for-sale inventory from [Zillow's public research data](https://www.zillow.com/research/data/), subject to Zillow's terms of use.
 
 Scores are analytical estimates from these sources for exploration only, not official ratings.

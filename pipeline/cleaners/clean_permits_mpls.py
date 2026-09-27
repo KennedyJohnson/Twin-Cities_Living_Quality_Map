@@ -118,7 +118,7 @@ def clean_permits_mpls(crosswalk_file=CROSSWALK_FILE, granularity="district"):
 
         permits["district_id"] = permits["community_name"].map(COMMUNITY_TO_DISTRICT_ID)
 
-    # Restricted to a shared recent-years window — see core/date_window.py.
+    # Restricted to a shared recent-years window - see core/date_window.py.
     permits = filter_recent_years(permits, "issue_date", epoch_ms=True)
 
     cols = ["district_id", "permit_number", "issue_date", "permit_type"]

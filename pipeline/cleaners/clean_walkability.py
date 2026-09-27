@@ -48,7 +48,7 @@ def _is_trail_way(tags):
     return False
 
 # Sidewalks/crossings are tagged highway=footway too, but they aren't
-# recreational trails — they're the pedestrian shoulder of a regular street.
+# recreational trails - they're the pedestrian shoulder of a regular street.
 # Left unfiltered, they outnumber real trails ~5-to-1 in this metro (dense
 # urban sidewalk grid), so they were crowding out actual trails/paths under
 # export_points.MAX_WAYS's random sample and inflating trail_km_pc in the
@@ -78,7 +78,7 @@ def _is_real_trail(element):
 
 def _fetch_ways():
     """Fetch trail/path ways (with full geometry) from the local OSM
-    extract (see core/osm_extract.py) — replaces the live Overpass query
+    extract (see core/osm_extract.py) - replaces the live Overpass query
     this used to make, which was slow/flaky on the public instance."""
     elements = query_osm(way_matcher=_is_trail_way, want_way_geometry=True, bbox=BBOX, cache_key="trails")
     return [e for e in elements if _is_real_trail(e)]

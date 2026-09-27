@@ -105,7 +105,7 @@ def build_rows():
 
 
 # Health-check thresholds: flag a refresh whose numbers jumped implausibly
-# since the previous run — usually a broken/changed source API, not reality.
+# since the previous run - usually a broken/changed source API, not reality.
 SCORE_JUMP = 10          # points, on any 0-100 score
 METRIC_RATIO = 2.0       # raw_count doubled or halved...
 METRIC_MIN_COUNT = 20    # ...when the previous count was at least this big

@@ -3,24 +3,24 @@ Dissolve each city's district boundaries into one outer outline, so the map
 can draw a single light border around "St. Paul as a whole" / "Minneapolis
 as a whole" instead of (or in addition to) the individual district lines.
 
-Also exports web/public/data/city_divider.geojson — the line segment(s) where
+Also exports web/public/data/city_divider.geojson - the line segment(s) where
 the two dissolved city outlines actually touch, so the frontend can style
 the St. Paul/Minneapolis shared border distinctly from each city's outward-
 facing perimeter (e.g. a dashed line vs. a solid one).
 
-Also exports web/public/data/city_outline_zip.geojson — the dissolved outer
+Also exports web/public/data/city_outline_zip.geojson - the dissolved outer
 edge of every included ZIP code (a different shape than the district-based
-outline, since the ZIP pool excludes/includes different area at the edges —
+outline, since the ZIP pool excludes/includes different area at the edges -
 see core/load.py's load_zip_boundaries 98%-coverage filter), so the map's
 outer border can switch to match whichever granularity is active instead of
 always showing the district-shaped edge even in ZIP view.
 
 Output:
-  web/public/data/city_outline_{stpaul,mpls}.geojson — a single Feature per
+  web/public/data/city_outline_{stpaul,mpls}.geojson - a single Feature per
     city (Polygon or MultiPolygon) with no per-district seams.
-  web/public/data/city_outline_zip.geojson — a single Feature for the outer
+  web/public/data/city_outline_zip.geojson - a single Feature for the outer
     edge of the combined ZIP pool.
-  web/public/data/city_divider.geojson — a single Feature (LineString or
+  web/public/data/city_divider.geojson - a single Feature (LineString or
     MultiLineString) for the shared St. Paul/Minneapolis border.
 """
 
@@ -42,7 +42,7 @@ def build_city_divider(stpaul_dissolved, mpls_dissolved):
     """The shared border as a thin polygon strip (not a snapped-to-vertices
     line): St. Paul's and Minneapolis's boundaries come from two
     independently-maintained ArcGIS layers, so even along their genuinely
-    shared border the digitized vertices can sit tens of meters apart —
+    shared border the digitized vertices can sit tens of meters apart -
     an exact-geometry (or near-zero-buffer) intersection only catches the
     rare spots where they happen to coincide almost exactly, producing a
     sparse, geographically-misleading fragment instead of the real border
@@ -51,7 +51,7 @@ def build_city_divider(stpaul_dissolved, mpls_dissolved):
     digitization gap and reliably captures the whole shared border as a
     thin ribbon, which the frontend renders as a filled strip rather than
     trying to draw a perfectly precise single line."""
-    buffer_deg = 0.0009  # ~90m at this latitude — 40m left small gaps where the
+    buffer_deg = 0.0009  # ~90m at this latitude - 40m left small gaps where the
     # river (a wider natural feature) makes the two cities' digitized
     # boundaries diverge more than a typical street-following border does
     return stpaul_dissolved.boundary.buffer(buffer_deg).intersection(mpls_dissolved.boundary.buffer(buffer_deg))

@@ -7,7 +7,7 @@ export interface DistrictBudget {
 // Minneapolis 101-111), so both files merge into one flat lookup.
 const AFFORDABILITY_FILES = ['/data/affordability_stpaul.json', '/data/affordability_mpls.json'];
 
-// Single source of truth for "does this district fit the budget" — used both
+// Single source of truth for "does this district fit the budget" - used both
 // to gray out districts on the map and to filter the Match Finder's ranked
 // list, so the two views can't silently drift apart from each other.
 export function isWithinBudget(

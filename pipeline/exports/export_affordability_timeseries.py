@@ -5,7 +5,7 @@ income per district for trend charts on the frontend
 
 Fetches a handful of recent ACS 5-year vintages. Tract GEOIDs are mostly
 stable across vintages but a few tracts can fail to join for years before
-2020 (2010 Census vintage) — see clean_housing_price.py for details.
+2020 (2010 Census vintage) - see clean_housing_price.py for details.
 
 Run: python export_affordability_timeseries.py
 """
@@ -26,7 +26,7 @@ OUT_DIR = PIPELINE_DIR.parent / "web" / "public" / "data"
 
 # 2017-2024: matches the wider panel pulled for
 # analysis/home_value_prediction (same ACS loader, same confirmed-working
-# year range — 2017 is the earliest vintage with stable variable codes for
+# year range - 2017 is the earliest vintage with stable variable codes for
 # every field this pipeline uses; see that module's fetch_panel.py).
 # Widened from the original 2018-2022 (2026-09-22) now that more years are
 # confirmed to fetch cleanly, so the site's own trend charts show as much

@@ -1,7 +1,7 @@
 """
 Fetch pedestrian/cyclist ("vulnerable road user") crash locations statewide
 from MnDOT/MnDPS's ArcGIS FeatureServer (2016-2021) and count them within
-each district, as a Safety signal — more crashes lowers Safety.
+each district, as a Safety signal - more crashes lowers Safety.
 
 Source: https://www.arcgis.com/home/item.html?id=... "VRU Crashes 2016 to
 2021 Final" (public view layer, no API key required).
@@ -12,7 +12,7 @@ date_window.py's rolling-recency filter: the upstream feed is a frozen
 shrink toward zero as the shared window advances rather than track real
 recency. Applies equally to both cities (no cross-city bias), but the
 snapshot will keep drifting further out of date until MnDOT/MnDPS publish
-a newer extract — reapply filter_recent_years here if/when they do.
+a newer extract - reapply filter_recent_years here if/when they do.
 """
 
 import sys

@@ -58,7 +58,7 @@ export default function Legend({
   }, []);
 
   // Map fills are colored by discrete letter-grade band (same as the grade
-  // badges), not a continuous gradient — a continuous scale bunched A and B
+  // badges), not a continuous gradient - a continuous scale bunched A and B
   // districts into near-identical dark shades since both sit at the high end
   // of the percentile range. See letterGrade.ts / NeighborhoodMap.tsx.
   const grades: LetterGrade[] = ['F', 'D', 'C', 'B', 'A'];

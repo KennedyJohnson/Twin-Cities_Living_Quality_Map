@@ -33,7 +33,7 @@ export const DEFAULT_MATCH_WEIGHTS: MatchWeights = {
 
 // True once at least one component actually contributes to the weighted
 // score. All-zero weights makes computeMatchScore degenerate to 0 for every
-// district — callers should check this first and show a message instead of
+// district - callers should check this first and show a message instead of
 // a flat, meaningless ranking/coloring.
 export function hasActiveWeights(weights: MatchWeights): boolean {
   return Object.values(weights).some((w) => w > 0);

@@ -195,7 +195,7 @@ export default function MatchFinder({
   const houseTypes = useMemo(() => houseTypesFor(listingPrefs.homeTypes), [listingPrefs.homeTypes]);
 
   // Every building in this dataset is an OSM building=apartments record (see
-  // clean_apartment_buildings.py) — there's no condo/townhome/house
+  // clean_apartment_buildings.py) - there's no condo/townhome/house
   // classification available to filter on.
   const buildingsWithinBudget = useMemo(() => {
     return allBuildings.filter(
@@ -209,7 +209,7 @@ export default function MatchFinder({
 
   // Rank districts (not individual listings) by fit, then anchor each top
   // district's 1-mile recommendation radius on its own highest-scoring
-  // apartment building — see web/lib/matchRegions.ts for why: we're
+  // apartment building - see web/lib/matchRegions.ts for why: we're
   // recommending an area to go explore, not steering someone toward one
   // specific address.
   const regions: MatchRegion[] = useMemo(() => {
@@ -234,7 +234,7 @@ export default function MatchFinder({
     const out: MatchRegion[] = [];
     for (const { district, score } of rankedDistricts) {
       const candidates = buildingsByDistrict.get(district.district_id);
-      // No apartment buildings in this district to anchor a radius on — skip
+      // No apartment buildings in this district to anchor a radius on - skip
       // it rather than recommend a region with nothing to click.
       if (!candidates || candidates.length === 0) continue;
 
