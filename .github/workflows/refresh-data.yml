@@ -101,8 +101,6 @@ jobs:
             await github.rest.issues.create({
               ...context.repo,
               title: `Data refresh failed (${new Date().toISOString().slice(0,10)})`,
-              body: `The monthly refresh failed, so site data is going stale.
-
-Run: ${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`,
+              body: `The monthly refresh failed, so site data is going stale.\n\nRun:${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`,
               labels: ['stale-data'],
             });
