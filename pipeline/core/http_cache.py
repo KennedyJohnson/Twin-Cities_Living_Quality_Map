@@ -35,6 +35,8 @@ import time
 from pathlib import Path
 
 import requests
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 
 CACHE_DIR = Path(__file__).parent / ".cache"
 DEFAULT_TTL_SECONDS = 6 * 60 * 60  # 6 hours: comfortably covers one full manual pipeline run
@@ -46,6 +48,19 @@ _LOCAL_CACHE_MODE = os.environ.get("PIPELINE_LOCAL_CACHE", "").strip().lower() i
 # parallel requests a full refresh makes to the same handful of hosts
 # (ArcGIS, Census, Overpass), instead of paying a fresh handshake each call.
 _session = requests.Session()
+# Public data APIs (Census/TIGERweb especially) time out or 5xx now and then; one slow response
+# used to kill the whole monthly refresh. Retry connect/read failures, 429 and 5xx with backoff
+# (2s, 4s, 8s, 16s). POST is included because every POST here is an ArcGIS read-only query.
+_retry = Retry(
+    total=4,
+    backoff_factor=2,
+    status_forcelist=(429, 500, 502, 503, 504),
+    allowed_methods=frozenset({"GET", "POST"}),
+    respect_retry_after_header=True,
+    raise_on_status=False,
+)
+_session.mount("https://", HTTPAdapter(max_retries=_retry))
+_session.mount("http://", HTTPAdapter(max_retries=_retry))
 
 
 class _CachedResponse:
