@@ -1,0 +1,28 @@
+name: Supabase keepalive
+
+# Supabase pauses free projects after 7 days without activity, which would break the
+# map's score-history chart and houses layer between monthly refreshes. A small real
+# query every 3 days keeps the project active.
+on:
+  schedule:
+    - cron: '23 14 */3 * *'
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Query the database
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+        run: |
+          if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_SECRET_KEY" ]; then
+            echo "::error::SUPABASE_URL / SUPABASE_SECRET_KEY secrets are not set"; exit 1
+          fi
+          curl -sS --fail-with-body --retry 3 --retry-delay 10 \
+            -H "apikey: $SUPABASE_SECRET_KEY" \
+            "$SUPABASE_URL/rest/v1/refresh_runs?select=run_at&order=run_at.desc&limit=1"
