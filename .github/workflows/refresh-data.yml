@@ -40,8 +40,8 @@ jobs:
       # extract's own mtime-based staleness check (EXTRACT_MAX_AGE_DAYS)
       # still re-downloads and correctly invalidates the query cache
       # whenever it's actually stale, even if this restores an older key.
-      - name: Cache OSM extract and query results
-        uses: actions/cache@v6
+      - name: Restore OSM extract and query results
+        uses: actions/cache/restore@v6
         with:
           path: pipeline/core/.cache
           key: osm-cache-${{ steps.cache-key.outputs.yearmonth }}
@@ -76,6 +76,14 @@ jobs:
         run: |
           python exports/export_supabase.py
           python exports/export_houses_supabase.py
+
+      # Saved even if a later step fails, so a retry doesn't redo the ~2 h extract scan.
+      - name: Save OSM extract and query results
+        if: always()
+        uses: actions/cache/save@v6
+        with:
+          path: pipeline/core/.cache
+          key: osm-cache-${{ steps.cache-key.outputs.yearmonth }}
 
       - name: Commit refreshed data
         run: |
