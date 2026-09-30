@@ -14,16 +14,22 @@ export async function GET(request: NextRequest) {
     q
   )}&bounded=1&viewbox=-93.4,44.8,-92.8,45.1&limit=10`;
 
-  const response = await fetch(url, {
-    headers: {
-      'User-Agent': 'TwinCitiesLivingQualityMap/1.0 (https://github.com/KennedyJohnson/Twin-Cities_Living_Quality_Map)',
-    },
-  });
+  // A hung or unreachable Nominatim is reported as a bad gateway instead of an unhandled server error
+  try {
+    const response = await fetch(url, {
+      headers: {
+        'User-Agent': 'TwinCitiesLivingQualityMap/1.0 (https://github.com/KennedyJohnson/Twin-Cities_Living_Quality_Map)',
+      },
+      signal: AbortSignal.timeout(10_000),
+    });
 
-  if (!response.ok) {
-    return NextResponse.json({ error: 'Nominatim request failed' }, { status: response.status });
+    if (!response.ok) {
+      return NextResponse.json({ error: 'Nominatim request failed' }, { status: response.status });
+    }
+
+    const data = await response.json();
+    return NextResponse.json(data);
+  } catch {
+    return NextResponse.json({ error: 'Nominatim unreachable' }, { status: 502 });
   }
-
-  const data = await response.json();
-  return NextResponse.json(data);
 }

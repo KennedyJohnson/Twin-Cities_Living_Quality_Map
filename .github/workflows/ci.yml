@@ -41,6 +41,10 @@ jobs:
         working-directory: web
         run: npm ci
 
+      - name: Lint
+        working-directory: web
+        run: npm run lint
+
       - name: Install Playwright browsers
         working-directory: web
         run: npx playwright install --with-deps chromium

@@ -595,7 +595,7 @@ function MapContent({
       const markerEl = searchMarkerRef.current?.getElement();
       if (target && markerEl && markerEl.contains(target)) return;
       if (mode === 'place') {
-        onMapClick?.(e.latlng.lat, e.latlng.lng);
+        onMapClickRef.current?.(e.latlng.lat, e.latlng.lng);
         return;
       }
       // Only resolves against district boundaries - a click that misses
