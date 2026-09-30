@@ -41,7 +41,7 @@ jobs:
       # still re-downloads and correctly invalidates the query cache
       # whenever it's actually stale, even if this restores an older key.
       - name: Cache OSM extract and query results
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: pipeline/core/.cache
           key: osm-cache-${{ steps.cache-key.outputs.yearmonth }}
