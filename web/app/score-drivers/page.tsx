@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import ScoreDrivers from '@/components/ScoreDrivers';
+import ScoreValidation from '@/components/ScoreValidation';
 
 export default function ScoreDriversPage() {
   return (
@@ -22,6 +23,7 @@ export default function ScoreDriversPage() {
         among related inputs is approximate.
       </p>
       <ScoreDrivers />
+      <ScoreValidation />
 
     </div>
   );

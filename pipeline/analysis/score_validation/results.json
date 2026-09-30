@@ -1,0 +1,304 @@
+{
+ "n_districts": 28,
+ "sensitivity": {
+  "draws": 5000,
+  "alpha": 4.0,
+  "spearman_mean": 0.965,
+  "spearman_p5": 0.905,
+  "top_district_stays_first": 0.683,
+  "top5_share_in_top5": 0.816,
+  "median_rank_band": 5,
+  "drop_one_component_spearman": {
+   "safety": 0.931,
+   "opportunity": 0.955,
+   "amenities": 0.959,
+   "transportation": 0.976,
+   "affordability": 0.946
+  },
+  "districts": [
+   {
+    "id": 10,
+    "name": "Como Park",
+    "city": "stpaul",
+    "rank": 1,
+    "rank_p5": 1,
+    "rank_median": 1,
+    "rank_p95": 2
+   },
+   {
+    "id": 16,
+    "name": "Summit Hill",
+    "city": "stpaul",
+    "rank": 2,
+    "rank_p5": 1,
+    "rank_median": 2,
+    "rank_p95": 3
+   },
+   {
+    "id": 15,
+    "name": "Highland Park",
+    "city": "stpaul",
+    "rank": 3,
+    "rank_p5": 2,
+    "rank_median": 3,
+    "rank_p95": 5
+   },
+   {
+    "id": 104,
+    "name": "Longfellow",
+    "city": "mpls",
+    "rank": 4,
+    "rank_p5": 4,
+    "rank_median": 5,
+    "rank_p95": 8
+   },
+   {
+    "id": 14,
+    "name": "Macalester - Groveland",
+    "city": "stpaul",
+    "rank": 5,
+    "rank_p5": 3,
+    "rank_median": 6,
+    "rank_p95": 10
+   },
+   {
+    "id": 101,
+    "name": "Calhoun Isle",
+    "city": "mpls",
+    "rank": 6,
+    "rank_p5": 5,
+    "rank_median": 6,
+    "rank_p95": 10
+   },
+   {
+    "id": 12,
+    "name": "Saint Anthony Park",
+    "city": "stpaul",
+    "rank": 7,
+    "rank_p5": 3,
+    "rank_median": 7,
+    "rank_p95": 11
+   },
+   {
+    "id": 107,
+    "name": "Northeast",
+    "city": "mpls",
+    "rank": 8,
+    "rank_p5": 5,
+    "rank_median": 8,
+    "rank_p95": 10
+   },
+   {
+    "id": 11,
+    "name": "Hamline - Midway",
+    "city": "stpaul",
+    "rank": 9,
+    "rank_p5": 5,
+    "rank_median": 8,
+    "rank_p95": 10
+   },
+   {
+    "id": 106,
+    "name": "Nokomis",
+    "city": "mpls",
+    "rank": 10,
+    "rank_p5": 5,
+    "rank_median": 10,
+    "rank_p95": 13
+   },
+   {
+    "id": 110,
+    "name": "Southwest",
+    "city": "mpls",
+    "rank": 11,
+    "rank_p5": 8,
+    "rank_median": 11,
+    "rank_p95": 12
+   },
+   {
+    "id": 13,
+    "name": "Union Park",
+    "city": "stpaul",
+    "rank": 12,
+    "rank_p5": 7,
+    "rank_median": 12,
+    "rank_p95": 20
+   },
+   {
+    "id": 9,
+    "name": "West Seventh - Fort Road",
+    "city": "stpaul",
+    "rank": 13,
+    "rank_p5": 12,
+    "rank_median": 13,
+    "rank_p95": 16
+   },
+   {
+    "id": 3,
+    "name": "West Side",
+    "city": "stpaul",
+    "rank": 14,
+    "rank_p5": 12,
+    "rank_median": 14,
+    "rank_p95": 18
+   },
+   {
+    "id": 6,
+    "name": "North End",
+    "city": "stpaul",
+    "rank": 15,
+    "rank_p5": 14,
+    "rank_median": 15,
+    "rank_p95": 18
+   },
+   {
+    "id": 2,
+    "name": "Greater East Side",
+    "city": "stpaul",
+    "rank": 16,
+    "rank_p5": 12,
+    "rank_median": 16,
+    "rank_p95": 23
+   },
+   {
+    "id": 109,
+    "name": "Powderhorn",
+    "city": "mpls",
+    "rank": 17,
+    "rank_p5": 13,
+    "rank_median": 17,
+    "rank_p95": 21
+   },
+   {
+    "id": 1,
+    "name": "Battle Creek - Conway - Eastview - Highwood Hills",
+    "city": "stpaul",
+    "rank": 18,
+    "rank_p5": 14,
+    "rank_median": 18,
+    "rank_p95": 23
+   },
+   {
+    "id": 5,
+    "name": "Payne - Phalen",
+    "city": "stpaul",
+    "rank": 19,
+    "rank_p5": 17,
+    "rank_median": 19,
+    "rank_p95": 21
+   },
+   {
+    "id": 8,
+    "name": "Summit - University",
+    "city": "stpaul",
+    "rank": 19,
+    "rank_p5": 14,
+    "rank_median": 19,
+    "rank_p95": 23
+   },
+   {
+    "id": 7,
+    "name": "Frogtown",
+    "city": "stpaul",
+    "rank": 21,
+    "rank_p5": 17,
+    "rank_median": 21,
+    "rank_p95": 22
+   },
+   {
+    "id": 4,
+    "name": "Dayton's Bluff",
+    "city": "stpaul",
+    "rank": 22,
+    "rank_p5": 20,
+    "rank_median": 22,
+    "rank_p95": 26
+   },
+   {
+    "id": 111,
+    "name": "University",
+    "city": "mpls",
+    "rank": 23,
+    "rank_p5": 19,
+    "rank_median": 23,
+    "rank_p95": 26
+   },
+   {
+    "id": 105,
+    "name": "Near North",
+    "city": "mpls",
+    "rank": 24,
+    "rank_p5": 23,
+    "rank_median": 25,
+    "rank_p95": 27
+   },
+   {
+    "id": 102,
+    "name": "Camden",
+    "city": "mpls",
+    "rank": 25,
+    "rank_p5": 23,
+    "rank_median": 25,
+    "rank_p95": 28
+   },
+   {
+    "id": 103,
+    "name": "Central",
+    "city": "mpls",
+    "rank": 25,
+    "rank_p5": 20,
+    "rank_median": 25,
+    "rank_p95": 26
+   },
+   {
+    "id": 17,
+    "name": "Downtown",
+    "city": "stpaul",
+    "rank": 27,
+    "rank_p5": 18,
+    "rank_median": 27,
+    "rank_p95": 27
+   },
+   {
+    "id": 108,
+    "name": "Phillips",
+    "city": "mpls",
+    "rank": 28,
+    "rank_p5": 27,
+    "rank_median": 28,
+    "rank_p95": 28
+   }
+  ]
+ },
+ "external": {
+  "n": 28,
+  "outcomes": [
+   {
+    "outcome": "median_home_value",
+    "label": "Median home value",
+    "spearman": 0.734,
+    "perm_p": 0.0,
+    "partial_spearman_given_income": 0.373,
+    "by_component": {
+     "safety": 0.524,
+     "opportunity": 0.401,
+     "amenities": 0.608,
+     "transportation": 0.358
+    }
+   },
+   {
+    "outcome": "median_gross_rent",
+    "label": "Median rent",
+    "spearman": 0.111,
+    "perm_p": 0.5711,
+    "partial_spearman_given_income": -0.337,
+    "by_component": {
+     "safety": 0.192,
+     "opportunity": -0.303,
+     "amenities": 0.016,
+     "transportation": 0.307
+    }
+   }
+  ]
+ }
+}
