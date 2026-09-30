@@ -50,12 +50,12 @@ _LOCAL_CACHE_MODE = os.environ.get("PIPELINE_LOCAL_CACHE", "").strip().lower() i
 _session = requests.Session()
 # Public data APIs (Census/TIGERweb especially) time out or 5xx now and then; one slow response
 # used to kill the whole monthly refresh. Retry connect/read failures, 429 and 5xx with backoff
-# (2s, 4s, 8s, 16s). POST is included because every POST here is an ArcGIS read-only query.
+# (2s, 4s, 8s, 16s). GET only: the one POST caller (core/overpass.py) already fails over across mirrors.
 _retry = Retry(
     total=4,
     backoff_factor=2,
     status_forcelist=(429, 500, 502, 503, 504),
-    allowed_methods=frozenset({"GET", "POST"}),
+    allowed_methods=frozenset({"GET"}),
     respect_retry_after_header=True,
     raise_on_status=False,
 )
