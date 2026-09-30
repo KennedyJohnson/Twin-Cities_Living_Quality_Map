@@ -40,6 +40,10 @@ import osmium
 CACHE_DIR = Path(__file__).parent / ".cache"
 EXTRACT_PATH = CACHE_DIR / "minnesota-latest.osm.pbf"
 EXTRACT_URL = "https://download.geofabrik.de/north-america/us/minnesota-latest.osm.pbf"
+# Geofabrik's dated yearly snapshots (minnesota-YY0101.osm.pbf). Since Sep 2026 its "-latest" URLs
+# redirect to themselves from GitHub Actions runners while the dated files still download, so fall
+# back to the newest Jan 1 snapshot rather than dropping every OSM-based score component.
+SNAPSHOT_URL = "https://download.geofabrik.de/north-america/us/minnesota-{yy:02d}0101.osm.pbf"
 EXTRACT_MAX_AGE_DAYS = 30  # OSM building/amenity/trail data barely changes week to week;
 # monthly keeps the weekly pipeline refresh from re-downloading ~285MB every single run
 
@@ -70,19 +74,33 @@ def ensure_extract_downloaded():
         if age_days < EXTRACT_MAX_AGE_DAYS:
             return EXTRACT_PATH
 
-    print(f"[INFO] Downloading Minnesota OSM extract from {EXTRACT_URL} "
-          f"(one-time/weekly ~270MB download, replaces live Overpass calls)...")
     CACHE_DIR.mkdir(parents=True, exist_ok=True)
     tmp_path = EXTRACT_PATH.with_suffix(".pbf.tmp")
-    with requests.get(EXTRACT_URL, stream=True, timeout=300) as response:
-        response.raise_for_status()
-        with open(tmp_path, "wb") as f:
-            for chunk in response.iter_content(chunk_size=1024 * 1024):
-                f.write(chunk)
-    tmp_path.replace(EXTRACT_PATH)
-    print(f"[OK] Downloaded OSM extract to {EXTRACT_PATH} "
-          f"({EXTRACT_PATH.stat().st_size / 1e6:.0f} MB)")
-    return EXTRACT_PATH
+    year = time.gmtime().tm_year % 100
+    urls = [EXTRACT_URL, SNAPSHOT_URL.format(yy=year), SNAPSHOT_URL.format(yy=year - 1)]
+    session = requests.Session()
+    session.max_redirects = 5  # a redirect loop should fail fast and move on to the next URL
+    last_error = None
+    for url in urls:
+        print(f"[INFO] Downloading Minnesota OSM extract from {url} "
+              f"(one-time/monthly ~270MB download, replaces live Overpass calls)...")
+        try:
+            with session.get(url, stream=True, timeout=300) as response:
+                response.raise_for_status()
+                with open(tmp_path, "wb") as f:
+                    for chunk in response.iter_content(chunk_size=1024 * 1024):
+                        f.write(chunk)
+        except requests.RequestException as e:
+            last_error = e
+            print(f"[WARNING] OSM extract download failed from {url} ({e})")
+            continue
+        tmp_path.replace(EXTRACT_PATH)
+        print(f"[OK] Downloaded OSM extract to {EXTRACT_PATH} "
+              f"({EXTRACT_PATH.stat().st_size / 1e6:.0f} MB)")
+        if url != EXTRACT_URL:
+            print(f"[WARNING] Using the dated snapshot {url}; OSM layers reflect that date, not today")
+        return EXTRACT_PATH
+    raise last_error
 
 
 def _in_bbox(lat, lon, bbox):
