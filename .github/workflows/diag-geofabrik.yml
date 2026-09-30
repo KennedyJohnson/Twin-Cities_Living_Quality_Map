@@ -9,10 +9,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - run: |
-          B=https://download.geofabrik.de
-          echo "--- index entry"; curl -sS -m 60 $B/index-v1-nogeom.json | python3 -c "import sys,json; [print(json.dumps(f['properties'])) for f in json.load(sys.stdin)['features'] if 'minnesota' in f['properties']['id']]" || true
-          echo "--- us listing"; curl -sS -m 60 -o us.html -w '%{http_code}\n' $B/north-america/us/; grep -o 'minnesota[^"<]*' us.html | sort -u | head -20
-          echo "--- minnesota page"; curl -sS -m 60 -o mn.html -w '%{http_code}\n' $B/north-america/us/minnesota.html; grep -o 'href="[^"]*\.pbf[^"]*"' mn.html | head
-          for u in $B/north-america/us/minnesota-latest.osm.pbf.md5 $B/north-america/us/minnesota-latest-free.shp.zip http://download.geofabrik.de/north-america/us/minnesota-latest.osm.pbf $B/north-america/us-midwest-latest.osm.pbf $B/europe/monaco-latest.osm.pbf; do
-            printf '%s -> ' "$u"; curl -sS -o /dev/null -I -m 60 --max-redirs 3 -L -w '%{http_code} %{size_download} %{url_effective}\n' "$u" 2>&1 | tail -1; done
-          echo "--- bbbike"; curl -sS -o /dev/null -I -m 60 -L -w '%{http_code} %{url_effective}\n' https://download.bbbike.org/osm/bbbike/Minneapolis/Minneapolis.osm.pbf
+          p(){ printf '%s -> ' "$1"; curl -sS -o /dev/null -I -m 60 --max-redirs 3 -L -w '%{http_code} %{size_download} %header{content-length} %{url_effective}\n' "$1" 2>&1 | tail -1; }
+          p https://download.geofabrik.de/north-america/us/minnesota-260101.osm.pbf
+          p "https://download.geofabrik.de/north-america/us/minnesota-latest.osm.pbf?x=1"
+          echo "--- osm.fr listings"
+          for d in extracts/north-america/ extracts/north-america/us/ extracts/north-america/united_states/ extracts/north-america/us-midwest/; do printf '%s ' $d; curl -sS -m 60 -o l.html -w '%{http_code}\n' https://download.openstreetmap.fr/$d; grep -o 'href="[^"]*"' l.html | grep -i -E 'minn|us|united|midwest' | head -8; done
+          p https://download.openstreetmap.fr/extracts/north-america/us-midwest/minnesota-latest.osm.pbf
+          p https://download.openstreetmap.fr/extracts/north-america/united_states/minnesota-latest.osm.pbf
+          echo "--- bbbike list"; curl -sS -m 60 https://download.bbbike.org/osm/bbbike/ | grep -o 'href="[A-Z][^"/]*/"' | grep -i -E 'minn|saint|paul' | head
