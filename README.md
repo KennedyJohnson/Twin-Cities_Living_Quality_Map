@@ -87,7 +87,7 @@ Some sources are intentionally excluded from the map's point layers (permits) - 
 ## Development & Setup
 
 ### Prerequisites
-- Python 3.12+
+- Python 3.14+
 - Census API key (free, 2 min to get): https://api.census.gov/data/key_signup.html
 - No manual data downloads needed - all APIs are automated
 
