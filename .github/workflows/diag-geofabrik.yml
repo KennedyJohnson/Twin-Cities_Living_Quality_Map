@@ -8,26 +8,11 @@ jobs:
   diag:
     runs-on: ubuntu-latest
     steps:
-      - name: curl redirect chain
-        run: |
-          U=https://download.geofabrik.de/north-america/us/minnesota-latest.osm.pbf
-          curl -sS -o /dev/null -I -L --max-redirs 5 -w 'final %{http_code} %{url_effective}\n' "$U" -D - | grep -iE '^(HTTP|location|set-cookie|server|final)' | head -30 || true
-          echo "--- with browser UA"
-          curl -sS -o /dev/null -I -L --max-redirs 5 -A 'Mozilla/5.0' -w 'final %{http_code} %{url_effective}\n' "$U" -D - | grep -iE '^(HTTP|location|final)' | head -20 || true
-          echo "--- with cookie jar"
-          curl -sS -o /dev/null -I -L --max-redirs 10 -c /tmp/j -b /tmp/j -w 'final %{http_code} %{url_effective}\n' "$U" -D - | grep -iE '^(HTTP|location|final)' | head -20 || true
-          echo "--- openstreetmap.fr mirror"
-          curl -sS -o /dev/null -I -L -w 'final %{http_code} %{size_download} %{url_effective}\n' https://download.openstreetmap.fr/extracts/north-america/us/minnesota-latest.osm.pbf -D - | grep -iE '^(HTTP|content-length|last-modified|final)' | head || true
-      - name: python requests
-        run: |
-          python3 - <<'PY'
-          import requests
-          U="https://download.geofabrik.de/north-america/us/minnesota-latest.osm.pbf"
-          for ua in [None, "Twin-Cities-Living-Quality-Map/1.0 (+https://github.com/KennedyJohnson/Twin-Cities_Living_Quality_Map)"]:
-              try:
-                  s=requests.Session(); s.max_redirects=8
-                  r=s.head(U, allow_redirects=True, timeout=60, headers={"User-Agent": ua} if ua else None)
-                  print(ua, r.status_code, r.url, [h.headers.get("location") for h in r.history][:5])
-              except Exception as e:
-                  print(ua, "ERR", type(e).__name__, e, [ (h.status_code, h.headers.get("location")) for h in getattr(e.response,'history',[]) or []][:6] if getattr(e,'response',None) is not None else "")
-          PY
+      - run: |
+          B=https://download.geofabrik.de
+          echo "--- index entry"; curl -sS -m 60 $B/index-v1-nogeom.json | python3 -c "import sys,json; [print(json.dumps(f['properties'])) for f in json.load(sys.stdin)['features'] if 'minnesota' in f['properties']['id']]" || true
+          echo "--- us listing"; curl -sS -m 60 -o us.html -w '%{http_code}\n' $B/north-america/us/; grep -o 'minnesota[^"<]*' us.html | sort -u | head -20
+          echo "--- minnesota page"; curl -sS -m 60 -o mn.html -w '%{http_code}\n' $B/north-america/us/minnesota.html; grep -o 'href="[^"]*\.pbf[^"]*"' mn.html | head
+          for u in $B/north-america/us/minnesota-latest.osm.pbf.md5 $B/north-america/us/minnesota-latest-free.shp.zip http://download.geofabrik.de/north-america/us/minnesota-latest.osm.pbf $B/north-america/us-midwest-latest.osm.pbf $B/europe/monaco-latest.osm.pbf; do
+            printf '%s -> ' "$u"; curl -sS -o /dev/null -I -m 60 --max-redirs 3 -L -w '%{http_code} %{size_download} %{url_effective}\n' "$u" 2>&1 | tail -1; done
+          echo "--- bbbike"; curl -sS -o /dev/null -I -m 60 -L -w '%{http_code} %{url_effective}\n' https://download.bbbike.org/osm/bbbike/Minneapolis/Minneapolis.osm.pbf
