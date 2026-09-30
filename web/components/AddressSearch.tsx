@@ -43,7 +43,7 @@ export default function AddressSearch({ onAddressSelect, initialQuery }: Address
   const suggestionsRef = useRef<HTMLDivElement | null>(null);
 
   // Debounce search
-  const debounceTimer = useRef<NodeJS.Timeout>();
+  const debounceTimer = useRef<NodeJS.Timeout | undefined>(undefined);
 
   const searchAddresses = async (query: string) => {
     if (!query || query.length < 3) {
