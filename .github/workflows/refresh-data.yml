@@ -12,6 +12,7 @@ on:
 permissions:
   contents: write
   actions: write # start CI on the automated branch and watch it
+  pull-requests: write # land the refresh through a PR
 
 jobs:
   refresh:
@@ -99,9 +100,10 @@ jobs:
           git add -u pipeline/data
           git diff --staged --quiet && { echo "No data changes."; exit 0; }
           git commit -m "chore: refresh pipeline data [automated]"
-          # main's ruleset requires passing pipeline-tests + frontend-e2e on a commit before it lands.
-          # Push the commit to a temporary branch, run CI there, then fast-forward main to that
-          # same (now checked) commit.
+          # main's ruleset requires passing pipeline-tests + frontend-e2e and, on a user-owned repo, blocks
+          # direct bot pushes even when those pass. So: push the commit to a temporary branch, run CI
+          # there, then land it through a pull request (merging only needs the checks on its head).
+          # Needs Settings > Actions > General > "Allow GitHub Actions to create and approve pull requests".
           branch="automated/refresh-${{ github.run_id }}"
           git push origin "HEAD:refs/heads/$branch"
           trap 'git push origin --delete "$branch" || true' EXIT
@@ -114,7 +116,16 @@ jobs:
           done
           [ -n "$run" ] || { echo "CI run for $branch never started"; exit 1; }
           gh run watch "$run" --exit-status --interval 30
-          git push origin HEAD:main
+          pr=$(gh pr create --base main --head "$branch" \
+            --title "chore: refresh pipeline data [automated]" \
+            --body "Monthly data refresh from run ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}. CI passed on this commit.")
+          # the merge reads the head commit's check results, which can lag the CI run by a few seconds
+          for attempt in $(seq 1 10); do
+            gh pr merge "$pr" --squash && exit 0 # the EXIT trap deletes the branch
+            echo "Merge attempt $attempt failed; retrying in 30s"
+            sleep 30
+          done
+          exit 1
         env:
           GH_TOKEN: ${{ github.token }}
 
