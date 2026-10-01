@@ -6,6 +6,8 @@ export default defineConfig([
   ...nextVitals,
   ...nextTs,
   {
+    // Explicit version: eslint-plugin-react's "detect" calls context.getFilename(), removed in ESLint 10.
+    settings: { react: { version: "19.3" } },
     rules: {
       // The map code deliberately syncs props into refs during render and resets state in effects
       // (see the comments at each site); React Compiler's stricter rules are advisory here.
