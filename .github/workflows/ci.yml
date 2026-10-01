@@ -4,6 +4,8 @@ on:
   pull_request:
   push:
     branches: [main]
+  # refresh-data.yml runs this on its automated branch so the commit has the checks main requires
+  workflow_dispatch: {}
 
 permissions:
   contents: read

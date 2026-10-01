@@ -11,6 +11,7 @@ on:
 
 permissions:
   contents: write
+  actions: write # start CI on the automated branch and watch it
 
 jobs:
   refresh:
@@ -96,8 +97,26 @@ jobs:
           # `git add` exit 1, so only update files git already tracks there
           git add web/public/data
           git add -u pipeline/data
-          git diff --staged --quiet || git commit -m "chore: refresh pipeline data [automated]"
-          git push
+          git diff --staged --quiet && { echo "No data changes."; exit 0; }
+          git commit -m "chore: refresh pipeline data [automated]"
+          # main's ruleset requires passing pipeline-tests + frontend-e2e on a commit before it lands.
+          # Push the commit to a temporary branch, run CI there, then fast-forward main to that
+          # same (now checked) commit.
+          branch="automated/refresh-${{ github.run_id }}"
+          git push origin "HEAD:refs/heads/$branch"
+          trap 'git push origin --delete "$branch" || true' EXIT
+          gh workflow run ci.yml --ref "$branch"
+          run=""
+          for _ in $(seq 1 20); do
+            sleep 10
+            run=$(gh run list --workflow ci.yml --branch "$branch" --event workflow_dispatch --limit 1 --json databaseId --jq '.[0].databaseId // empty')
+            [ -n "$run" ] && break
+          done
+          [ -n "$run" ] || { echo "CI run for $branch never started"; exit 1; }
+          gh run watch "$run" --exit-status --interval 30
+          git push origin HEAD:main
+        env:
+          GH_TOKEN: ${{ github.token }}
 
   alert-on-failure:
     needs: refresh
