@@ -51,6 +51,16 @@ export default function Home() {
   const [isDraggingSidebar, setIsDraggingSidebar] = useState(false);
   const dragStateRef = useRef<{ startX: number; startWidth: number } | null>(null);
 
+  // Phone-only: the score/view selectors collapse behind an "Options" button.
+  const [optionsOpen, setOptionsOpen] = useState(false);
+  const sidebarRef = useRef<HTMLDivElement>(null);
+  const selectedId = selectedDistrict?.district_id;
+  // Phone layout stacks the details panel under the map; bring it into view
+  // when a place is picked so the selection doesn't look like it did nothing.
+  useEffect(() => {
+    if (selectedId == null || !window.matchMedia('(max-width: 768px)').matches) return;
+    sidebarRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, [selectedId]);
   const [matchFinderOpen, setMatchFinderOpen] = useState(false);
   const [matchWeights, setMatchWeights] = useState<MatchWeights>({ ...DEFAULT_MATCH_WEIGHTS });
   const [maxRent, setMaxRent] = useState<number | null>(null);
@@ -435,10 +445,18 @@ export default function Home() {
           housesVisible={housesVisible}
           onToggleHouses={() => setHousesVisible((v) => !v)}
         />
-        <div className={`map-controls-stack${matchFinderOpen ? ' match-finder-active' : ''}`}>
+        <div className={`map-controls-stack${matchFinderOpen ? ' match-finder-active' : ''}${optionsOpen ? ' options-open' : ''}`}>
           {!matchFinderOpen && (
             <>
               <AddressSearch onAddressSelect={handleAddressSelect} initialQuery={initialQuery} />
+              <button
+                type="button"
+                className="mobile-options-toggle"
+                aria-expanded={optionsOpen}
+                onClick={() => setOptionsOpen((v) => !v)}
+              >
+                {optionsOpen ? 'Hide map options ▴' : 'Map options ▾'}
+              </button>
               <ScoreSelector value={scoreMetric} onChange={setScoreMetric} colorMetric={colorMetric} onColorMetricChange={setColorMetric} />
               <div className="click-mode-toggle">
                 <div className="click-mode-toggle-row">
@@ -575,7 +593,7 @@ export default function Home() {
           ))}
         </nav>
       </div>
-      <div className="sidebar-wrapper" style={{ width: sidebarWidth }}>
+      <div className="sidebar-wrapper" ref={sidebarRef} style={{ width: sidebarWidth }}>
         <div
           className={`sidebar-resize-handle${isDraggingSidebar ? ' dragging' : ''}`}
           onMouseDown={handleResizeStart}

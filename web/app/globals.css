@@ -374,6 +374,11 @@ body {
   flex-shrink: 1;
 }
 
+.legend-expand-button,
+.mobile-options-toggle {
+  display: none;
+}
+
 @media (max-width: 768px) {
   .container {
     flex-direction: column;
@@ -386,8 +391,8 @@ body {
   .map-container {
     flex: none;
     width: 100%;
-    height: 60vh;
-    height: 60dvh;
+    height: 68vh;
+    height: 68dvh;
   }
 
   .sidebar-wrapper {
@@ -405,20 +410,119 @@ body {
   .sidebar {
     height: auto;
     min-height: 40vh;
+    padding: 16px;
   }
-}
 
-@media (max-width: 480px) {
+  /* Top controls: search always visible, the rest behind a toggle. */
   .map-controls-stack {
-    max-width: calc(100vw - 40px);
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-content: flex-start;
+    top: 10px;
+    left: 10px;
+    right: 56px;
+    max-height: calc(100% - 20px);
+    gap: 8px;
   }
-
+  .map-controls-stack > * {
+    max-width: 100%;
+  }
+  .map-controls-stack:not(.options-open) .score-selector,
+  .map-controls-stack:not(.options-open) .click-mode-toggle {
+    display: none;
+  }
   .address-search,
   .score-selector,
   .click-mode-toggle,
-  .selected-place {
-    width: calc(100vw - 40px);
-    max-width: calc(100vw - 40px);
+  .selected-place,
+  .match-finder-panel {
+    width: 100%;
+    max-width: 100%;
+  }
+  .match-finder-panel {
+    max-height: calc(68dvh - 130px);
+  }
+  .map-controls-stack .match-finder-toggle {
+    padding: 6px 14px;
+    font-size: 13px;
+    border-radius: 999px;
+    width: auto;
+    align-self: auto;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+  }
+  .map-controls-stack.match-finder-active .match-finder-toggle {
+    width: 100%;
+    padding: 10px 14px;
+    font-size: 15px;
+  }
+  /* Overlay panels get the whole map; hide the legend underneath them. */
+  .map-container:has(.options-open) .legend,
+  .map-container:has(.match-finder-active) .legend {
+    display: none;
+  }
+  .mobile-options-toggle {
+    display: block;
+    flex-shrink: 0;
+    padding: 6px 12px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #444;
+    background: rgba(255, 255, 255, 0.96);
+    border: none;
+    border-radius: 999px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  }
+  .search-input,
+  .score-selector select,
+  .score-selector input {
+    font-size: 16px; /* avoids iOS zoom-on-focus */
+  }
+
+  /* Bottom: legend collapses to its grade scale, nav is a full-width strip. */
+  .legend {
+    bottom: 54px;
+    left: 10px;
+    max-width: calc(100% - 20px);
+    padding: 10px 12px;
+  }
+  .legend-collapsed .legend-details {
+    display: none;
+  }
+  .legend:not(.legend-collapsed) {
+    max-height: calc(100% - 190px);
+    overflow-y: auto;
+  }
+  .legend-expand-button {
+    display: block;
+    margin-top: 8px;
+    padding: 4px 0;
+    width: 100%;
+    font-size: 12px;
+    font-weight: 600;
+    color: #756bb1;
+    background: none;
+    border: none;
+    text-align: left;
+  }
+  .legend-color {
+    width: 28px;
+    height: 28px;
+  }
+  .map-nav {
+    left: 10px;
+    right: 10px;
+    bottom: 10px;
+    justify-content: space-between;
+  }
+  .map-nav a {
+    padding: 8px 6px;
+    flex: 1;
+    text-align: center;
+  }
+  .leaflet-control-zoom a {
+    width: 36px !important;
+    height: 36px !important;
+    line-height: 36px !important;
   }
 }
 

@@ -66,6 +66,9 @@ export default function Legend({
   // Publish the legend's height so .map-controls-stack (top-left) can stop
   // above it instead of overlapping on shorter screens.
   const legendRef = useRef<HTMLDivElement>(null);
+  // On phones the legend starts collapsed to its grade scale (CSS only applies
+  // .legend-collapsed under the mobile breakpoint; desktop always shows all).
+  const [expanded, setExpanded] = useState(false);
   useEffect(() => {
     const el = legendRef.current;
     if (!el) return;
@@ -76,7 +79,7 @@ export default function Legend({
   }, []);
 
   return (
-    <div className="legend" ref={legendRef}>
+    <div className={`legend${expanded ? '' : ' legend-collapsed'}`} ref={legendRef}>
       <div className="legend-title">{colorMetric ? COLOR_METRICS[colorMetric].label : SCORE_METRIC_LABELS[scoreMetric]}</div>
       <div className="legend-scale">
         {grades.map((grade) => {
@@ -113,6 +116,15 @@ export default function Legend({
         <span>{colorMetric ? (COLOR_METRICS[colorMetric].higherIsBetter ? 'Highest' : 'Lowest') : 'Excellent'}</span>
       </div>
 
+      <button
+        type="button"
+        className="legend-expand-button"
+        aria-expanded={expanded}
+        onClick={() => setExpanded((v) => !v)}
+      >
+        {expanded ? 'Hide data points ▴' : 'Data points ▾'}
+      </button>
+      <div className="legend-details">
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '10px' }}>
         <div className="legend-title" style={{ marginTop: 0 }}>Data Points</div>
         <button
@@ -208,6 +220,7 @@ export default function Legend({
             </span>
           </label>
         )}
+      </div>
       </div>
     </div>
   );
