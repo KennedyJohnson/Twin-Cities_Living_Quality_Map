@@ -122,7 +122,7 @@ export default function Legend({
         aria-expanded={expanded}
         onClick={() => setExpanded((v) => !v)}
       >
-        {expanded ? 'Hide data points ▴' : 'Data points ▾'}
+        {expanded ? 'Hide layers ▴' : 'Show layers ▾'}
       </button>
       <div className="legend-details">
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '10px' }}>
