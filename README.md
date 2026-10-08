@@ -192,3 +192,10 @@ Code is released under the [MIT License](LICENSE). Data is **not** covered by th
 - **Zillow Research** - for-sale inventory from [Zillow's public research data](https://www.zillow.com/research/data/), subject to Zillow's terms of use.
 
 Scores are analytical estimates from these sources for exploration only, not official ratings.
+
+## Tools used
+
+- Next.js
+- Python
+- GitHub Actions
+- Vercel
