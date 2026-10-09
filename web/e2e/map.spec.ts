@@ -41,3 +41,29 @@ test('changing the score selector updates the legend title', async ({ page }) =>
   await select.selectOption('safety');
   await expect(legendTitle).toHaveText('Safety & Health');
 });
+
+test('personal weights in the URL hash apply on load', async ({ page }) => {
+  await page.goto('/#weights=safety:10,opportunity:0,amenities:0,transportation:0,affordability:0');
+
+  await page.getByText('Show personal weights').click();
+  await expect(page.getByLabel('Safety & Health weight')).toHaveValue('10');
+  await expect(page.getByLabel('Opportunity weight')).toHaveValue('0');
+  await expect(page.getByText('Your Weighted Score').first()).toBeVisible({ timeout: 15000 });
+});
+
+test('moving a personal weight slider updates the hash, reset clears it', async ({ page }) => {
+  await page.goto('/');
+
+  await page.getByText('Show personal weights').click();
+  const slider = page.getByLabel('Transportation weight');
+  await slider.focus();
+  await page.keyboard.press('ArrowLeft');
+  await page.keyboard.press('ArrowLeft');
+  await page.keyboard.press('ArrowLeft');
+  await expect(slider).toHaveValue('2');
+  await expect.poll(() => page.evaluate(() => window.location.hash)).toContain('transportation:2');
+
+  await page.getByRole('button', { name: 'Reset to equal weights' }).click();
+  await expect(slider).toHaveValue('5');
+  await expect.poll(() => page.evaluate(() => window.location.hash)).toBe('');
+});

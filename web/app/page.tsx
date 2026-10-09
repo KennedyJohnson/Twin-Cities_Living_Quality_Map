@@ -11,9 +11,17 @@ import AddressSearch from '@/components/AddressSearch';
 import Legend from '@/components/Legend';
 import ScoreSelector from '@/components/ScoreSelector';
 import MatchFinder from '@/components/MatchFinder';
+import PersonalWeightsPanel from '@/components/PersonalWeightsPanel';
 import type { Neighborhood } from '@/types/neighborhood';
 import type { ScoreMetricKey, MatchWeights } from '@/lib/scoreMetric';
 import { DEFAULT_MATCH_WEIGHTS, hasActiveWeights } from '@/lib/scoreMetric';
+import {
+  DEFAULT_PERSONAL_WEIGHTS,
+  isEqualWeights,
+  parseWeightsFromHash,
+  persistWeights,
+  readStoredWeights,
+} from '@/lib/personalWeights';
 import type { ColorMetricKey } from '@/lib/colorMetric';
 import type { MapClickMode, MapGranularity } from '@/components/NeighborhoodMap';
 import { reverseGeocode, googleMapsSearchUrl, snapToNearestBuilding, findNearestNamedPlace, cityForDistrictId } from '@/lib/geo';
@@ -63,6 +71,23 @@ export default function Home() {
   }, [selectedId]);
   const [matchFinderOpen, setMatchFinderOpen] = useState(false);
   const [matchWeights, setMatchWeights] = useState<MatchWeights>({ ...DEFAULT_MATCH_WEIGHTS });
+  // Personal weights for the Overall score. Loaded after mount (hash first,
+  // then localStorage) to avoid an SSR hydration mismatch. Changes are written
+  // with replaceState inside updatePersonalWeights, not in an effect, so the
+  // initial load can never overwrite an incoming shared link with defaults.
+  const [personalWeights, setPersonalWeights] = useState<MatchWeights>({ ...DEFAULT_PERSONAL_WEIGHTS });
+  useEffect(() => {
+    const applyFromUrl = () => {
+      setPersonalWeights(parseWeightsFromHash(window.location.hash) ?? readStoredWeights() ?? { ...DEFAULT_PERSONAL_WEIGHTS });
+    };
+    applyFromUrl();
+    window.addEventListener('hashchange', applyFromUrl);
+    return () => window.removeEventListener('hashchange', applyFromUrl);
+  }, []);
+  const updatePersonalWeights = useCallback((next: MatchWeights) => {
+    setPersonalWeights(next);
+    persistWeights(next);
+  }, []);
   const [maxRent, setMaxRent] = useState<number | null>(null);
   const [maxHomeValue, setMaxHomeValue] = useState<number | null>(null);
   const [housingMode, setHousingMode] = useState<'rent' | 'buy'>('rent');
@@ -385,6 +410,20 @@ export default function Home() {
     revealNearbyLayers();
   };
 
+  // Personal weights only re-score the Overall score on the default coloring.
+  // A single metric in "Color districts by" or an active Find Your Match panel
+  // takes precedence, and equal weights keep the published score unchanged.
+  const personalActive =
+    scoreMetric === 'health_score' &&
+    !colorMetric &&
+    hasActiveWeights(personalWeights) &&
+    !isEqualWeights(personalWeights);
+  const personalInactiveReason: 'metric' | 'zero' | null =
+    !hasActiveWeights(personalWeights) ? 'zero' : scoreMetric !== 'health_score' || colorMetric ? 'metric' : null;
+  const mapWeights: MatchWeights | null = matchFinderOpen
+    ? (hasActiveWeights(matchWeights) ? matchWeights : null)
+    : (personalActive ? personalWeights : null);
+
   return (
     <div className="container">
       <div className="map-container">
@@ -401,7 +440,7 @@ export default function Home() {
           colorMetric={colorMetric}
           onPlaceScoreComputed={setSelectedDistrict}
           hiddenSources={hiddenSources}
-          matchWeights={matchFinderOpen && hasActiveWeights(matchWeights) ? matchWeights : null}
+          matchWeights={mapWeights}
           excludedDistrictIds={excludedDistrictIds}
           granularity={granularity}
           matchRegions={matchRegions}
@@ -458,6 +497,12 @@ export default function Home() {
                 {optionsOpen ? 'Hide map options ▴' : 'Map options ▾'}
               </button>
               <ScoreSelector value={scoreMetric} onChange={setScoreMetric} colorMetric={colorMetric} onColorMetricChange={setColorMetric} />
+              <PersonalWeightsPanel
+                weights={personalWeights}
+                onChange={updatePersonalWeights}
+                active={personalActive}
+                inactiveReason={personalInactiveReason}
+              />
               <div className="click-mode-toggle">
                 <div className="click-mode-toggle-row">
                   <span className="click-mode-toggle-label">Map view:</span>
@@ -623,6 +668,7 @@ export default function Home() {
             granularity={granularity}
             scoreMetric={scoreMetric}
             colorMetric={colorMetric}
+            personalWeights={personalActive ? personalWeights : null}
             reviewsUrl={
               searchMarker
                 ? googleMapsSearchUrl(searchMarker.lat, searchMarker.lon, searchMarker.isNamedPlace ? searchMarker.label : undefined)
