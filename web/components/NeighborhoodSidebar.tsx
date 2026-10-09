@@ -24,7 +24,8 @@ import { loadNeighborhoodData } from '@/lib/loadNeighborhoodData';
 import { cityForDistrictId } from '@/lib/geo';
 import type { ListingPrefs } from '@/lib/listingLinks';
 import type { Neighborhood } from '@/types/neighborhood';
-import type { ScoreMetricKey } from '@/lib/scoreMetric';
+import type { ScoreMetricKey, MatchWeights } from '@/lib/scoreMetric';
+import { computeMatchScore } from '@/lib/scoreMetric';
 import { COLOR_METRICS, ColorMetricKey } from '@/lib/colorMetric';
 
 // Below this magnitude a vs-average difference reads as noise rather than a
@@ -50,6 +51,9 @@ interface NeighborhoodSidebarProps {
   // click to see what's driving the color the user just clicked on.
   scoreMetric?: ScoreMetricKey;
   colorMetric?: ColorMetricKey | null;
+  // The visitor's personal weights, passed only while they are applied to the
+  // overall score (null otherwise). The overall score then shows the blend.
+  personalWeights?: MatchWeights | null;
   // Notified whenever the expanded component-score panel changes (including
   // back to null when collapsed or the district changes), so the map can
   // auto-reveal the point layers relevant to whichever component is open.
@@ -118,7 +122,7 @@ interface AffordabilityFile {
   districts: Record<string, Affordability>;
 }
 
-export default function NeighborhoodSidebar({ district, onSelectDistrict, granularity = 'district', reviewsUrl, reviewsLinkIsNamedPlace = false, scoreMetric, colorMetric = null, onExpandedIndexChange, center = null, maxRent = null, maxHomeValue = null, housingMode, minBeds = null, listingPrefs }: NeighborhoodSidebarProps) {
+export default function NeighborhoodSidebar({ district, onSelectDistrict, granularity = 'district', reviewsUrl, reviewsLinkIsNamedPlace = false, scoreMetric, colorMetric = null, personalWeights = null, onExpandedIndexChange, center = null, maxRent = null, maxHomeValue = null, housingMode, minBeds = null, listingPrefs }: NeighborhoodSidebarProps) {
   const [affordability, setAffordability] = useState<Record<string, Affordability>>({});
   const [acsYear, setAcsYear] = useState<number | null>(null);
   const [expandedIndex, setExpandedIndex] = useState<string | null>(null);
@@ -274,7 +278,7 @@ export default function NeighborhoodSidebar({ district, onSelectDistrict, granul
         <div className="no-selection">
           {granularity === 'zip' ? 'Click a ZIP code on the map to view details' : 'Click a district on the map to view details'}
         </div>
-        <TopDistrictsRanking onSelectDistrict={onSelectDistrict} granularity={granularity} />
+        <TopDistrictsRanking onSelectDistrict={onSelectDistrict} granularity={granularity} personalWeights={personalWeights} />
       </div>
     );
   }
@@ -355,12 +359,17 @@ export default function NeighborhoodSidebar({ district, onSelectDistrict, granul
       })()}
 
       <div style={{ fontSize: '13px', fontWeight: 600, color: '#666', marginBottom: '2px' }}>
-        Overall Living Quality Score
+        {personalWeights ? 'Your Weighted Score' : 'Overall Living Quality Score'}
       </div>
       <div className="health-score-display">
-        {Math.round(district.health_score)}
+        {Math.round(personalWeights ? computeMatchScore(district, personalWeights) : district.health_score)}
         <GradeBadge percentile={healthScoreGrade} size="large" />
       </div>
+      {personalWeights && (
+        <div style={{ fontSize: '12px', color: '#999', marginBottom: '4px' }}>
+          Overall score with equal weights: {Math.round(district.health_score)}. Grade reflects the overall score.
+        </div>
+      )}
 
       <IndexComparisonChart
         district={district}
