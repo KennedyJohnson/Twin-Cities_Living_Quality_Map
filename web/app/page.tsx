@@ -408,6 +408,21 @@ export default function Home() {
       address: building.address ?? undefined,
     });
     revealNearbyLayers();
+    // House dots without an OSM address tag arrive with a generic name; label
+    // them with the reverse-geocoded street address instead.
+    if (!building.address && building.district_id === 0) {
+      reverseGeocode(building.lat, building.lon).then(({ address }) => {
+        if (!address) return;
+        const parts = address.split(',').map((s) => s.trim());
+        // Nominatim puts the house number first: "123, Grand Avenue, ..."
+        const label = /^\d/.test(parts[0]) && parts[1] ? `${parts[0]} ${parts[1]}` : parts[0];
+        setSearchMarker((prev) =>
+          prev && prev.lat === building.lat && prev.lon === building.lon
+            ? { ...prev, label, address }
+            : prev
+        );
+      });
+    }
   };
 
   // Personal weights only re-score the Overall score on the default coloring.

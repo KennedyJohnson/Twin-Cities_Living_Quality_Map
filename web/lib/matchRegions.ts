@@ -84,5 +84,5 @@ export async function housesInRegion(
   const wanted = new Set(osmTypes);
   return data
     .filter((h) => wanted.has(h.building_type) && haversineMeters(center.lat, center.lon, h.lat, h.lon) <= radiusMeters)
-    .map((h) => ({ id: h.osm_id, kind: 'house' as const, name: h.address || (h.building_type === 'inferred_house' ? 'Likely house' : 'House'), address: h.address, lat: h.lat, lon: h.lon }));
+    .map((h) => ({ id: h.osm_id, kind: 'house' as const, name: h.address || 'House', address: h.address, lat: h.lat, lon: h.lon }));
 }

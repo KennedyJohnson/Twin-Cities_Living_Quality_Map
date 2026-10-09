@@ -1508,7 +1508,7 @@ function MapContent({
           fillColor: '#d9b48f',
           fillOpacity: 0.9,
         })
-          .bindTooltip(escapeHtml(h.address || (h.building_type === 'inferred_house' ? 'Likely house' : h.building_type.replace('_', ' '))), { direction: 'top', offset: [0, -4] })
+          .bindTooltip(escapeHtml(h.address || 'Click for address'), { direction: 'top', offset: [0, -4] })
           .on('click', (e) => {
             // Same selection flow as an apartment-building dot (fly-to, place
             // marker, 1-mile radius score); stop propagation so the map's own
@@ -1516,7 +1516,7 @@ function MapContent({
             L.DomEvent.stopPropagation(e);
             onSelectApartmentBuildingRef.current?.({
               id: h.osm_id,
-              name: h.address || (h.building_type === 'inferred_house' ? 'Likely house' : 'House'),
+              name: h.address || 'Loading address…',
               address: h.address,
               lat: h.lat,
               lon: h.lon,
