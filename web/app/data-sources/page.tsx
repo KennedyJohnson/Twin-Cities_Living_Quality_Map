@@ -57,7 +57,7 @@ export default function DataSourcesPage() {
         <TechRow name="pytest" use="unit tests for the scoring math" />
         <TechRow name="Playwright" use="end-to-end tests of the map UI" />
         <TechRow name="GitHub Actions" use="scheduled data refreshes and CI on every pull request" />
-        <TechRow name="Vercel" use="hosting, deployment, and analytics" />
+        <TechRow name="Cloudflare Workers" use="hosting and deployment" />
         <TechRow name="Claude Code" use="AI-assisted development of the pipeline and frontend" />
       </ul>
     </div>

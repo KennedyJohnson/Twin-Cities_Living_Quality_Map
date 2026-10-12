@@ -37,7 +37,7 @@ pipeline/                    # Data processing (build.py orchestrates cleaners/ 
 │   ├── core/socrata.py      # Socrata API client
 │   ├── .env.example         # Template (Census API key only)
 │   └── config/              # Configuration, ArcGIS endpoints, crosswalks
-web/                         # Next.js frontend (deployed on Vercel)
+web/                         # Next.js frontend (deployed on Cloudflare Workers via OpenNext)
 .github/workflows/           # Scheduled data refresh + CI
 ```
 See `README.md` and `SETUP_API.md` for full architecture and local setup.
@@ -90,7 +90,7 @@ python build.py
 - **"Find Your Match" apartments-vs-houses filter** - implemented 2026-09-23 via Supabase, see "Supabase" below.
 
 #### Supabase (added 2026-09-23)
-- Project `wnzawjzruzvxwdmhjxcb`; schema in `supabase/migrations/` (applied manually in the SQL Editor). Keys: `pipeline/.env` (`SUPABASE_URL`, `SUPABASE_SECRET_KEY`, also GitHub secrets), `web/.env.local` + Vercel (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`). All Supabase features no-op if keys are unset.
+- Project `wnzawjzruzvxwdmhjxcb`; schema in `supabase/migrations/` (applied manually in the SQL Editor). Keys: `pipeline/.env` (`SUPABASE_URL`, `SUPABASE_SECRET_KEY`, also GitHub secrets), `web/.env.local` + Cloudflare build variables (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`). All Supabase features no-op if keys are unset.
 - **Score history:** `exports/export_supabase.py` (runs after export_all in refresh-data.yml) appends `refresh_runs` + one `area_snapshots` row per district/ZIP. It also runs health checks against the previous run (score jumps >=10, metric counts doubling/halving/zeroing, missing areas) -> `refresh_runs.warnings` + GitHub `::warning::` annotations. Sidebar trend chart: `web/components/ScoreHistoryChart.tsx`.
 - **Houses:** `exports/export_houses_supabase.py` syncs ~205K buildings into PostGIS `houses`: ~100K explicitly tagged house/detached/semidetached_house/terrace/bungalow plus ~105K `inferred_house` (untagged `building=yes` imports, 70-400 m^2 footprint, no name/shop/amenity/etc. tags - without these, import-heavy areas like Highland Park, 93% `building=yes`, showed ~5% of their houses); the map fetches per viewport via the `houses_in_bbox()` RPC at zoom >= `HOUSES_MIN_ZOOM` (legend toggle, off by default; clicks reuse the apartment-select flow). Find Your Match (`lib/matchRegions.ts` `housesInRegion`) adds houses matching the House/Townhome/Multi-family checkboxes to each region; apartments still anchor regions since only they carry precomputed radius scores.
 

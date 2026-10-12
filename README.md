@@ -1,12 +1,12 @@
 # Twin Cities Living Quality Map
 
-[![CI](https://github.com/KennedyJohnson/Twin-Cities_Living_Quality_Map/actions/workflows/ci.yml/badge.svg)](https://github.com/KennedyJohnson/Twin-Cities_Living_Quality_Map/actions/workflows/ci.yml) [![Live site](https://img.shields.io/badge/live-vercel-black)](https://twin-cities-living-quality-map.vercel.app/) [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![CI](https://github.com/KennedyJohnson/Twin-Cities_Living_Quality_Map/actions/workflows/ci.yml/badge.svg)](https://github.com/KennedyJohnson/Twin-Cities_Living_Quality_Map/actions/workflows/ci.yml) [![Live site](https://img.shields.io/badge/live-cloudflare-orange)](https://twin-cities-living-quality-map.ken-j.workers.dev/) [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 ![Twin Cities Living Quality Map showing the Southwest district colored by average commute time](docs/screenshot.png)
 
 An interactive map comparing quality of life across St. Paul's 17 District Councils and Minneapolis's 11 Communities, built from city open data, OpenStreetMap, the U.S. Census, MnDOT, and CDC.
 
-**Live Dashboard:** deployed on Vercel (Next.js frontend in `web/`).
+**Live Dashboard:** deployed on Cloudflare Workers via OpenNext (Next.js frontend in `web/`).
 
 ---
 
@@ -153,7 +153,7 @@ Twin Cities Living Quality Map
 │   ├── config/                  (sources.json, sources_mpls.json, weights.json, mpls_neighborhood_to_community.json, stpaul_sources.json)
 │   ├── boundaries/, crosswalks/, data/ (raw boundary GeoJSON, geo crosswalks, population CSVs; /data/ is optional fallback)
 │   └── tests/                   (pytest unit tests for the scoring math)
-├── web/                         (Next.js frontend, deployed on Vercel)
+├── web/                         (Next.js frontend, deployed on Cloudflare Workers via OpenNext)
 │   ├── app/                     (pages: map, /trends, /about; icon.svg favicon)
 │   ├── components/              (NeighborhoodMap, Legend, sidebars, MatchFinder, comparison/trend charts)
 │   ├── lib/                     (ColorScale, radiusScore, matchRegions, data loading, metric labels)
@@ -198,4 +198,4 @@ Scores are analytical estimates from these sources for exploration only, not off
 - Next.js
 - Python
 - GitHub Actions
-- Vercel
+- Cloudflare Workers (OpenNext)
