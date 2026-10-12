@@ -1,5 +1,4 @@
 import type { Metadata, Viewport } from 'next';
-import { Analytics } from '@vercel/analytics/next';
 import { Inter } from 'next/font/google';
 import './globals.css';
 import DataFreshness from '@/components/DataFreshness';
@@ -26,7 +25,6 @@ export default function RootLayout({
       <body>
         <DataFreshness />
         {children}
-        <Analytics />
       </body>
     </html>
   );

@@ -7,12 +7,14 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
+    "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy"
   },
   "dependencies": {
+    "@opennextjs/cloudflare": "^1.20.10",
     "@supabase/supabase-js": "^2.117.2",
     "@types/leaflet.markercluster": "^1.5.6",
-    "@vercel/analytics": "^2.0.1",
     "leaflet": "^1.9.4",
     "leaflet.markercluster": "^1.5.3",
     "next": "^16.3.8",
@@ -32,7 +34,8 @@
     "eslint-config-next": "^16.3.7",
     "postcss": "^8.4.32",
     "tailwindcss": "^4.3.3",
-    "typescript": "^5.3.3"
+    "typescript": "^5.3.3",
+    "wrangler": "^4.149.0"
   },
   "allowScripts": {
     "unrs-resolver@1.12.2": true

@@ -7,3 +7,6 @@ build/
 .env.local
 .env.*.local
 .DS_Store
+
+.open-next/
+.wrangler/
