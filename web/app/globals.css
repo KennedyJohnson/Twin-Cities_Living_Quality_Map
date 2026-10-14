@@ -117,7 +117,7 @@ body {
 }
 
 .hero-callout {
-  color: #756bb1;
+  color: #1f5f7a;
   font-weight: 600;
 }
 
@@ -238,7 +238,7 @@ body {
 .district-title-reviews-link {
   font-size: 13px;
   font-weight: 600;
-  color: #756bb1;
+  color: #1f5f7a;
   white-space: nowrap;
 }
 
@@ -336,7 +336,7 @@ body {
 }
 
 .match-finder-toggle {
-  background: #756bb1;
+  background: #1f5f7a;
   color: white;
   border: none;
   border-radius: 10px;
@@ -467,7 +467,7 @@ body {
     font-size: 13px;
     font-weight: 600;
     color: #444;
-    background: rgba(255, 255, 255, 0.96);
+    background: rgba(255, 253, 247, 0.95);
     border: none;
     border-radius: 999px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
@@ -499,7 +499,7 @@ body {
     width: 100%;
     font-size: 12px;
     font-weight: 600;
-    color: #756bb1;
+    color: #1f5f7a;
     background: none;
     border: none;
     text-align: left;
@@ -586,7 +586,7 @@ body {
 .match-finder-slider-value {
   font-size: 11px;
   font-weight: 600;
-  color: #756bb1;
+  color: #1f5f7a;
 }
 
 .match-finder-slider-track {
@@ -596,7 +596,7 @@ body {
 
 .match-finder-importance-slider {
   width: 100%;
-  accent-color: #756bb1;
+  accent-color: #1f5f7a;
   cursor: pointer;
   display: block;
   margin: 0;
@@ -668,7 +668,7 @@ body {
 
 .match-finder-rank {
   font-weight: 700;
-  color: #756bb1;
+  color: #1f5f7a;
   width: 16px;
   flex-shrink: 0;
 }
@@ -731,7 +731,7 @@ body {
 
 .match-finder-listing-header:hover .match-finder-result-name {
   text-decoration: underline;
-  color: #756bb1;
+  color: #1f5f7a;
 }
 
 .match-finder-listing-header.active {
@@ -741,7 +741,7 @@ body {
 
 .match-finder-listing-header.active .match-finder-result-name,
 .match-finder-listing-header.active .match-finder-rank {
-  color: #756bb1;
+  color: #1f5f7a;
 }
 
 .address-search form {
@@ -762,15 +762,15 @@ body {
 }
 
 .search-input:focus {
-  border-color: #4a90e2;
-  box-shadow: 0 0 4px rgba(74, 144, 226, 0.2);
+  border-color: #1f5f7a;
+  box-shadow: 0 0 4px rgba(31, 95, 122, 0.2);
 }
 
 .search-button {
   flex-shrink: 0;
   padding: 10px 16px;
   min-height: 40px;
-  background-color: #4a90e2;
+  background-color: #1f5f7a;
   color: white;
   border: none;
   border-radius: 4px;
@@ -876,8 +876,8 @@ body {
 }
 
 .click-mode-toggle-buttons button.active {
-  background: #756bb1;
-  border-color: #756bb1;
+  background: #1f5f7a;
+  border-color: #1f5f7a;
   color: white;
 }
 
@@ -927,19 +927,19 @@ body {
    every panel keeps its existing placement and behavior.
    ========================================================================== */
 :root {
-  --accent: #5b4fc4;
-  --accent-hover: #4a3fae;
-  --accent-soft: #eeecfb;
-  --ink: #1f2330;
-  --ink-2: #4a5061;
-  --ink-3: #8a90a0;
-  --line: #e7e8ee;
-  --surface: #ffffff;
-  --surface-2: #f6f7fa;
+  --accent: #1f5f7a;
+  --accent-hover: #164a5e;
+  --accent-soft: #e2edee;
+  --ink: #1c2a2f;
+  --ink-2: #475a5e;
+  --ink-3: #83908c;
+  --line: #e4dccb;
+  --surface: #fffdf7;
+  --surface-2: #f4efe2;
   --radius: 12px;
   --radius-sm: 8px;
-  --shadow: 0 1px 2px rgba(20, 24, 40, 0.06), 0 6px 20px rgba(20, 24, 40, 0.08);
-  --shadow-lg: 0 2px 6px rgba(20, 24, 40, 0.08), 0 16px 40px rgba(20, 24, 40, 0.14);
+  --shadow: 0 1px 2px rgba(40, 52, 48, 0.06), 0 6px 20px rgba(40, 52, 48, 0.08);
+  --shadow-lg: 0 2px 6px rgba(40, 52, 48, 0.08), 0 16px 40px rgba(40, 52, 48, 0.14);
 }
 
 html, body, #__next {
@@ -963,27 +963,27 @@ a { color: var(--accent); }
 .legend {
   border-radius: var(--radius);
   box-shadow: var(--shadow);
-  border: 1px solid rgba(255, 255, 255, 0.6);
-  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid var(--line);
+  background: rgba(255, 253, 247, 0.95);
   backdrop-filter: blur(8px);
 }
 
 .match-finder-panel { padding: 16px; box-shadow: var(--shadow-lg); }
 
 .match-finder-toggle {
-  background: linear-gradient(135deg, #6a5ed6, #4a3fae);
+  background: linear-gradient(135deg, #2f6e5a, #1f5f7a);
   border-radius: var(--radius);
   font-size: 15px;
   font-weight: 600;
   letter-spacing: 0.01em;
   padding: 13px 24px;
-  box-shadow: 0 6px 18px rgba(74, 63, 174, 0.35);
+  box-shadow: 0 6px 18px rgba(31, 95, 122, 0.35);
   transition: transform 0.12s ease, box-shadow 0.12s ease;
 }
 .match-finder-toggle:hover {
-  background: linear-gradient(135deg, #5e52cc, #3f3598);
+  background: linear-gradient(135deg, #285e4d, #164a5e);
   transform: translateY(-1px);
-  box-shadow: 0 8px 22px rgba(74, 63, 174, 0.4);
+  box-shadow: 0 8px 22px rgba(31, 95, 122, 0.4);
 }
 
 .match-finder-header h3 { font-size: 16px; font-weight: 700; color: var(--ink); }
@@ -1054,7 +1054,7 @@ input[type='checkbox'] { accent-color: var(--accent); }
 .click-mode-toggle-buttons button:hover,
 .deselect-marker-button:hover,
 .legend-deselect-all-button:hover,
-.match-finder-reset:hover { background: #eceef3; }
+.match-finder-reset:hover { background: #ebe4d4; }
 .click-mode-toggle-buttons button.active {
   background: var(--accent);
   border-color: var(--accent);
@@ -1082,7 +1082,7 @@ input[type='checkbox'] { accent-color: var(--accent); }
 .sidebar-wrapper {
   background: var(--surface);
   border-left: 1px solid var(--line);
-  box-shadow: -8px 0 24px rgba(20, 24, 40, 0.06);
+  box-shadow: -8px 0 24px rgba(40, 52, 48, 0.06);
 }
 .sidebar { padding: 20px 22px 28px; background: var(--surface); }
 
@@ -1101,7 +1101,7 @@ input[type='checkbox'] { accent-color: var(--accent); }
 .hero-banner {
   padding: 16px 22px 14px;
   border-bottom: 1px solid var(--line);
-  background: linear-gradient(135deg, #f4f2ff 0%, #ffffff 70%);
+  background: linear-gradient(135deg, #eef3ee 0%, #ffffff 70%);
 }
 .hero-title {
   font-size: 17px;
@@ -1117,8 +1117,8 @@ input[type='checkbox'] { accent-color: var(--accent); }
 .district-subtitle { color: var(--ink-3); font-size: 13px; }
 
 .health-score-display {
-  background: linear-gradient(135deg, #f4f2ff, #fbfbfe);
-  border: 1px solid #e6e2fb;
+  background: linear-gradient(135deg, #eef3ee, #fffdf7);
+  border: 1px solid #d9e4dc;
   border-radius: var(--radius);
   color: var(--ink);
   font-size: 40px;
@@ -1133,7 +1133,7 @@ input[type='checkbox'] { accent-color: var(--accent); }
   padding: 12px 10px;
   transition: border-color 0.12s ease, box-shadow 0.12s ease, transform 0.12s ease;
 }
-.index-card:hover { border-color: #d3cef5; box-shadow: var(--shadow); transform: translateY(-1px); }
+.index-card:hover { border-color: #b9d0c6; box-shadow: var(--shadow); transform: translateY(-1px); }
 .index-name { color: var(--ink-3); font-weight: 600; font-size: 11px; letter-spacing: 0.02em; }
 .index-score { color: var(--ink); font-size: 20px; font-weight: 700; }
 
@@ -1143,12 +1143,12 @@ input[type='checkbox'] { accent-color: var(--accent); }
 .no-selection { color: var(--ink-3); font-size: 15px; }
 
 .sidebar-resize-handle:hover,
-.sidebar-resize-handle.dragging { background: rgba(91, 79, 196, 0.2); }
+.sidebar-resize-handle.dragging { background: rgba(31, 95, 122, 0.2); }
 
 /* "Moving here?" panel */
 .area-guide {
-  background: linear-gradient(180deg, #f7f6fe, #ffffff);
-  border: 1px solid #e6e2fb;
+  background: linear-gradient(180deg, #f3f6ef, #ffffff);
+  border: 1px solid #d9e4dc;
   border-radius: var(--radius);
   padding: 14px 16px;
   margin-bottom: 20px;
@@ -1166,8 +1166,8 @@ input[type='checkbox'] { accent-color: var(--accent); }
   font-size: 11.5px;
   font-weight: 500;
   background: var(--surface);
-  border: 1px solid #ddd8f7;
-  color: #3d3591;
+  border: 1px solid #cfdcd3;
+  color: #2b5a52;
   border-radius: 999px;
   padding: 3px 10px;
 }
@@ -1197,7 +1197,7 @@ input[type='checkbox'] { accent-color: var(--accent); }
   display: flex;
   gap: 4px;
   padding: 4px;
-  background: rgba(255, 255, 255, 0.96);
+  background: rgba(255, 253, 247, 0.95);
   border-radius: 999px;
   box-shadow: var(--shadow);
   font-size: 13px;
@@ -1221,3 +1221,40 @@ input[type='checkbox'] { accent-color: var(--accent); }
 }
 
 .leaflet-bar { border: none !important; box-shadow: var(--shadow) !important; border-radius: 10px !important; overflow: hidden; }
+
+/* Lakes & Paper: serif display type, birch-paper surfaces, a lake-wave rule
+   under the header. Color comes from the tokens above. */
+.hero-title,
+.district-title,
+.health-score-display,
+.area-guide-title,
+.match-finder-header h3,
+h1, h2 {
+  font-family: var(--font-serif), Georgia, serif;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.hero-title { font-size: 21px; }
+.district-title { font-size: 25px; }
+.health-score-display { font-size: 44px; font-weight: 500; background: var(--surface-2); border-color: var(--line); }
+
+.sidebar-wrapper, .sidebar { background: var(--surface); }
+.hero-banner {
+  background: var(--surface-2);
+  border-bottom: none;
+  padding-bottom: 22px;
+  position: relative;
+}
+.hero-banner::after {
+  content: '';
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: 10px;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='10'%3E%3Cpath d='M0 5 Q10 0 20 5 T40 5' fill='none' stroke='%231f5f7a' stroke-opacity='.45' stroke-width='1.4'/%3E%3C/svg%3E") repeat-x;
+}
+
+.index-card { background: var(--surface-2); border-color: transparent; }
+.area-guide { background: var(--surface-2); border-color: var(--line); }
+.tag-chip { background: var(--surface); }
+.legend-title, .match-finder-section-title, .click-mode-toggle-label, .area-guide-heading { color: var(--accent); }
+.leaflet-container { background: #e9eef0; }

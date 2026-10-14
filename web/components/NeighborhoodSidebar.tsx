@@ -342,7 +342,7 @@ export default function NeighborhoodSidebar({ district, onSelectDistrict, granul
           .filter((v): v is number => typeof v === 'number');
         const avg = vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : null;
         return (
-          <div style={{ margin: '4px 0 14px', padding: '10px 12px', background: '#f1eef8', border: '2px solid #756bb1', borderRadius: '6px' }}>
+          <div style={{ margin: '4px 0 14px', padding: '10px 12px', background: '#e2edee', border: '2px solid #1f5f7a', borderRadius: '6px' }}>
             <div style={{ fontSize: '12px', fontWeight: 600, color: '#666' }}>Map is coloring by</div>
             <div style={{ fontSize: '13px', fontWeight: 600, color: '#333' }}>{def.label}</div>
             <div style={{ fontSize: '22px', fontWeight: 700, color: '#333', marginTop: '2px' }}>
@@ -392,7 +392,7 @@ export default function NeighborhoodSidebar({ district, onSelectDistrict, granul
                 key={key}
                 className="index-card"
                 onClick={() => setExpandedIndex(expandedIndex === key ? null : key)}
-                style={{ cursor: 'pointer', border: expandedIndex === key ? '2px solid #756bb1' : undefined }}
+                style={{ cursor: 'pointer', border: expandedIndex === key ? '2px solid #1f5f7a' : undefined }}
               >
                 <div className="index-name">{indexLabels[key]}</div>
                 <div className="index-score">

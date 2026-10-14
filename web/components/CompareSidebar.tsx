@@ -163,7 +163,7 @@ export default function CompareSidebar({ districtA, districtB, onClose, maxRent 
       </div>
       {[districtA, districtB].map((d, i) => (
         <div key={d.district_id} style={{ marginBottom: '10px' }}>
-          <div style={{ fontSize: '12px', fontWeight: 700, color: i === 0 ? '#756bb1' : '#e6550d', marginBottom: '2px' }}>{d.district_name}</div>
+          <div style={{ fontSize: '12px', fontWeight: 700, color: i === 0 ? '#1f5f7a' : '#e6550d', marginBottom: '2px' }}>{d.district_name}</div>
           <ListingLinks district={d} bounds={i === 0 ? boundsA : boundsB} filters={filters} />
         </div>
       ))}

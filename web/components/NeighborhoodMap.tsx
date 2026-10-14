@@ -685,9 +685,9 @@ function MapContent({
             renderer: polygonCanvasRendererRef.current!,
             fillColor: color,
             fillOpacity: isOverBudget ? 0.25 : 0.7,
-            color: isSelected || isCompare ? '#ff00ff' : '#333',
-            weight: isSelected || isCompare ? 5 : 2,
-            opacity: isSelected || isCompare ? 1 : 0.5,
+            color: isSelected || isCompare ? '#e8963a' : '#fffdf7',
+            weight: isSelected || isCompare ? 4 : 1.5,
+            opacity: isSelected || isCompare ? 1 : 0.9,
             // Path layers bubble clicks to the map by default. Without this,
             // every polygon click also fired the map's own click event -
             // which now also runs the district-select fallback below - and
@@ -725,16 +725,16 @@ function MapContent({
             layer.on('mouseover', () => {
               if (selectedDistrictRef.current?.district_id === districtId) return;
               if (compareDistrictRef.current?.district_id === districtId) return;
-              (layer as L.Path).setStyle({ color: '#333', weight: 3, opacity: 1 });
+              (layer as L.Path).setStyle({ color: '#1c2a2f', weight: 2.5, opacity: 1 });
             });
 
             layer.on('mouseout', () => {
               const isSelected = selectedDistrictRef.current?.district_id === districtId;
               const isCompare = compareDistrictRef.current?.district_id === districtId;
               (layer as L.Path).setStyle({
-                color: isSelected || isCompare ? '#ff00ff' : '#333',
-                weight: isSelected || isCompare ? 5 : 2,
-                opacity: isSelected || isCompare ? 1 : 0.5,
+                color: isSelected || isCompare ? '#e8963a' : '#fffdf7',
+                weight: isSelected || isCompare ? 4 : 1.5,
+                opacity: isSelected || isCompare ? 1 : 0.9,
               });
             });
           }
@@ -1128,9 +1128,9 @@ function MapContent({
             const isCompare = compareDistrict?.district_id === districtId;
 
             layer.setStyle({
-              color: isSelected || isCompare ? '#ff00ff' : '#333',
-              weight: isSelected || isCompare ? 5 : 2,
-              opacity: isSelected || isCompare ? 1 : 0.5,
+              color: isSelected || isCompare ? '#e8963a' : '#fffdf7',
+              weight: isSelected || isCompare ? 4 : 1.5,
+              opacity: isSelected || isCompare ? 1 : 0.9,
             });
           }
         });
@@ -1538,8 +1538,9 @@ function MapContent({
   return (
     <>
       <TileLayer
-        url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        url="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}"
+        maxNativeZoom={16}
+        attribution='Tiles &copy; Esri, HERE, Garmin | Data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
       />
       {isLoading && (
         <div

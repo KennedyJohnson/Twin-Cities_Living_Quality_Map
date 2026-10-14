@@ -71,7 +71,7 @@ export default function InequalityRanking({ onSelectDistrict }: { onSelectDistri
             <div
               style={{
                 width: `${(row.gini_index / maxGini) * 100}%`,
-                background: '#756bb1',
+                background: '#1f5f7a',
                 height: '100%',
                 borderRadius: '3px',
               }}

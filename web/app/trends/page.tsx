@@ -18,7 +18,7 @@ function SectionTitle({ children, subtitle }: { children: React.ReactNode; subti
 export default function TrendsPage() {
   return (
     <div style={{ maxWidth: '900px', margin: '0 auto', padding: '20px' }}>
-      <Link href="/" style={{ fontSize: '13px', color: '#756bb1' }}>
+      <Link href="/" style={{ fontSize: '13px', color: '#1f5f7a' }}>
         ← Back to map
       </Link>
       <h1 style={{ fontSize: '20px', fontWeight: 700, margin: '8px 0 4px' }}>

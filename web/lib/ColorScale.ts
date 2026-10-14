@@ -1,6 +1,6 @@
 /**
- * Sequential single-hue purple scale, based on ColorBrewer's "Purples"
- * palette - chosen for strong contrast against the light basemap and
+ * Sequential "Lakes & Paper" scale (birch paper -> pine -> deep lake,
+ * a YlGnBu-like ramp) - chosen for strong contrast against the light basemap and
  * because purple isn't used by any point-layer marker color, so district
  * fill and point markers stay easy to tell apart.
  * Lighter purple = lower health score, darker purple = higher health score.
@@ -32,15 +32,15 @@ function interpolateColor(
 // than the 5-class version, so districts with similar-but-different scores
 // are still visibly distinct instead of collapsing into near-identical hues).
 const PURPLE_STOPS: [number, number, number][] = [
-  [252, 251, 253], // #fcfbfd - low
-  [239, 237, 245], // #efedf5
-  [218, 218, 235], // #dadaeb
-  [188, 189, 220], // #bcbddc
-  [158, 154, 200], // #9e9ac8
-  [128, 125, 186], // #807dba
-  [106, 81, 163],  // #6a51a3
-  [84, 39, 143],   // #54278f
-  [63, 0, 125],    // #3f007d - high
+  [247, 243, 232], // #f7f3e8 - low (birch paper)
+  [230, 236, 214], // #e6ecd6
+  [199, 220, 192], // #c7dcc0
+  [156, 198, 173], // #9cc6ad
+  [106, 169, 154], // #6aa99a
+  [67, 137, 138],  // #43898a
+  [43, 107, 120],  // #2b6b78
+  [29, 79, 99],    // #1d4f63
+  [18, 54, 74],    // #12364a - high (deep lake)
 ];
 
 export function getHealthScoreColor(score: number, min: number = 0, max: number = 100): string {

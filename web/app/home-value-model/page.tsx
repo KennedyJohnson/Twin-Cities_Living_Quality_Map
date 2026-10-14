@@ -42,7 +42,7 @@ interface Results {
   naive_baselines?: Summary[];
 }
 
-const PURPLE = '#756bb1';
+const PURPLE = '#1f5f7a';
 const CITY_COLORS: Record<string, string> = { stpaul: PURPLE, mpls: '#e6550d' };
 const CITY_NAMES: Record<string, string> = { stpaul: 'St. Paul', mpls: 'Minneapolis' };
 

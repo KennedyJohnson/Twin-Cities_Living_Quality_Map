@@ -36,7 +36,7 @@ const GOOD_COLOR = '#2a9d5c';
 const BAD_COLOR = '#c0392b';
 
 const CITY_COLORS: Record<'stpaul' | 'mpls', string> = {
-  stpaul: '#756bb1',
+  stpaul: '#1f5f7a',
   mpls: '#31a354',
 };
 

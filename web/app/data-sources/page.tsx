@@ -5,7 +5,7 @@ import DataFreshness from '@/components/DataFreshness';
 export default function DataSourcesPage() {
   return (
     <div style={{ maxWidth: '800px', margin: '0 auto', padding: '32px 20px', lineHeight: 1.6 }}>
-      <Link href="/" style={{ fontSize: '13px', color: '#756bb1' }}>
+      <Link href="/" style={{ fontSize: '13px', color: '#1f5f7a' }}>
         ← Back to map
       </Link>
       <h1 style={{ fontSize: '24px', fontWeight: 700, margin: '12px 0 24px' }}>

@@ -3,7 +3,7 @@ export default function TechRow({ name, href, use }: { name: string; href?: stri
     <li style={{ marginBottom: '8px' }}>
       <strong>
         {href ? (
-          <a href={href} target="_blank" rel="noopener noreferrer" style={{ color: '#756bb1' }}>
+          <a href={href} target="_blank" rel="noopener noreferrer" style={{ color: '#1f5f7a' }}>
             {name}
           </a>
         ) : (

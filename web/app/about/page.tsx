@@ -3,7 +3,7 @@ import Link from 'next/link';
 export default function AboutPage() {
   return (
     <div style={{ maxWidth: '800px', margin: '0 auto', padding: '32px 20px', lineHeight: 1.6 }}>
-      <Link href="/" style={{ fontSize: '13px', color: '#756bb1' }}>
+      <Link href="/" style={{ fontSize: '13px', color: '#1f5f7a' }}>
         ← Back to map
       </Link>
       <h1 style={{ fontSize: '24px', fontWeight: 700, margin: '12px 0 24px' }}>
@@ -16,11 +16,11 @@ export default function AboutPage() {
         Paul and Minneapolis districts, combining open government data, OpenStreetMap, Census, and
         MnDOT/CDC figures into a single comparable Living Quality Score per district. See below for the
         scoring methodology,{' '}
-        <Link href="/data-sources" style={{ color: '#756bb1' }}>Data Sources</Link> for where the data comes from and the tech stack,{' '}
-        <Link href="/score-drivers" style={{ color: '#756bb1' }}>Score Drivers</Link> for what actually moves the score,{' '}
-        <Link href="/trends" style={{ color: '#756bb1' }}>Trends</Link> for the underlying data over
+        <Link href="/data-sources" style={{ color: '#1f5f7a' }}>Data Sources</Link> for where the data comes from and the tech stack,{' '}
+        <Link href="/score-drivers" style={{ color: '#1f5f7a' }}>Score Drivers</Link> for what actually moves the score,{' '}
+        <Link href="/trends" style={{ color: '#1f5f7a' }}>Trends</Link> for the underlying data over
         time, and{' '}
-        <Link href="/home-value-model" style={{ color: '#756bb1' }}>Home Price Prediction</Link>{' '}
+        <Link href="/home-value-model" style={{ color: '#1f5f7a' }}>Home Price Prediction</Link>{' '}
         for a test of whether public Census data can predict home prices, built on the same pipeline.
       </p>
 
@@ -56,7 +56,7 @@ export default function AboutPage() {
       </h2>
       <p style={{ marginBottom: '20px' }}>
         Built by Kennedy Johnson. More projects at{' '}
-        <a href="https://kennedyjohnson.github.io/" target="_blank" rel="noopener noreferrer" style={{ color: '#756bb1' }}>
+        <a href="https://kennedyjohnson.github.io/" target="_blank" rel="noopener noreferrer" style={{ color: '#1f5f7a' }}>
           kennedyjohnson.github.io
         </a>.
       </p>

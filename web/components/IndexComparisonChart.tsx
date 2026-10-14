@@ -135,7 +135,7 @@ export default function IndexComparisonChart({ district, onSelectIndex }: IndexC
           <Bar
             dataKey="thisDistrict"
             name={district.is_radius ? 'This location' : district.is_zip ? 'This ZIP' : 'This district'}
-            fill="#756bb1"
+            fill="#1f5f7a"
             radius={[0, 3, 3, 0]}
             isAnimationActive={false}
             onClick={(data: any) => {
