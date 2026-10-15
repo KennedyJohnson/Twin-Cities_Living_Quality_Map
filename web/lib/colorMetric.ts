@@ -22,7 +22,8 @@ export type ColorMetricKey =
   | 'transit_commute_rate'
   | 'walk_commute_rate'
   | 'bike_commute_rate'
-  | 'wfh_rate';
+  | 'wfh_rate'
+  | 'crime_rate';
 
 export interface ColorMetricDef {
   label: string;
@@ -58,6 +59,7 @@ export const COLOR_METRICS: Record<ColorMetricKey, ColorMetricDef> = {
   walk_commute_rate: { label: 'Commute on Foot', higherIsBetter: true, format: pct },
   bike_commute_rate: { label: 'Commute by Bike', higherIsBetter: true, format: pct },
   wfh_rate: { label: 'Work from Home', higherIsBetter: true, format: pct },
+  crime_rate: { label: 'Crime Rate (per 1,000 residents)', higherIsBetter: false, format: (v) => v.toFixed(1) },
 };
 
 export type MetricRow = Partial<Record<ColorMetricKey, number | null>>;
@@ -68,23 +70,33 @@ export interface ColorMetricData {
 
 let cache: Promise<ColorMetricData> | null = null;
 
-async function fetchDistricts(name: string): Promise<Record<string, MetricRow>> {
+async function fetchJson(url: string): Promise<any> {
   try {
-    const res = await fetch(`/data/affordability_${name}.json`);
-    if (!res.ok) return {};
-    const json = await res.json();
-    return json.districts ?? {};
+    const res = await fetch(url);
+    return res.ok ? await res.json() : null;
   } catch {
-    return {};
+    return null;
   }
+}
+
+// Census figures from affordability_<name>.json, plus crime rate from the
+// neighborhoods file (not Census, so it isn't in the affordability export).
+async function fetchDistricts(name: string, hoods: string): Promise<Record<string, MetricRow>> {
+  const [aff, nb] = await Promise.all([fetchJson(`/data/affordability_${name}.json`), fetchJson(`/data/${hoods}`)]);
+  const rows: Record<string, MetricRow> = { ...(aff?.districts ?? {}) };
+  for (const n of nb?.neighborhoods ?? []) {
+    const rate = n.metrics?.crime_rate_pc?.rate_per_1000;
+    if (rate != null) rows[String(n.district_id)] = { ...rows[String(n.district_id)], crime_rate: rate };
+  }
+  return rows;
 }
 
 export function loadColorMetricData(): Promise<ColorMetricData> {
   if (!cache) {
     cache = Promise.all([
-      fetchDistricts('stpaul'),
-      fetchDistricts('mpls'),
-      fetchDistricts('zip'),
+      fetchDistricts('stpaul', 'neighborhoods.json'),
+      fetchDistricts('mpls', 'neighborhoods_mpls.json'),
+      fetchDistricts('zip', 'neighborhoods_zip.json'),
     ]).then(([stpaul, mpls, zip]) => ({ district: { ...stpaul, ...mpls }, zip }));
   }
   return cache;
