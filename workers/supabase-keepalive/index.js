@@ -1,5 +1,5 @@
 // Keeps the free Supabase project from pausing for inactivity by running a few of the
-// map's own read queries on a schedule. GitHub's supabase-keepalive.yml is the backup.
+// map's own read queries on a schedule (Cloudflare Cron Trigger, see wrangler.toml).
 const QUERIES = [
   ['GET', 'rest/v1/refresh_runs?select=run_at&order=run_at.desc&limit=1'],
   ['GET', 'rest/v1/area_snapshots?select=area_id&limit=1'],

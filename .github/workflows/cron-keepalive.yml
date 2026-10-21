@@ -1,0 +1,25 @@
+name: Cron keepalive
+
+# GitHub disables cron workflows after 60 days without repo activity. The monthly refresh only
+# commits when it succeeds, so re-enable both crons here weekly to keep them alive.
+# (Supabase's inactivity keepalive moved to the Cloudflare Worker in workers/supabase-keepalive/.)
+on:
+  schedule:
+    - cron: '23 14 * * 1'
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  keepalive:
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+    steps:
+      - run: |
+          for wf in refresh-data.yml cron-keepalive.yml; do
+            gh api -X PUT "repos/${{ github.repository }}/actions/workflows/$wf/enable"
+          done
+        env:
+          GH_TOKEN: ${{ github.token }}
