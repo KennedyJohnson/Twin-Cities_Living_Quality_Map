@@ -1,11 +1,12 @@
 """
 Compute health scores based on aggregated metrics and config/weights.json.
-Canonical formula:
-  Safety_Index = avg(100 - normalize(crime_rate_pc), 100 - normalize(crash_rate_pc), 100 - normalize(disaster_risk_pc), 100 - normalize(chronic_disease_pc))
-  Opportunity_Index = avg(normalize(permit_rate_pc), 100 - normalize(unemployment_rate_pc), 100 - normalize(housing_inventory_pc))
-  Amenities_Index = 0.85 * [100 - normalize(request_rate_pc) + normalize(housing_rate_pc + schools_pc + grocery_pc + restaurants_pc + healthcare_pc + entertainment_pc)] + 0.15 * normalize(broadband_rate)
+Canonical formula (mirrors config/weights.json, the source of truth):
+  normalize(x) = zscore_logistic_normalize: z-score, then a logistic squash to (0, 100)
+  Safety_Index = average(100 - normalize(crime_rate_pc), 100 - normalize(crash_rate_pc), 100 - normalize(disaster_risk_pc), 100 - normalize(chronic_disease_pc))
+  Opportunity_Index = 0.85 * average(normalize(permit_rate_pc), 100 - normalize(unemployment_rate_pc), 100 - normalize(housing_inventory_pc)) + 0.15 * normalize(bachelors_rate)
+  Amenities_Index = 0.85 * normalize(schools_pc + grocery_pc + restaurants_pc + healthcare_pc + entertainment_pc) + 0.15 * normalize(broadband_rate)
   Transportation_Index = 0.6 * [normalize(trail_km_pc + transit_stops_pc) - normalize(traffic_vkm_pc)] + 0.25 * walk_score + 0.15 * commute_score
-  Affordability_Index = avg(100 - normalize(median_home_value), 100 - normalize(median_gross_rent), normalize(median_household_income), 100 - normalize(poverty_rate), 100 - normalize(housing_cost_burden_rate), normalize(homeownership_rate), 100 - normalize(gini_index))
+  Affordability_Index = average(100 - normalize(median_home_value), 100 - normalize(median_gross_rent), normalize(median_household_income), 100 - normalize(poverty_rate), 100 - normalize(housing_cost_burden_rate), normalize(homeownership_rate), 100 - normalize(gini_index), 100 - normalize(vacancy_rate))
   Health_Score = 0.20*Safety + 0.20*Opportunity + 0.20*Amenities + 0.20*Transportation + 0.20*Affordability
 """
 
@@ -34,7 +35,7 @@ def load_sources(city="stpaul"):
     with open(sources_file) as f:
         return json.load(f)
 
-def min_max_normalize(values):
+def zscore_logistic_normalize(values):
     """
     Normalize values to (0, 100) using z-score + logistic squashing.
 
@@ -55,7 +56,7 @@ def min_max_normalize(values):
     # NO_ZERO_FILL_SOURCES inner-join fix for one real cause of this).
     if np.isnan(values).any():
         raise ValueError(
-            f"min_max_normalize received {np.isnan(values).sum()} NaN value(s) out of {len(values)} "
+            f"zscore_logistic_normalize received {np.isnan(values).sum()} NaN value(s) out of {len(values)} "
             "- check upstream per-capita rate calculations for a population of 0/NaN"
         )
     mean_val = np.mean(values)
@@ -118,7 +119,7 @@ def compute_component_index(aggregated_metrics, component_name, sources_config):
 
         # Normalized against every district that has this metric (pooled
         # across both cities when aggregated_metrics is the combined set).
-        normalized = min_max_normalize(rates)
+        normalized = zscore_logistic_normalize(rates)
 
         for district_id, norm_value in zip(district_ids, normalized):
             component_values.setdefault(district_id, []).append((norm_value, weight_in_component))
@@ -177,7 +178,7 @@ def _affordability_index_from_df(df):
         valid_idx = [i for i, v in enumerate(values) if v is not None and not pd.isna(v)]
         if not valid_idx:
             return {}
-        normalized = min_max_normalize([values[i] for i in valid_idx])
+        normalized = zscore_logistic_normalize([values[i] for i in valid_idx])
         return dict(zip(valid_idx, normalized))
 
     home_value_norm = normalized_or_none(home_values)
@@ -264,7 +265,7 @@ def _broadband_index_from_df(df):
     valid_idx = [i for i, v in enumerate(rates) if v is not None and not pd.isna(v)]
     if not valid_idx:
         return {}
-    normalized = min_max_normalize([rates[i] for i in valid_idx])
+    normalized = zscore_logistic_normalize([rates[i] for i in valid_idx])
     norm_by_idx = dict(zip(valid_idx, normalized))
 
     return {
@@ -303,8 +304,8 @@ def _commute_index_from_df(df):
     ]
     if not valid_idx:
         return {}
-    time_norm = min_max_normalize([commute[i] for i in valid_idx])
-    share_norm = min_max_normalize([share[i] for i in valid_idx])
+    time_norm = zscore_logistic_normalize([commute[i] for i in valid_idx])
+    share_norm = zscore_logistic_normalize([share[i] for i in valid_idx])
     return {
         int(df["district_id"].iloc[i]): ((100 - t) + s) / 2
         for i, t, s in zip(valid_idx, time_norm, share_norm)
@@ -346,7 +347,7 @@ def _education_index_from_df(df):
     valid_idx = [i for i, v in enumerate(rates) if v is not None and not pd.isna(v)]
     if not valid_idx:
         return {}
-    normalized = min_max_normalize([rates[i] for i in valid_idx])
+    normalized = zscore_logistic_normalize([rates[i] for i in valid_idx])
     return {int(df["district_id"].iloc[i]): n for i, n in zip(valid_idx, normalized)}
 
 

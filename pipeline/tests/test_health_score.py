@@ -13,24 +13,24 @@ import pytest
 import core.health_score as hs
 
 
-def test_min_max_normalize_constant_values_returns_fifty():
-    result = hs.min_max_normalize([10, 10, 10, 10])
+def test_zscore_logistic_normalize_constant_values_returns_fifty():
+    result = hs.zscore_logistic_normalize([10, 10, 10, 10])
     assert all(v == 50.0 for v in result)
 
 
-def test_min_max_normalize_is_monotonic():
-    result = hs.min_max_normalize([1, 5, 10, 50, 100])
+def test_zscore_logistic_normalize_is_monotonic():
+    result = hs.zscore_logistic_normalize([1, 5, 10, 50, 100])
     assert list(result) == sorted(result)
 
 
-def test_min_max_normalize_stays_in_bounds():
-    result = hs.min_max_normalize([-1000, -1, 0, 1, 1000])
+def test_zscore_logistic_normalize_stays_in_bounds():
+    result = hs.zscore_logistic_normalize([-1000, -1, 0, 1, 1000])
     assert all(0 <= v <= 100 for v in result)
 
 
-def test_min_max_normalize_mean_value_lands_at_fifty():
+def test_zscore_logistic_normalize_mean_value_lands_at_fifty():
     values = [10, 20, 30, 40, 50]
-    result = hs.min_max_normalize(values)
+    result = hs.zscore_logistic_normalize(values)
     mean_idx = values.index(30)
     assert result[mean_idx] == pytest.approx(50.0, abs=0.01)
 

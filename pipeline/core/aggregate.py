@@ -66,7 +66,7 @@ def aggregate_by_source(source_id, cleaned_data, population_df):
         # load_zip_boundaries, or a zero-population zip already dropped from
         # population_df); a left join here would keep that row with
         # population=NaN, producing rate_per_1000=NaN. A single NaN in the
-        # rates list poisons min_max_normalize's mean/std for EVERY district/
+        # rates list poisons zscore_logistic_normalize's mean/std for EVERY district/
         # zip sharing that metric, not just the offending one - silently
         # zeroing out an entire component (e.g. Opportunity) and the overall
         # health_score for the whole pool. Inner join drops any row whose

@@ -131,7 +131,7 @@ def _proximity_scores(grid_pts, amenity_pts):
 
 def _normalize(values_dict):
     """Z-score + logistic squash to (0, 100), same method as health_score's
-    min_max_normalize (kept separate to avoid a cross-module dependency)."""
+    zscore_logistic_normalize (kept separate to avoid a cross-module dependency)."""
     if not values_dict:
         return {}
     vals = np.array(list(values_dict.values()), dtype=float)
