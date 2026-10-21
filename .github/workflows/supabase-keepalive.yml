@@ -1,11 +1,11 @@
 name: Supabase keepalive
 
-# Supabase pauses free projects after 7 days without activity, which would break the
-# map's score-history chart and houses layer between monthly refreshes. A small real
-# query every 3 days keeps the project active.
+# Supabase pauses free projects with too little database activity over 7 days, which would
+# break the map's score-history chart and houses layer. One query every 3 days was not enough
+# (pause warning 2026-10-20); Supabase docs say "a few user requests each day", so query daily.
 on:
   schedule:
-    - cron: '23 14 */3 * *'
+    - cron: '23 14 * * *'
   workflow_dispatch: {}
 
 permissions:
@@ -23,12 +23,14 @@ jobs:
           if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_SECRET_KEY" ]; then
             echo "::error::SUPABASE_URL / SUPABASE_SECRET_KEY secrets are not set"; exit 1
           fi
-          curl -sS --fail-with-body --retry 3 --retry-delay 10 \
-            -H "apikey: $SUPABASE_SECRET_KEY" \
-            "$SUPABASE_URL/rest/v1/refresh_runs?select=run_at&order=run_at.desc&limit=1"
+          for q in "refresh_runs?select=run_at&order=run_at.desc&limit=1" \
+                   "area_snapshots?select=*&limit=1" "houses?select=*&limit=1"; do
+            curl -sS --fail-with-body --retry 3 --retry-delay 10 -o /dev/null -w "$q %{http_code}\n" \
+              -H "apikey: $SUPABASE_SECRET_KEY" "$SUPABASE_URL/rest/v1/$q"
+          done
 
   # GitHub disables cron workflows after 60 days without repo activity. The monthly refresh only
-  # commits when it succeeds, so re-enable both crons here (every 3 days) to keep them alive.
+  # commits when it succeeds, so re-enable both crons here (daily) to keep them alive.
   keepalive:
     if: github.event_name == 'schedule'
     runs-on: ubuntu-latest
