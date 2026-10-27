@@ -9,6 +9,10 @@ export async function GET(request: NextRequest) {
   if (!q) {
     return NextResponse.json({ error: 'Missing q parameter' }, { status: 400 });
   }
+  // Bound the query before it reaches Nominatim: this route is public and unauthenticated.
+  if (q.length > 200) {
+    return NextResponse.json({ error: 'Query too long' }, { status: 400 });
+  }
 
   const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
     q
@@ -28,7 +32,10 @@ export async function GET(request: NextRequest) {
     }
 
     const data = await response.json();
-    return NextResponse.json(data);
+    // Same query, same answer: let repeat searches come from the edge cache instead of hitting Nominatim.
+    return NextResponse.json(data, {
+      headers: { 'Cache-Control': 'public, max-age=86400, s-maxage=86400' },
+    });
   } catch {
     return NextResponse.json({ error: 'Nominatim unreachable' }, { status: 502 });
   }

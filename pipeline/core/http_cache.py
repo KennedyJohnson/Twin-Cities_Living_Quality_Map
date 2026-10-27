@@ -120,6 +120,8 @@ def cached_request(method, url, ttl_seconds=DEFAULT_TTL_SECONDS, response_type="
                 return _CachedResponse(cached["status_code"], text=cached["text"])
             return _CachedResponse(cached["status_code"], payload=cached["payload"])
 
+    # A caller that forgets a timeout must not be able to hang the whole pipeline forever.
+    kwargs.setdefault("timeout", 30)
     resp = _session.request(method, url, **kwargs)
     if resp.status_code < 400:
         if response_type == "text":
