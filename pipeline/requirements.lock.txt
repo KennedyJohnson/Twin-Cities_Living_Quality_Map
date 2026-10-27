@@ -1,0 +1,28 @@
+# Full resolved environment captured with 'pip freeze' in a clean venv from requirements-dev.txt
+# (Python 3.14, linux x86_64), 2026-10-27. Reference snapshot - requirements.txt holds the pinned direct deps.
+certifi==2026.10.23
+charset-normalizer==3.5.2
+cloudpickle==3.1.2
+idna==3.20
+iniconfig==2.3.1
+joblib==1.6.0
+narwhals==2.28.0
+numpy==2.5.4
+osmium==4.3.2
+packaging==26.3
+pandas==3.1.0
+pluggy==1.7.0
+Pygments==2.21.0
+pytest==9.2.0
+python-dateutil==3.0.0
+requests==2.34.2
+scikit-learn==1.9.1
+scipy==1.18.1
+shap==0.54.1
+shapely==2.2.0
+six==1.17.0
+slicer==0.0.8
+threadpoolctl==3.7.0
+tqdm==4.70.1
+tzdata==2026.5
+urllib3==2.8.0

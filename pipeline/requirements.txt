@@ -1,7 +1,9 @@
-pandas>=3.0.6
-numpy>=2.5.3
-scipy>=1.18.1
-scikit-learn>=1.9.1
-shapely>=2.1.2
-requests>=2.34.2
-osmium>=4.3.1
+# Pinned to the versions resolved for this pipeline on 2026-10-27 (Python 3.14, linux x86_64).
+# requirements.lock.txt is the full resolved environment (including transitives) for reference.
+pandas==3.1.0
+numpy==2.5.4
+scipy==1.18.1
+scikit-learn==1.9.1
+shapely==2.2.0
+requests==2.34.2
+osmium==4.3.2

@@ -1,3 +1,4 @@
+# Pinned to the versions resolved for this pipeline on 2026-10-27 (Python 3.14, linux x86_64).
 -r requirements.txt
-pytest>=9.1.1
-shap>=0.52.0
+pytest==9.2.0
+shap==0.54.1
