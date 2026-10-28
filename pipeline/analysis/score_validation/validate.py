@@ -112,7 +112,7 @@ def main():
     rng = np.random.default_rng(SEED)
     rows = load_rows()
     result = {"n_districts": len(rows), "sensitivity": sensitivity(rows, rng), "external": external(rows, rng)}
-    OUT.write_text(json.dumps(result, indent=1))
+    OUT.write_text(json.dumps(result, separators=(",", ":")))
     shutil.copy(OUT, DATA / "score_validation.json")
     s, e = result["sensitivity"], result["external"]
     print(f"weights: mean Spearman {s['spearman_mean']} (p5 {s['spearman_p5']}), top stays #1 {s['top_district_stays_first']:.0%},"

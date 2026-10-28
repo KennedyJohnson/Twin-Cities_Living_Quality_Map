@@ -162,12 +162,12 @@ def main():
 
     print("Exporting St. Paul time-series...")
     stpaul = export_stpaul_timeseries()
-    (OUT_DIR / "timeseries_stpaul.json").write_text(json.dumps(stpaul))
+    (OUT_DIR / "timeseries_stpaul.json").write_text(json.dumps(stpaul, separators=(",", ":")))
     print(f"[OK] {len(stpaul['citywide']['years'])} years, {len(stpaul['districts'])} districts")
 
     print("Exporting Minneapolis time-series...")
     mpls = export_mpls_timeseries()
-    (OUT_DIR / "timeseries_mpls.json").write_text(json.dumps(mpls))
+    (OUT_DIR / "timeseries_mpls.json").write_text(json.dumps(mpls, separators=(",", ":")))
     print(f"[OK] {len(mpls['citywide']['years'])} years, {len(mpls['districts'])} districts")
 
 

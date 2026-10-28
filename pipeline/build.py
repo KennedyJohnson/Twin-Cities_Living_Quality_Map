@@ -90,7 +90,7 @@ def build(city, aggregated, health_scores):
     WEB_DATA_DIR.mkdir(parents=True, exist_ok=True)
     neighborhoods_file = WEB_DATA_DIR / neighborhoods_filename
     with open(neighborhoods_file, "w") as f:
-        json.dump(neighborhoods_json, f, indent=2)
+        json.dump(neighborhoods_json, f, separators=(",", ":"))
     print(f"[OK] Written {neighborhoods_file}")
     print()
 
@@ -102,7 +102,7 @@ def build(city, aggregated, health_scores):
         feature["id"] = district_id  # Top-level id for google.maps.Data.getFeatureById
     boundaries_file = WEB_DATA_DIR / boundaries_filename
     with open(boundaries_file, "w") as f:
-        json.dump(boundaries, f, indent=2)
+        json.dump(boundaries, f, separators=(",", ":"))
     print(f"[OK] Written {boundaries_file}")
     print()
 
@@ -216,7 +216,7 @@ def build_apartment_buildings(city):
     WEB_DATA_DIR.mkdir(parents=True, exist_ok=True)
     out_file = WEB_DATA_DIR / filename
     with open(out_file, "w") as f:
-        json.dump(out, f)
+        json.dump(out, f, separators=(",", ":"))
     print(f"[OK] Written {out_file} ({len(out)} buildings)")
     print()
 
@@ -269,7 +269,7 @@ def build_zip(aggregated_zip, health_scores_zip):
     }
     WEB_DATA_DIR.mkdir(parents=True, exist_ok=True)
     with open(WEB_DATA_DIR / "neighborhoods_zip.json", "w") as f:
-        json.dump(neighborhoods_json, f, indent=2)
+        json.dump(neighborhoods_json, f, separators=(",", ":"))
     print(f"[OK] Written {WEB_DATA_DIR / 'neighborhoods_zip.json'}")
     print()
 
@@ -278,7 +278,7 @@ def build_zip(aggregated_zip, health_scores_zip):
     for feature in boundaries["features"]:
         feature["id"] = feature["properties"]["district_id"]
     with open(WEB_DATA_DIR / "boundaries_zip.geojson", "w") as f:
-        json.dump(boundaries, f)
+        json.dump(boundaries, f, separators=(",", ":"))
     print(f"[OK] Written {WEB_DATA_DIR / 'boundaries_zip.geojson'}")
     print()
 

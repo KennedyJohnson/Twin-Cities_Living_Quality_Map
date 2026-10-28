@@ -85,7 +85,7 @@ def main():
         print(f"Exporting affordability time-series for {city}...")
         data = export_city_timeseries(city)
         out_file = OUT_DIR / f"affordability_timeseries_{city}.json"
-        out_file.write_text(json.dumps(data))
+        out_file.write_text(json.dumps(data, separators=(",", ":")))
         print(f"[OK] {len(data['years'])} years, {len(data['districts'])} districts")
 
 

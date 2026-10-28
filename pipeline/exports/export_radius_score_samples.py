@@ -87,7 +87,7 @@ def main():
             combined[key].extend(values)
 
     out_path = WEB_DATA_DIR / "radius_score_samples.json"
-    out_path.write_text(json.dumps(combined))
+    out_path.write_text(json.dumps(combined, separators=(",", ":")))
     for key, values in combined.items():
         print(f"[OK] {key}: {len(values)} sampled radius scores")
     print(f"[OK] Wrote {out_path}")

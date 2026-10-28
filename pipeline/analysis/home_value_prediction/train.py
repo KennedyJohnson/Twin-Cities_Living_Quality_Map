@@ -429,7 +429,7 @@ def main():
 
     OUT_FILE.write_text(json.dumps(results, indent=2))
     WEB_OUT_FILE.parent.mkdir(parents=True, exist_ok=True)
-    WEB_OUT_FILE.write_text(json.dumps(results))
+    WEB_OUT_FILE.write_text(json.dumps(results, separators=(",", ":")))
     print(f"[OK] Wrote {OUT_FILE} and {WEB_OUT_FILE}")
 
 

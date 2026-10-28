@@ -67,7 +67,7 @@ def main():
         df = _add_home_value_growth(clean_housing_price(city=city), city)
         data = {"acs_year": ACS_YEAR, "growth_base_year": GROWTH_BASE_YEAR, "districts": _rows_to_districts_json(df)}
         out_file = OUT_DIR / f"affordability_{city}.json"
-        out_file.write_text(json.dumps(data, indent=2))
+        out_file.write_text(json.dumps(data, separators=(",", ":")))
         print(f"[OK] Written {out_file} ({len(data['districts'])} districts)")
 
     # ZIP-level: the affordability *score* is already computed at zip
@@ -85,7 +85,7 @@ def main():
     zip_df = zip_df.groupby("district_id", as_index=False).mean(numeric_only=True)
     zip_data = {"acs_year": ACS_YEAR, "districts": _rows_to_districts_json(zip_df)}
     zip_out_file = OUT_DIR / "affordability_zip.json"
-    zip_out_file.write_text(json.dumps(zip_data, indent=2))
+    zip_out_file.write_text(json.dumps(zip_data, separators=(",", ":")))
     print(f"[OK] Written {zip_out_file} ({len(zip_data['districts'])} zips)")
 
 

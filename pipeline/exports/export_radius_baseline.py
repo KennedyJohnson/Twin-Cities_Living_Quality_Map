@@ -410,7 +410,7 @@ def main():
         except Exception as e:
             print(f"[WARNING] Radius baseline export failed for {city}: {e}")
             continue
-        (OUT_DIR / f"radius_baseline_{city}.json").write_text(json.dumps(data))
+        (OUT_DIR / f"radius_baseline_{city}.json").write_text(json.dumps(data, separators=(",", ":")))
         print(f"[OK] wrote radius_baseline_{city}.json")
 
 

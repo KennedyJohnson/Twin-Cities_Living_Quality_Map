@@ -510,18 +510,18 @@ def main():
     print("Exporting St. Paul points...")
     stpaul_crime = _filter_crime_records_to_buffer(_export_stpaul_crime_records(), crime_sanity_buffer)
     stpaul_points = _points_feature_collection(stpaul_records + stpaul_crime + crash_stpaul)
-    (OUT_DIR / "points_stpaul.json").write_text(json.dumps(stpaul_points))
+    (OUT_DIR / "points_stpaul.json").write_text(json.dumps(stpaul_points, separators=(",", ":")))
     print(f"[OK] {len(stpaul_points['features'])} St. Paul point features")
 
     print("Exporting Minneapolis points...")
     mpls_crime = _filter_crime_records_to_buffer(_export_mpls_crime_records(), crime_sanity_buffer)
     mpls_points = _points_feature_collection(mpls_records + mpls_crime + crash_mpls)
-    (OUT_DIR / "points_mpls.json").write_text(json.dumps(mpls_points))
+    (OUT_DIR / "points_mpls.json").write_text(json.dumps(mpls_points, separators=(",", ":")))
     print(f"[OK] {len(mpls_points['features'])} MPLS point features")
 
     print("Exporting unassigned points (outside every district polygon, e.g. boundary slivers)...")
     unassigned_points = _points_feature_collection(unassigned_records + crash_unassigned)
-    (OUT_DIR / "points_unassigned.json").write_text(json.dumps(unassigned_points))
+    (OUT_DIR / "points_unassigned.json").write_text(json.dumps(unassigned_points, separators=(",", ":")))
     print(f"[OK] {len(unassigned_points['features'])} unassigned point features")
 
     print("Exporting trail lines...")
@@ -529,7 +529,7 @@ def main():
         list(stpaul_map.values()) + list(mpls_map.values())
     ).buffer(TRAIL_BUFFER_DEG)
     trail_lines = _export_trail_lines(trail_boundary)
-    (OUT_DIR / "lines_trails.json").write_text(json.dumps(trail_lines))
+    (OUT_DIR / "lines_trails.json").write_text(json.dumps(trail_lines, separators=(",", ":")))
     print(f"[OK] {len(trail_lines['features'])} trail line features")
 
 

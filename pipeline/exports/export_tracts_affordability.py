@@ -114,7 +114,7 @@ def main():
         except Exception as e:
             print(f"[WARNING] Tract affordability export failed for {city}: {e}")
             continue
-        (OUT_DIR / f"tracts_affordability_{city}.json").write_text(json.dumps(data))
+        (OUT_DIR / f"tracts_affordability_{city}.json").write_text(json.dumps(data, separators=(",", ":")))
         print(f"[OK] {len(data['tracts'])} {city} tracts")
 
 

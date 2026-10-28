@@ -107,7 +107,7 @@ def export_place_index():
     WEB_DATA_DIR.mkdir(parents=True, exist_ok=True)
     out_path = WEB_DATA_DIR / "place_index.json"
     with open(out_path, "w", encoding="utf-8") as f:
-        json.dump(places, f)
+        json.dump(places, f, separators=(",", ":"))
     print(f"[OK] Wrote {len(places)} named places to {out_path}")
     return places
 

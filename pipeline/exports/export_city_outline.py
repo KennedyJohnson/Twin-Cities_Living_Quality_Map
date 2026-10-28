@@ -73,7 +73,7 @@ def export_city_outlines():
         }
         out_path = WEB_DATA_DIR / f"city_outline_{city}.geojson"
         with open(out_path, "w", encoding="utf-8") as f:
-            json.dump(outline, f)
+            json.dump(outline, f, separators=(",", ":"))
         print(f"[OK] Wrote {city} city outline to {out_path}")
 
     divider = build_city_divider(dissolved_by_city["stpaul"], dissolved_by_city["mpls"])
@@ -83,7 +83,7 @@ def export_city_outlines():
     }
     divider_path = WEB_DATA_DIR / "city_divider.geojson"
     with open(divider_path, "w", encoding="utf-8") as f:
-        json.dump(divider_geojson, f)
+        json.dump(divider_geojson, f, separators=(",", ":"))
     print(f"[OK] Wrote city divider line to {divider_path}")
 
     zip_boundaries = load_zip_boundaries()
@@ -95,7 +95,7 @@ def export_city_outlines():
     }
     zip_outline_path = WEB_DATA_DIR / "city_outline_zip.geojson"
     with open(zip_outline_path, "w", encoding="utf-8") as f:
-        json.dump(zip_outline, f)
+        json.dump(zip_outline, f, separators=(",", ":"))
     print(f"[OK] Wrote ZIP-pool outline to {zip_outline_path}")
 
 

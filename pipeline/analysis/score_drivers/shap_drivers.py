@@ -129,7 +129,7 @@ def main():
                                      if d["component"] == comp)
     results["total"]["component_share_pct"] = {k: round(v, 1) for k, v in component_totals.items()}
 
-    OUT.write_text(json.dumps(results, indent=2))
+    OUT.write_text(json.dumps(results, separators=(",", ":")))
     shutil.copy(OUT, DATA / "score_drivers.json")
     for k, r in results.items():
         top = ", ".join(f"{d['label']} {d['share_pct']}%" for d in r["drivers"][:4])
