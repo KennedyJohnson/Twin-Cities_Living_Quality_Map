@@ -68,7 +68,7 @@ jobs:
         working-directory: pipeline
         continue-on-error: true
         run: |
-          pip install "shap>=0.44"
+          pip install "shap==0.54.1"
           python -m analysis.score_drivers.shap_drivers
 
       - name: Save score history to Supabase
