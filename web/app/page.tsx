@@ -36,6 +36,13 @@ const NeighborhoodMap = dynamic(() => import('@/components/NeighborhoodMap'), {
   loading: () => <div>Loading map...</div>,
 });
 
+// Compare mode (see the comment where it is used in the page component).
+type CompareState =
+  | { phase: 'off' }
+  | { phase: 'picking' } // "Compare" pressed: the next district/ZIP picked becomes B
+  | { phase: 'comparing'; district: Neighborhood };
+const COMPARE_OFF: CompareState = { phase: 'off' };
+
 export default function Home() {
   const [selectedDistrict, setSelectedDistrict] = useState<Neighborhood | null>(null);
   const [flyToLocation, setFlyToLocation] = useState<{ lat: number; lon: number } | null>(null);
@@ -116,8 +123,13 @@ export default function Home() {
   // comment, so a district-vs-zip comparison wouldn't be on a shared scale).
   // Radius/place selections can't be compared since they have no stable
   // identity to diff against.
-  const [compareArmed, setCompareArmed] = useState(false);
-  const [compareDistrict, setCompareDistrict] = useState<Neighborhood | null>(null);
+  //
+  // One state value instead of two booleans-ish fields, so "picking" and
+  // "comparing" can never both be on, and every exit path clears both:
+  //   off --Compare--> picking --pick B--> comparing --Exit/new selection--> off
+  const [compare, setCompare] = useState<CompareState>(COMPARE_OFF);
+  const compareArmed = compare.phase === 'picking';
+  const compareDistrict = compare.phase === 'comparing' ? compare.district : null;
 
   const tryAddCompareDistrict = useCallback(
     (candidate: Neighborhood | null) => {
@@ -125,17 +137,13 @@ export default function Home() {
       if (!selectedDistrict || selectedDistrict.is_radius) return false;
       if (!!candidate.is_zip !== !!selectedDistrict.is_zip) return false;
       if (candidate.district_id === selectedDistrict.district_id) return false;
-      setCompareDistrict(candidate);
-      setCompareArmed(false);
+      setCompare({ phase: 'comparing', district: candidate });
       return true;
     },
     [selectedDistrict]
   );
 
-  const exitCompare = () => {
-    setCompareArmed(false);
-    setCompareDistrict(null);
-  };
+  const exitCompare = () => setCompare(COMPARE_OFF);
 
   // Closing Find Your Match should also clear the ranked-region recommendation
   // circles it drew on the map, not just hide the panel.
@@ -302,7 +310,7 @@ export default function Home() {
   const handleDistrictSelect = (district: Neighborhood | null) => {
     if (compareArmed && tryAddCompareDistrict(district)) return;
     setSelectedDistrict(district);
-    setCompareDistrict(null);
+    exitCompare();
   };
 
   const handleAddressSelect = (
@@ -317,7 +325,7 @@ export default function Home() {
     // Shown briefly until NeighborhoodMap's radius-score effect reports the
     // computed 1-mile-radius result for this same searchMarker.
     setSelectedDistrict(district);
-    setCompareDistrict(null);
+    exitCompare();
     setFlyToLocation({ lat, lon });
     setSearchMarker({ lat, lon, label, isNamedPlace, address });
     revealNearbyLayers();
@@ -384,7 +392,7 @@ export default function Home() {
     setActiveRegionId(region.id);
     // Populate the sidebar with the recommended district itself, same as
     // clicking that district on the map (not a radius around one building).
-    setCompareDistrict(null);
+    exitCompare();
     setSearchMarker(null);
     setFlyToLocation(region.center);
     getNeighborhoodById(region.districtId, cityForDistrictId(region.districtId)).then((d) => {
@@ -528,6 +536,7 @@ export default function Home() {
                       onClick={() => {
                         setGranularity('district');
                         setSelectedDistrict(null);
+                        exitCompare();
                       }}
                     >
                       District
@@ -538,6 +547,7 @@ export default function Home() {
                       onClick={() => {
                         setGranularity('zip');
                         setSelectedDistrict(null);
+                        exitCompare();
                       }}
                     >
                       ZIP Code
@@ -614,7 +624,7 @@ export default function Home() {
                 <button
                   type="button"
                   className="deselect-marker-button"
-                  onClick={() => setCompareArmed((v) => !v)}
+                  onClick={() => setCompare((c) => (c.phase === 'picking' ? COMPARE_OFF : { phase: 'picking' }))}
                   style={compareArmed ? { background: '#e6550d', color: 'white' } : undefined}
                 >
                   {compareArmed

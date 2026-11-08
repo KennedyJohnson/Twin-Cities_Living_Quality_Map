@@ -34,25 +34,37 @@ function shortLabel(result: SearchResult): { label: string; isNamedPlace: boolea
   return { label, isNamedPlace: false };
 }
 
+type SearchStatus = 'idle' | 'searching' | 'found' | 'none' | 'failed';
+const SEARCH_ERRORS: Partial<Record<SearchStatus, string>> = {
+  none: 'No location found within the mapped St. Paul/Minneapolis districts',
+  failed: 'Failed to search addresses',
+};
+
 export default function AddressSearch({ onAddressSelect, initialQuery }: AddressSearchProps) {
   const [searchInput, setSearchInput] = useState('');
   const [suggestions, setSuggestions] = useState<SearchResult[]>([]);
   const [selectedAddress, setSelectedAddress] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  // idle -> searching -> found | none | failed. One value instead of
+  // loading + error flags, so "Searching..." and an error never show together.
+  const [status, setStatus] = useState<SearchStatus>('idle');
+  // Each search gets an id; responses from an older search (slower network
+  // reply after the user kept typing) are dropped instead of overwriting.
+  const latestSearch = useRef(0);
   const suggestionsRef = useRef<HTMLDivElement | null>(null);
 
   // Debounce search
   const debounceTimer = useRef<NodeJS.Timeout | undefined>(undefined);
 
   const searchAddresses = async (query: string) => {
+    const searchId = ++latestSearch.current;
+    const isLatest = () => searchId === latestSearch.current;
     if (!query || query.length < 3) {
       setSuggestions([]);
+      setStatus('idle');
       return;
     }
 
-    setLoading(true);
-    setError('');
+    setStatus('searching');
 
     try {
       // Local named places (parks, businesses, buildings from the OSM
@@ -137,16 +149,16 @@ export default function AddressSearch({ onAddressSelect, initialQuery }: Address
       );
       const inBoundsResults = withinBounds.filter((r): r is SearchResult => r !== null);
 
-      if (inBoundsResults.length === 0) {
-        setError('No location found within the mapped St. Paul/Minneapolis districts');
+      if (isLatest()) {
+        setSuggestions(inBoundsResults);
+        setStatus(inBoundsResults.length ? 'found' : 'none');
       }
-      setSuggestions(inBoundsResults);
       return inBoundsResults;
-    } catch (err) {
-      setError('Failed to search addresses');
-      setSuggestions([]);
-    } finally {
-      setLoading(false);
+    } catch {
+      if (isLatest()) {
+        setSuggestions([]);
+        setStatus('failed');
+      }
     }
   };
 
@@ -164,6 +176,11 @@ export default function AddressSearch({ onAddressSelect, initialQuery }: Address
   };
 
   const handleSelectAddress = async (result: SearchResult) => {
+    // A pick ends the search: cancel any pending debounce/in-flight search so
+    // its results can't reopen the suggestion list afterwards.
+    clearTimeout(debounceTimer.current);
+    latestSearch.current++;
+    setStatus('idle');
     setSearchInput(result.display_name);
     setSelectedAddress(result.display_name);
     setSuggestions([]);
@@ -244,8 +261,8 @@ export default function AddressSearch({ onAddressSelect, initialQuery }: Address
         </div>
       )}
 
-      {error && <div className="search-error">{error}</div>}
-      {loading && <div className="search-loading">Searching...</div>}
+      {SEARCH_ERRORS[status] && <div className="search-error">{SEARCH_ERRORS[status]}</div>}
+      {status === 'searching' && <div className="search-loading">Searching...</div>}
     </div>
   );
 }

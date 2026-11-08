@@ -67,3 +67,46 @@ test('moving a personal weight slider updates the hash, reset clears it', async 
   await expect(slider).toHaveValue('5');
   await expect.poll(() => page.evaluate(() => window.location.hash)).toBe('');
 });
+
+test('compare mode: pick a second district, then switching map view exits compare', async ({ page }) => {
+  await page.goto('/');
+
+  const labels = page.locator('.district-name-label');
+  await expect(labels.nth(1)).toBeVisible({ timeout: 15000 });
+  const clickLabel = async (i: number) => {
+    const box = await labels.nth(i).boundingBox();
+    await page.mouse.click(box!.x + box!.width / 2, box!.y + box!.height / 2);
+  };
+
+  await clickLabel(0);
+  await page.getByRole('button', { name: 'Compare', exact: true }).click();
+  await expect(page.getByRole('button', { name: /Click another district/ })).toBeVisible();
+  await clickLabel(1);
+  await expect(page.getByRole('button', { name: 'Exit compare' }).first()).toBeVisible({ timeout: 10000 });
+  await expect(page.getByText(/^vs /).first()).toBeVisible();
+
+  // Switching District -> ZIP clears the selection, so compare must end too.
+  await page.getByRole('button', { name: 'ZIP Code' }).click();
+  await expect(page.getByRole('button', { name: 'Exit compare' })).toHaveCount(0);
+  await expect(page.getByText(/^vs /)).toHaveCount(0);
+});
+
+test('compare mode: switching map view while picking cancels the pick', async ({ page }) => {
+  await page.goto('/');
+
+  const label = page.locator('.district-name-label').first();
+  await expect(label).toBeVisible({ timeout: 15000 });
+  const box = await label.boundingBox();
+  await page.mouse.click(box!.x + box!.width / 2, box!.y + box!.height / 2);
+  await page.getByRole('button', { name: 'Compare', exact: true }).click();
+
+  await page.getByRole('button', { name: 'ZIP Code' }).click();
+  const zip = page.locator('.district-name-label').first();
+  await expect(zip).toBeVisible({ timeout: 15000 });
+  const zbox = await zip.boundingBox();
+  await page.mouse.click(zbox!.x + zbox!.width / 2, zbox!.y + zbox!.height / 2);
+
+  // A fresh selection starts out of compare mode, not still waiting for a second pick.
+  await expect(page.getByRole('button', { name: 'Compare', exact: true })).toBeVisible({ timeout: 10000 });
+  await expect(page.getByRole('button', { name: /Click another/ })).toHaveCount(0);
+});
