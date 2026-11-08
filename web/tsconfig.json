@@ -22,7 +22,6 @@
     "incremental": true,
     "moduleResolution": "bundler",
     "isolatedModules": true,
-    "baseUrl": ".",
     "paths": {
       "@/*": [
         "./*"
