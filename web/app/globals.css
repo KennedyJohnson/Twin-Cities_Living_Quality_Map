@@ -894,9 +894,12 @@ body {
   gap: 10px;
   font-size: 12px;
   flex-shrink: 0;
+  flex-wrap: wrap;
 }
 
 .selected-place-name {
+  flex: 1 1 100%;
+  min-width: 0;
   font-weight: 600;
   color: #333;
   overflow: hidden;
@@ -1266,3 +1269,16 @@ h1, h2 {
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
 }
+
+/* District sidebar: score first, secondary detail tucked into collapsibles */
+.score-hero { margin-bottom: 18px; }
+.score-hero-label { font-size: 12px; font-weight: 600; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 4px; }
+.score-hero .health-score-display { margin-bottom: 8px; }
+.score-hero-summary { font-size: 14px; line-height: 1.45; color: var(--ink-2); margin: 0 0 6px; }
+.sidebar-more { border-top: 1px solid var(--line); padding: 10px 0; }
+.sidebar-more:last-child { border-bottom: 1px solid var(--line); }
+.sidebar-more > summary { cursor: pointer; font-size: 14px; font-weight: 600; color: var(--accent); list-style: none; display: flex; justify-content: space-between; align-items: center; }
+.sidebar-more > summary::-webkit-details-marker { display: none; }
+.sidebar-more > summary::after { content: '+'; font-size: 18px; font-weight: 400; color: var(--ink-3); }
+.sidebar-more[open] > summary::after { content: '−'; }
+.sidebar-more[open] > summary { margin-bottom: 12px; }

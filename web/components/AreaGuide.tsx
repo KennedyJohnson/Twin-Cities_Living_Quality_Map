@@ -5,8 +5,8 @@ import type { Neighborhood } from '@/types/neighborhood';
 import { boundsCenter, boundsForArea, Bounds, listingLinks, ListingFilters } from '@/lib/listingLinks';
 import { estimateCommute, geocodeWorkAddress, setWorkLocation, useWorkLocation } from '@/lib/commute';
 
-// "Moving here?" panel: plain-language character tags, typical housing costs,
-// a rough commute to the user's job, and listing links for this exact area.
+// Area panel: plain-language character tags and typical housing costs ("summary"),
+// or a rough commute to the user's job and listing links for this exact area ("tools").
 
 export function useAreaBounds(district: Neighborhood | null, center?: { lat: number; lon: number } | null) {
   const [bounds, setBounds] = useState<Bounds | null>(null);
@@ -112,6 +112,8 @@ export interface AreaGuideProps {
   homeownershipRate: number | null | undefined;
   medianAge: number | null | undefined;
   filters: ListingFilters;
+  // "summary": character tags and typical costs. "tools": commute and listing links.
+  section?: 'summary' | 'tools';
 }
 
 function vsAvg(value: number, avg: number | null): string {
@@ -149,17 +151,32 @@ function characterTags(p: AreaGuideProps): string[] {
 }
 
 export default function AreaGuide(props: AreaGuideProps) {
-  const { district, center, rent, homeValue, avgRent, avgHomeValue, filters } = props;
+  const { district, center, rent, homeValue, avgRent, avgHomeValue, filters, section = 'summary' } = props;
   const bounds = useAreaBounds(district, center);
   const origin = district.is_radius ? center ?? null : bounds ? boundsCenter(bounds) : null;
+
+  if (section === 'tools') {
+    return (
+      <div>
+        <div className="area-guide-heading">Commute</div>
+        <WorkAddressInput />
+        <CommuteLine from={origin} />
+        {origin && <div style={{ fontSize: '11px', color: '#999' }}>Rough estimate from {district.is_radius ? 'this point' : 'the area’s center'}, not live routing.</div>}
+        <div className="area-guide-heading">Find a place</div>
+        <ListingLinks district={district} bounds={bounds} filters={filters} />
+      </div>
+    );
+  }
+
   const tags = characterTags(props);
   const overRent = filters.maxRent != null && rent != null && rent > filters.maxRent;
   const overPrice = filters.maxHomeValue != null && homeValue != null && homeValue > filters.maxHomeValue;
   const note = district.is_radius ? ' (surrounding district)' : '';
+  if (tags.length === 0 && rent == null && homeValue == null) return null;
 
   return (
     <div className="area-guide">
-      <div className="area-guide-title">Moving here?</div>
+      <div className="area-guide-title">Living here</div>
       {tags.length > 0 && (
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginBottom: '10px' }}>
           {tags.map((t) => (
@@ -170,7 +187,7 @@ export default function AreaGuide(props: AreaGuideProps) {
         </div>
       )}
       {(rent != null || homeValue != null) && (
-        <div style={{ fontSize: '12px', color: '#444', lineHeight: 1.6, marginBottom: '10px' }}>
+        <div style={{ fontSize: '12px', color: '#444', lineHeight: 1.6 }}>
           {rent != null && (
             <div style={overRent ? { color: '#c0392b' } : undefined}>
               Typical rent: <strong>${rent.toLocaleString()}/mo</strong>
@@ -188,12 +205,6 @@ export default function AreaGuide(props: AreaGuideProps) {
           <div style={{ fontSize: '11px', color: '#999' }}>Census medians{note}; current listings may differ.</div>
         </div>
       )}
-      <div className="area-guide-heading">Commute</div>
-      <WorkAddressInput />
-      <CommuteLine from={origin} />
-      {origin && <div style={{ fontSize: '11px', color: '#999' }}>Rough estimate from {district.is_radius ? 'this point' : 'the area’s center'}, not live routing.</div>}
-      <div className="area-guide-heading">Find a place</div>
-      <ListingLinks district={district} bounds={bounds} filters={filters} />
     </div>
   );
 }

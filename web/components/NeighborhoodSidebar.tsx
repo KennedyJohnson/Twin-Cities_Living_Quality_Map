@@ -289,6 +289,23 @@ export default function NeighborhoodSidebar({ district, onSelectDistrict, granul
   const trendDistrictId = district.is_radius ? district.containing_district_id : district.district_id;
   const districtAffordability = trendDistrictId != null ? affordability[String(trendDistrictId)] : undefined;
 
+  // One sentence on where this area stands, from its strongest and weakest components
+  const scoreSummary = (() => {
+    const componentPercentiles = COMPONENT_WEIGHTS
+      .filter(({ key }) => district.indices[key] != null)
+      .map(({ key }) => ({ key, label: indexLabels[key], percentile: indexGrade(key, district.indices[key]!) }))
+      .filter((c): c is typeof c & { percentile: number } => c.percentile != null);
+    if (componentPercentiles.length === 0) return null;
+    const strengths = componentPercentiles.filter((c) => c.percentile >= 65).sort((a, b) => b.percentile - a.percentile).slice(0, 2);
+    const weaknesses = componentPercentiles.filter((c) => c.percentile <= 35).sort((a, b) => a.percentile - b.percentile).slice(0, 2);
+    const comparisonNoun = district.is_radius ? 'nearby 1-mile areas' : district.is_zip ? 'ZIP codes' : 'districts';
+    if (strengths.length === 0 && weaknesses.length === 0) return `Close to average across the board compared with other ${comparisonNoun}.`;
+    const parts: string[] = [];
+    if (strengths.length > 0) parts.push(`Stronger ${strengths.map((c) => c.label.toLowerCase()).join(' and ')}`);
+    if (weaknesses.length > 0) parts.push(`${strengths.length > 0 ? 'weaker' : 'Weaker'} ${weaknesses.map((c) => c.label.toLowerCase()).join(' and ')}`);
+    return parts.join(', but ') + ` than most ${comparisonNoun}.`;
+  })();
+
   return (
     <div className="sidebar">
       <div className="district-title">
@@ -314,25 +331,21 @@ export default function NeighborhoodSidebar({ district, onSelectDistrict, granul
           ? `1-mile radius${district.population > 0 ? ` • ~${district.population.toLocaleString()} residents nearby` : ''}`
           : `Population: ${district.population.toLocaleString()}`}
       </div>
-      <AreaGuide
-        district={district}
-        center={center}
-        percentiles={Object.fromEntries(
-          ['safety', 'amenities', 'transportation', 'walkability_score'].map((k) => [
-            k,
-            district.indices[k] != null ? indexGrade(k, district.indices[k]!) : null,
-          ])
-        )}
-        rent={districtAffordability?.median_gross_rent}
-        homeValue={districtAffordability?.median_home_value}
-        avgRent={districtAverageAffordability('median_gross_rent')}
-        avgHomeValue={districtAverageAffordability('median_home_value')}
-        homeownershipRate={districtAffordability?.homeownership_rate}
-        medianAge={districtAffordability?.median_age}
-        filters={{ maxRent, maxHomeValue, mode: housingMode, minBeds, prefs: listingPrefs }}
-      />
-      <AssessmentCard district={district} />
 
+
+      <div className="score-hero">
+        <div className="score-hero-label">{personalWeights ? 'Your weighted score' : 'Living Quality Score'}</div>
+        <div className="health-score-display">
+          {Math.round(personalWeights ? computeMatchScore(district, personalWeights) : district.health_score)}
+          <GradeBadge percentile={healthScoreGrade} size="large" />
+        </div>
+        {scoreSummary && <p className="score-hero-summary">{scoreSummary}</p>}
+        {personalWeights && (
+          <div style={{ fontSize: '12px', color: '#999' }}>
+            Overall score with equal weights: {Math.round(district.health_score)}. Grade reflects the overall score.
+          </div>
+        )}
+      </div>
 
       {colorMetric && (() => {
         const def = COLOR_METRICS[colorMetric];
@@ -358,31 +371,9 @@ export default function NeighborhoodSidebar({ district, onSelectDistrict, granul
         );
       })()}
 
-      <div style={{ fontSize: '13px', fontWeight: 600, color: '#666', marginBottom: '2px' }}>
-        {personalWeights ? 'Your Weighted Score' : 'Overall Living Quality Score'}
-      </div>
-      <div className="health-score-display">
-        {Math.round(personalWeights ? computeMatchScore(district, personalWeights) : district.health_score)}
-        <GradeBadge percentile={healthScoreGrade} size="large" />
-      </div>
-      {personalWeights && (
-        <div style={{ fontSize: '12px', color: '#999', marginBottom: '4px' }}>
-          Overall score with equal weights: {Math.round(district.health_score)}. Grade reflects the overall score.
-        </div>
-      )}
-
-      <IndexComparisonChart
-        district={district}
-        onSelectIndex={(key) => setExpandedIndex(expandedIndex === key ? null : key)}
-      />
-
-      {!district.is_radius && (
-        <ScoreHistoryChart areaType={district.is_zip ? 'zip' : 'district'} areaId={district.district_id} />
-      )}
-
       <div style={{ marginBottom: '20px' }}>
         <div style={{ fontSize: '13px', fontWeight: '600', marginBottom: '10px', color: '#666' }}>
-          Component Scores <span style={{ fontWeight: 400, color: '#999' }}>(click to see what's included)</span>
+          Scores by category <span style={{ fontWeight: 400, color: '#999' }}>(tap one for details)</span>
         </div>
         <div className="index-grid">
           {(['safety', 'opportunity', 'amenities', 'transportation', 'affordability'] as const)
@@ -612,89 +603,60 @@ export default function NeighborhoodSidebar({ district, onSelectDistrict, granul
         )}
       </div>
 
-      {(() => {
-        const componentPercentiles = COMPONENT_WEIGHTS
-          .filter(({ key }) => district.indices[key] != null)
-          .map(({ key }) => ({
-            key,
-            label: indexLabels[key],
-            score: district.indices[key]!,
-            percentile: indexGrade(key, district.indices[key]!),
-          }))
-          .filter((c): c is typeof c & { percentile: number } => c.percentile != null);
 
-        if (componentPercentiles.length === 0) return null;
+      <AreaGuide
+        section="summary"
+        district={district}
+        center={center}
+        percentiles={Object.fromEntries(
+          ['safety', 'amenities', 'transportation', 'walkability_score'].map((k) => [
+            k,
+            district.indices[k] != null ? indexGrade(k, district.indices[k]!) : null,
+          ])
+        )}
+        rent={districtAffordability?.median_gross_rent}
+        homeValue={districtAffordability?.median_home_value}
+        avgRent={districtAverageAffordability('median_gross_rent')}
+        avgHomeValue={districtAverageAffordability('median_home_value')}
+        homeownershipRate={districtAffordability?.homeownership_rate}
+        medianAge={districtAffordability?.median_age}
+        filters={{ maxRent, maxHomeValue, mode: housingMode, minBeds, prefs: listingPrefs }}
+      />
 
-        const strengths = componentPercentiles
-          .filter((c) => c.percentile >= 65)
-          .sort((a, b) => b.percentile - a.percentile)
-          .slice(0, 3);
-        const weaknesses = componentPercentiles
-          .filter((c) => c.percentile <= 35)
-          .sort((a, b) => a.percentile - b.percentile)
-          .slice(0, 3);
+      <details className="sidebar-more">
+        <summary>Compare with the city average</summary>
+        <IndexComparisonChart
+          district={district}
+          onSelectIndex={(key) => setExpandedIndex(expandedIndex === key ? null : key)}
+        />
 
-        const comparisonNoun = district.is_radius
-          ? 'nearby 1-mile areas'
-          : district.is_zip
-          ? 'ZIP codes'
-          : 'districts';
+        {!district.is_radius && (
+          <ScoreHistoryChart areaType={district.is_zip ? 'zip' : 'district'} areaId={district.district_id} />
+        )}
+      </details>
 
-        const summarize = () => {
-          if (strengths.length === 0 && weaknesses.length === 0) {
-            return `Scores close to average across the board relative to other ${comparisonNoun}.`;
-          }
-          const parts: string[] = [];
-          if (strengths.length > 0) {
-            parts.push(`Strong ${strengths.map((s) => s.label.toLowerCase()).join(' and ')}`);
-          }
-          if (weaknesses.length > 0) {
-            parts.push(`${weaknesses.length > 1 ? 'weaker' : 'lower'} ${weaknesses.map((w) => w.label.toLowerCase()).join(' and ')}`);
-          }
-          const sentence = parts.join(', but ') + ` relative to other ${comparisonNoun}.`;
-          return sentence.charAt(0).toUpperCase() + sentence.slice(1);
-        };
-
-        return (
-          <>
-            <div style={{ marginBottom: '20px' }}>
-              <div style={{ fontSize: '13px', fontWeight: '600', marginBottom: '8px', color: '#666', display: 'flex', alignItems: 'center' }}>
-                <span>Why a</span>
-                {healthScoreGrade != null && <GradeBadge percentile={healthScoreGrade} />}
-                <span style={{ marginLeft: '6px' }}>for {district.district_name}?</span>
-              </div>
-              <div style={{ fontSize: '13px', color: '#444', lineHeight: 1.5, marginBottom: '10px' }}>
-                {summarize()}
-              </div>
-              {strengths.length > 0 && (
-                <div style={{ marginBottom: '8px' }}>
-                  <div style={{ fontSize: '11px', fontWeight: 600, color: '#2a9d5c', marginBottom: '4px' }}>
-                    Top strengths
-                  </div>
-                  <ul style={{ paddingLeft: '18px', fontSize: '12px', color: '#555' }}>
-                    {strengths.map((s) => (
-                      <li key={s.key}>{s.label}: top {Math.max(1, Math.round(100 - s.percentile))}% of {comparisonNoun}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-              {weaknesses.length > 0 && (
-                <div>
-                  <div style={{ fontSize: '11px', fontWeight: 600, color: '#c0392b', marginBottom: '4px' }}>
-                    Weaknesses
-                  </div>
-                  <ul style={{ paddingLeft: '18px', fontSize: '12px', color: '#555' }}>
-                    {weaknesses.map((w) => (
-                      <li key={w.key}>{w.label}: bottom {Math.max(1, Math.round(w.percentile))}% of {comparisonNoun}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </div>
-          </>
-        );
-      })()}
-
+      <details className="sidebar-more">
+        <summary>Plan a move: commute &amp; listings</summary>
+        <AreaGuide
+          section="tools"
+          district={district}
+          center={center}
+          percentiles={Object.fromEntries(
+            ['safety', 'amenities', 'transportation', 'walkability_score'].map((k) => [
+              k,
+              district.indices[k] != null ? indexGrade(k, district.indices[k]!) : null,
+            ])
+          )}
+          rent={districtAffordability?.median_gross_rent}
+          homeValue={districtAffordability?.median_home_value}
+          avgRent={districtAverageAffordability('median_gross_rent')}
+          avgHomeValue={districtAverageAffordability('median_home_value')}
+          homeownershipRate={districtAffordability?.homeownership_rate}
+          medianAge={districtAffordability?.median_age}
+          filters={{ maxRent, maxHomeValue, mode: housingMode, minBeds, prefs: listingPrefs }}
+        />
+        <AssessmentCard district={district} />
+      </details>
     </div>
   );
 }
