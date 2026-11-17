@@ -186,6 +186,9 @@ interface NeighborhoodMapProps {
   // Compare flow) - outlined on the map alongside selectedDistrict so both
   // sides of the comparison are visible, not just the first pick.
   compareDistrict?: Neighborhood | null;
+  // True while the user is picking the second district to compare - the map
+  // zooms back out so the other districts are on screen to click.
+  compareArmed?: boolean;
   flyToLocation?: { lat: number; lon: number } | null;
   searchMarker?: { lat: number; lon: number; label: string; address?: string } | null;
   onClearSearchMarker?: () => void;
@@ -247,6 +250,7 @@ function MapContent({
   onDistrictSelect,
   selectedDistrict,
   compareDistrict = null,
+  compareArmed = false,
   flyToLocation,
   searchMarker,
   onClearSearchMarker,
@@ -502,6 +506,13 @@ function MapContent({
       }
     }
   }, [selectedDistrict]);
+
+  useEffect(() => {
+    if (!compareArmed) return;
+    // Keep the districts clear of the left-hand control panels on desktop
+    const left = map.getContainer().clientWidth > 768 ? 340 : 10;
+    map.flyToBounds(TWIN_CITIES_BOUNDS, { paddingTopLeft: [left, 10], paddingBottomRight: [10, 10] });
+  }, [compareArmed]);
 
   useEffect(() => {
     searchMarkerPropRef.current = searchMarker;
@@ -917,7 +928,10 @@ function MapContent({
         // user back out to the initial zoomed-out extent.
         if (!didFitInitialViewRef.current) {
           didFitInitialViewRef.current = true;
-          map.fitBounds(TWIN_CITIES_BOUNDS, { padding: [10, 10], animate: false });
+          // On desktop, shift the frame right of the left-hand control panels
+          // so western Minneapolis isn't hidden under them.
+          const left = map.getContainer().clientWidth > 768 ? 340 : 10;
+          map.fitBounds(TWIN_CITIES_BOUNDS, { paddingTopLeft: [left, 10], paddingBottomRight: [10, 10], animate: false });
         }
 
         // The map itself (boundaries, districts, outlines) is fully usable at
@@ -1586,6 +1600,7 @@ export default function NeighborhoodMap({
   onDistrictSelect,
   selectedDistrict,
   compareDistrict,
+  compareArmed,
   flyToLocation,
   searchMarker,
   onClearSearchMarker,
@@ -1621,6 +1636,7 @@ export default function NeighborhoodMap({
         onDistrictSelect={onDistrictSelect}
         selectedDistrict={selectedDistrict}
         compareDistrict={compareDistrict}
+        compareArmed={compareArmed}
         flyToLocation={flyToLocation}
         searchMarker={searchMarker}
         onClearSearchMarker={onClearSearchMarker}

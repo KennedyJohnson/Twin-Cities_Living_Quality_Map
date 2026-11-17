@@ -454,6 +454,7 @@ export default function Home() {
           onDistrictSelect={handleDistrictSelect}
           selectedDistrict={selectedDistrict}
           compareDistrict={compareDistrict}
+          compareArmed={compareArmed}
           flyToLocation={flyToLocation}
           searchMarker={searchMarker}
           onClearSearchMarker={deselectPlace}
