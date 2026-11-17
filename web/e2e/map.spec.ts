@@ -25,7 +25,7 @@ test('clicking a district shows details in the sidebar', async ({ page }) => {
   const box = await label.boundingBox();
   await page.mouse.click(box!.x + box!.width / 2, box!.y + box!.height / 2);
 
-  await expect(page.getByText('Component Scores', { exact: false })).toBeVisible({ timeout: 10000 });
+  await expect(page.getByText('Scores by category', { exact: false })).toBeVisible({ timeout: 10000 });
   await expect(page.getByText(/Population:/)).toBeVisible();
 });
 
