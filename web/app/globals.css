@@ -1258,3 +1258,11 @@ h1, h2 {
 .tag-chip { background: var(--surface); }
 .legend-title, .match-finder-section-title, .click-mode-toggle-label, .area-guide-heading { color: var(--accent); }
 .leaflet-container { background: #e9eef0; }
+
+/* UI baseline: keyboard focus, reduced motion, text wrapping */
+:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+:where(h1, h2, h3) { text-wrap: balance; }
+:where(p, li, figcaption) { text-wrap: pretty; }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
+}
